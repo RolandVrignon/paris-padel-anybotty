@@ -1,0 +1,10 @@
+node_modules/
+config.json
+config.*.local.json
+.env
+.env.*
+!.env.example
+logs/
+observations/
+img/
+*.ics

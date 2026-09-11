@@ -1,0 +1,59 @@
+name: Tennis booking dry-run
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  run-once:
+    name: dry-run script
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Create config.json from variables
+        env:
+          CONFIG_JSON: ${{ vars.CONFIG_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -n "${CONFIG_JSON:-}" ]; then
+            printf "%s" "$CONFIG_JSON" > config.json
+            echo "config.json created from CONFIG_JSON secret"
+          else
+            echo "ERROR: Missing CONFIG_JSON secret." >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci --production --ignore-scripts
+      
+      - name: Cache Playwright browser
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+      
+      - name: Install Playwright browser (only-shell)
+        run: npx playwright install chromium --only-shell
+
+      - name: Run script
+        env:
+          ACCOUNT_EMAIL: ${{ secrets.ACCOUNT_EMAIL }}
+          ACCOUNT_PASSWORD: ${{ secrets.ACCOUNT_PASSWORD }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_DOMAIN: ${{ secrets.NTFY_DOMAIN }}
+        run: npm run start-dry

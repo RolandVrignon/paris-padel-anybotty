@@ -1,0 +1,155 @@
+[
+  {
+    "id": "paris-padel",
+    "name": "Paris Padel",
+    "url": "https://anybuddyapp.com/fr/club/paris-padel/padel",
+    "observation": {
+      "source": "user_manual_observation",
+      "date": "2026-09-11",
+      "lastAvailableDate": "2026-09-19",
+      "horizonDays": 8
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    }
+  },
+  {
+    "id": "ucpa-paris",
+    "name": "UCPA Sport Station Hostel Paris",
+    "url": "https://anybuddyapp.com/fr/club/ucpa-sport-station-a-paris-paris/padel",
+    "observation": {
+      "source": "user_manual_observation",
+      "date": "2026-09-11",
+      "lastAvailableDate": "2026-09-19",
+      "horizonDays": 8
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    }
+  },
+  {
+    "id": "sportfield-bercy",
+    "name": "Sportfield Paris 12 - Bercy",
+    "url": "https://anybuddyapp.com/fr/club/sportfield-bercy-paris/padel",
+    "observation": {
+      "source": "user_manual_observation",
+      "date": "2026-09-11",
+      "lastAvailableDate": "2026-09-25",
+      "horizonDays": 14
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    }
+  },
+  {
+    "id": "4padel-paris-20",
+    "name": "4PADEL Paris 20",
+    "url": "https://anybuddyapp.com/fr/club/4padel-paris-20/padel",
+    "observation": {
+      "source": "user_manual_observation",
+      "date": "2026-09-11",
+      "lastAvailableDate": "2026-09-14",
+      "horizonDays": 3
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    }
+  },
+  {
+    "id": "aquaboulevard",
+    "name": "Forest Hill Aquaboulevard De Paris",
+    "url": "https://anybuddyapp.com/fr/club/aquaboulevard-de-paris/padel",
+    "observation": {
+      "source": "user_manual_observation",
+      "date": "2026-09-11",
+      "lastAvailableDate": "2026-09-17",
+      "horizonDays": 6
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    }
+  },
+  {
+    "id": "4padel-saint-ouen",
+    "name": "4Padel Saint-Ouen",
+    "url": "https://anybuddyapp.com/fr/club/4-padel-saint-ouen-saint-ouen-sur-seine/padel",
+    "observation": {
+      "source": "user_manual_observation",
+      "date": "2026-09-11",
+      "lastAvailableDate": "2026-09-12",
+      "horizonDays": 1
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    }
+  },
+  {
+    "id": "trinquet-village",
+    "name": "Trinquet Village",
+    "url": "https://anybuddyapp.com/fr/club/trinquet-village-paris/padel",
+    "observation": {
+      "source": "user_manual_observation",
+      "date": "2026-09-11",
+      "lastAvailableDate": "2026-09-25",
+      "horizonDays": 14
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    }
+  },
+  {
+    "id": "padelistes-bercy",
+    "name": "Padelistes Bercy - Paris 12",
+    "url": "https://anybuddyapp.com/fr/club/les-padelistes-bercy-paris/padel",
+    "observation": {
+      "source": "user_manual_observation",
+      "date": "2026-09-11",
+      "lastAvailableDate": "2026-09-19",
+      "horizonDays": 8
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    }
+  },
+  {
+    "id": "padel-15",
+    "name": "Padel 15",
+    "url": "https://anybuddyapp.com/fr/club/padel-15-paris/padel",
+    "observation": {
+      "source": "user_manual_observation",
+      "date": "2026-09-11",
+      "lastAvailableDate": "2026-09-16",
+      "horizonDays": 5
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    }
+  }
+]

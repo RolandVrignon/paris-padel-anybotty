@@ -1,0 +1,45 @@
+{
+  "name": "paris-padel-anybotty",
+  "version": "0.1.0",
+  "description": "Prepare high-demand padel bookings and investigate Anybuddy opening windows",
+  "keywords": [
+    "padel",
+    "anybuddy",
+    "anybotty",
+    "availability"
+  ],
+  "homepage": "https://github.com/RolandVrignon/paris-padel-anybotty",
+  "bugs": {
+    "url": "https://github.com/RolandVrignon/paris-padel-anybotty/issues"
+  },
+  "main": "scripts/anybotty.js",
+  "author": "Roland Vrignon; based on par-ici-tennis by Bertrand d’Aure",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RolandVrignon/paris-padel-anybotty.git"
+  },
+  "packageManager": "npm@11.6.2",
+  "scripts": {
+    "start": "node scripts/anybotty.js status",
+    "clubs:list": "node scripts/anybotty.js clubs",
+    "booking:plan": "node scripts/anybotty.js plan",
+    "eslint": "eslint .",
+    "test": "node --test tests/*.test.js",
+    "test:reference": "node scripts/test-reference.js",
+    "postinstall": "npx playwright install chromium"
+  },
+  "dependencies": {
+    "@gradio/client": "^2.6.0",
+    "dayjs": "^1.11.23",
+    "ics": "^3.12.0",
+    "playwright": "^1.63.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "eslint": "^10.10.0",
+    "globals": "^17.12.0"
+  }
+}
