@@ -12,8 +12,8 @@ try {
   const catalog = readJson(resolve(root, 'data/clubs.json'))
   let result
   if (command === 'status' && !args.length) result = {
-    project: 'Paris Padel - anybotty', phase: 'booking_preview', automaticBooking: false,
-    openingMonitoring: 'available_via_observe_script', bookingSearch: 'preview_only', clubs: catalog.length,
+    project: 'Paris Padel - anybotty', phase: 'booking_payment', automaticBooking: true,
+    openingMonitoring: 'available_via_observe_script', bookingSearch: 'preview_default_or_explicit_pay', clubs: catalog.length,
     nextStep: 'Run observe:report for recorded evidence; scheduling status must be checked on the host.',
   }
   else if (command === 'clubs' && !args.length) result = catalog

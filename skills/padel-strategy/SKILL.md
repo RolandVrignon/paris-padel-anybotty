@@ -58,7 +58,7 @@ Parcourir les clubs **dans l’ordre de la demande** :
 4. Si l’utilisateur a choisi la disponibilité immédiate, autoriser la recherche parmi les clubs disponibles dans leur ordre ; signaler les clubs prioritaires non encore ouverts qui sont écartés pour cette tentative.
 5. Après la fenêtre d’ouverture attendue, reconsulter les faits. Une estimation non réalisée devient incertaine ; ne pas repousser indéfiniment l’attente ni déclarer automatiquement le club complet. Après un échec confirmé au club préféré, vérifier à nouveau le plan B avant de le proposer.
 
-Ne jamais prendre un club de repli comme assurance avec l’intention de l’annuler ensuite sans instruction explicite : une annulation relève de `padel-reservations` et le paiement final reste non implémenté.
+Ne jamais prendre un club de repli comme assurance avec l’intention de l’annuler ensuite sans instruction explicite : une annulation relève de `padel-reservations` et une réservation payante exige une demande de réservation réelle.
 
 ## Réponse et transmission à l’exécution
 
@@ -72,4 +72,4 @@ Le moteur brut `booking-search.js` essaie toujours immédiatement les possibilit
 
 **Attendre est une décision, pas encore une tâche programmée.** Si l'utilisateur demande de programmer la tentative et qu'une règle d'ouverture documentée est disponible, utiliser `padel-scheduling` : demande figée sur le club prioritaire, cron Hermes ponctuel, puis vérification de son enregistrement. Sans heure connue, ne pas inventer de programmation. Le timer d'observation ne déclenche pas le moteur. Après le résultat du club prioritaire, réévaluer le plan B ; ne pas programmer des tentatives concurrentes pour la même intention.
 
-Les limites de `padel-booking` s’appliquent : arrêt au récapitulatif, aucun paiement final, aucune réservation confirmée. Une offre `checkout_ready` ne doit jamais être annoncée comme réservée.
+Transmettre aussi le mode demandé à `padel-booking` : simulation par défaut, `--pay` pour une réservation réelle autorisée. Après un paiement incertain ou une validation bancaire requise, suspendre le plan B et réconcilier la réservation. Une offre `checkout_ready` ne doit jamais être annoncée comme réservée.

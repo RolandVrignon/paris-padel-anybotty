@@ -1,6 +1,6 @@
 # Paris Padel — anybotty
 
-Préparer un créneau de padel sur **Anybuddy**, suivre les ouvertures et gérer ses réservations depuis un terminal ou en **langage naturel avec Hermes et Telegram sur un VPS**.
+Réserver un créneau de padel sur **Anybuddy**, suivre les ouvertures et gérer ses réservations depuis un terminal ou en **langage naturel avec Hermes et Telegram sur un VPS**.
 
 Le projet est indépendant d’Anybuddy. Il dérive de [Paris Tennis](https://github.com/RolandVrignon/par-ici-tennis), dont la base est conservée dans [`reference/paris-tennis/`](reference/paris-tennis/) et documentée dans [ORIGIN.md](ORIGIN.md).
 
@@ -14,6 +14,7 @@ Pour utiliser le bot directement, consulter [Hermes et Telegram](#piloter-depuis
 - [Configurer les préférences](#configurer-les-préférences)
 - [Connexion Anybuddy](#connexion-anybuddy)
 - [Chercher parmi les clubs préférés](#chercher-parmi-les-clubs-préférés)
+- [Réserver et payer](#réserver-et-payer)
 - [Simuler une réservation](#simuler-une-réservation)
 - [Clubs et horizons observés](#clubs-et-horizons-observés)
 - [Surveillance toutes les cinq minutes](#surveillance-toutes-les-cinq-minutes)
@@ -34,14 +35,14 @@ Pour utiliser le bot directement, consulter [Hermes et Telegram](#piloter-depuis
 | Surveillance des ouvertures sur huit clubs, toutes les cinq minutes | Disponible via le timer systemd |
 | Connexion Anybuddy et réutilisation de session | Disponible avec Playwright |
 | Choix de durée, intérieur/extérieur et terrain dans la modale | Disponible |
-| Recherche dans l’ordre des clubs, avec plafond horaire | Disponible ; arrêt au premier récapitulatif conforme |
+| Recherche dans l’ordre des clubs, avec plafond horaire | Disponible ; simulation ou paiement explicite |
 | Simulation d’un créneau jusqu’au formulaire Stripe | Disponible |
-| Stratégie et simulation programmée à l’ouverture | Disponible via les skills et le cron Hermes |
-| Confirmation d’une nouvelle réservation et paiement final | À implémenter |
+| Stratégie et tentative programmée à l’ouverture | Disponible via les skills et le cron Hermes |
+| Confirmation d’une nouvelle réservation et paiement final | Disponible avec `booking:pay` ; parcours réel validé à UCPA |
 | Liste et détails des réservations Anybuddy | Disponible, lecture validée sur le compte réel |
-| Annulation Anybuddy avec vérification du statut | Implémentée ; confirmation testée sur données simulées |
+| Annulation Anybuddy avec vérification du statut | Validée sur la réservation réelle UCPA, statut annulé vérifié |
 
-**`npm start` affiche l’état du projet ; il ne réserve rien et ne lance pas la surveillance.** `booking:search` essaie les clubs configurés pour une date et une heure ; `checkout:preview` teste un club explicite. Ces deux commandes restent sans paiement final.
+**`npm start` affiche l’état du projet ; il ne réserve rien et ne lance pas la surveillance.** `booking:search` essaie les clubs configurés pour une date et une heure ; `checkout:preview` teste un club explicite. Sans option, elles restent sans paiement final. `booking:pay` (ou `booking:search -- --pay`) réalise une réservation payante.
 
 ## Démarrage rapide
 
@@ -105,7 +106,7 @@ Pour préparer le remplissage du formulaire Stripe, une section optionnelle `pay
 }
 ```
 
-Toutes les valeurs restent des chaînes entre guillemets : mois sur deux chiffres (`MM`), année sur quatre chiffres (`YYYY`), CVC sur trois ou quatre chiffres, pays sur deux lettres. Renseigner ces données uniquement dans le fichier local privé ; le fichier `.sample` conserve les champs vides. Ne pas envoyer la carte dans Telegram ou la conversation. Le remplissage est disponible uniquement avec l’option explicite `--to-stripe --fill-card` de `checkout:preview`. Aucun paiement final n’est confirmé ; les recherches et tâches programmées ne remplissent pas automatiquement la carte.
+Toutes les valeurs restent des chaînes entre guillemets : mois sur deux chiffres (`MM`), année sur quatre chiffres (`YYYY`), CVC sur trois ou quatre chiffres, pays sur deux lettres. Renseigner ces données uniquement dans le fichier local privé ; le fichier `.sample` conserve les champs vides. Ne pas envoyer la carte dans Telegram ou la conversation. Le mode `booking:pay` remplit la carte et confirme le paiement ; `checkout:preview -- --to-stripe --fill-card` remplit seulement le formulaire. Les tâches programmées peuvent utiliser `mode: "pay"`. Le bloc `payment` doit être renseigné sur la machine qui exécute la réservation : le déploiement du code ne transfère pas la carte vers le VPS.
 
 ## Configurer les préférences
 
@@ -219,7 +220,7 @@ Cette commande lit la date, l’heure, la liste des clubs, les durées, les type
 
 Les conditions restent non cochées et aucun bouton Payer n’est cliqué. Le résultat `checkout_ready` signifie **offre préparée**, pas réservation confirmée. Comme pour la simulation individuelle, la préparation peut laisser des paniers impayés côté serveur.
 
-La recherche ne patiente pas jusqu’à une ouverture future et ne programme pas de nouveau passage. Le déclenchement à l’ouverture passe par `padel-scheduling` ; le paiement final reste à implémenter. Elle refuse une heure de départ passée et limite chaque club à 50 tentatives pour éviter une boucle sur des offres changeantes.
+La recherche ne patiente pas jusqu’à une ouverture future et ne programme pas de nouveau passage. Le déclenchement à l’ouverture passe par `padel-scheduling` ; le mode `pay` permet le paiement final. Elle refuse une heure de départ passée et limite chaque club à 50 tentatives pour éviter une boucle sur des offres changeantes.
 
 ### Résultat et journal
 
@@ -232,7 +233,47 @@ Le JSON final est écrit sur la sortie standard et dans `.auth/booking-search/la
 | `incomplete` | Une erreur technique ou la limite de tentatives empêche de conclure à l’absence d’offres | 1 |
 | `blocked` | Session/navigateur indisponible, ou restriction d’accès HTTP 401/403/429 | 1 |
 
-Une erreur technique n’est pas comptée comme une indisponibilité. Le moteur essaie la possibilité suivante lorsque c’est possible, mais s’arrête sur une restriction d’accès ou une session inutilisable. Un verrou local empêche deux recherches simultanées dans ce dépôt ; il ne constitue pas encore une protection contre les doubles réservations payées. Relancer la commande recommence une recherche.
+Une erreur technique n’est pas comptée comme une indisponibilité. Le moteur essaie la possibilité suivante lorsque c’est possible, mais s’arrête sur une restriction d’accès ou une session inutilisable. Un verrou local empêche deux recherches simultanées dans ce dépôt. Le mode réel vérifie aussi les réservations existantes et conserve un journal avant paiement. Ces protections concernent une installation ; éviter de payer simultanément depuis le Mac, le VPS et l’application mobile.
+
+## Réserver et payer
+
+Une fois le compte, la carte privée et les souhaits configurés :
+
+```sh
+# Vérifier la configuration locale sans afficher la carte ni contacter la banque
+npm run payment:check
+# Réservation réelle avec navigateur visible
+npm run booking:pay
+# Même réservation depuis le VPS
+npm run booking:pay -- --headless
+# Demande ponctuelle
+npm run booking:pay -- --config /chemin/demande.json --headless
+```
+
+Ces commandes effectuent **un vrai paiement**. Le moteur essaie les possibilités dans l’ordre club → durée → intérieur/extérieur → terrain. Au premier récapitulatif conforme, il accepte les conditions connues, ouvre Stripe, sélectionne Carte bancaire, remplit les champs privés et revérifie le club, la date, l’heure, le terrain, la durée et le total. Le plafond `maxPricePerHourEUR` s’applique toujours ; un changement du total depuis le récapitulatif bloque le paiement.
+
+Le bouton final est identifié dans le checkout par son libellé exact et son montant. Son clic DOM évite le déplacement vers Revolut Pay constaté pendant le test UCPA. Une seule requête de confirmation Stripe est autorisée ; les autres confirmations restent bloquées. Aucun nouveau paiement n’a été effectué pour tester cette intégration : les régressions s’exécutent sur des fixtures locales.
+
+Le succès exige une **nouvelle réservation confirmée dans le compte Anybuddy**, correspondant au club, terrain, date, heure et durée. Un simple écran de succès ou un paiement Stripe `requires_capture` ne suffit pas. Ce dernier état indique une autorisation en attente de capture, selon le [cycle PaymentIntent de Stripe](https://docs.stripe.com/payments/paymentintents/lifecycle).
+
+| Statut | Signification | Code |
+| --- | --- | --- |
+| `booked` | Réservation confirmée dans Anybuddy ; arrêt du moteur | 0 |
+| `existing_reservation` | Une réservation existe déjà à cette heure ; pas de nouveau paiement, consulter son statut | 0 |
+| `payment_failed` | Refus ou annulation Stripe ; aucun nouvel essai automatique | 1 |
+| `payment_action_required` | Validation bancaire requise | 1 |
+| `payment_unverified` | Paiement potentiellement soumis, réservation non confirmée ; relecture seulement | 1 |
+
+En mode visible, le script attend jusqu’à trois minutes après le clic pour une éventuelle validation bancaire manuelle et la confirmation. En mode masqué, une demande 3DS arrête le parcours avec `payment_action_required`. Ne pas relancer un paiement pour résoudre cette situation ; vérifier d’abord l’état du compte. Le bot ne contourne pas la validation bancaire.
+
+Avant le clic, une trace sans carte est écrite dans `.auth/payments/`. La clé regroupe le compte, la date et l’heure, indépendamment des clubs ou durées de repli. Un lancement ultérieur pour la même intention relit son état sans soumettre un second paiement, même après une interruption. Ne pas effacer ces traces pour forcer un nouvel essai ; une réservation annulée ensuite ne réactive pas automatiquement son paiement.
+
+```sh
+# Vérification seule après interruption, avec la demande originale
+npm run booking:reconcile -- --config /chemin/demande.json --headless
+```
+
+Les refus bancaires et résultats incertains interrompent la recherche avant tout plan B. Les captures d’écran sont désactivées dès l’entrée dans le parcours de paiement et les erreurs de saisie n’affichent jamais les valeurs de carte. Le parcours réel UCPA du 19 septembre 2026, 07 h–08 h, 38 €, a été payé puis annulé pour validation ; cela ne garantit pas l’acceptation bancaire d’un prochain paiement.
 
 ## Simuler une réservation
 
@@ -264,7 +305,7 @@ Après avoir renseigné `payment` dans le fichier privé `config.fixed.json`, l�
 npm run checkout:preview -- --club ucpa-paris --date 2026-09-19 --time 07:00 --duration 60 --to-stripe --fill-card
 ```
 
-Remplacer la date par celle souhaitée. `--fill-card` exige `--to-stripe` ; les commandes de recherche et les crons ne l’activent pas. L’ouverture du formulaire crée une session de paiement ou un panier impayé côté serveur, pas une réservation confirmée.
+Remplacer la date par celle souhaitée. `--fill-card` exige `--to-stripe` ; cette commande reste une simulation. Pour payer, utiliser `booking:pay` ou un job `mode: "pay"`. L’ouverture du formulaire crée une session de paiement ou un panier impayé côté serveur, pas une réservation confirmée.
 
 Les [attributs HTML relevés sur le formulaire UCPA](data/stripe-card-fields.json) sont conservés sans valeurs de carte :
 
@@ -428,7 +469,7 @@ Les tests locaux couvrent notamment la configuration, les préférences, les mod
 
 Une fois le VPS configuré, écrire directement au bot Telegram en français. Il n’est pas nécessaire de connaître les commandes du dépôt, les IDs des clubs ou la structure des fichiers JSON : Hermes choisit le skill adapté et exécute les commandes du projet.
 
-**Les nouvelles recherches s’arrêtent au récapitulatif, sans paiement ni réservation confirmée.** La gestion des réservations existantes permet, elle, une annulation réelle sur demande explicite. Une recherche immédiate, une tentative programmée et une réservation du compte sont trois objets distincts.
+**La recherche simule par défaut ; une demande de réservation réelle utilise le mode `pay`.** La gestion des réservations existantes permet, elle, une annulation réelle sur demande explicite. Une recherche immédiate, une tentative programmée et une réservation du compte sont trois objets distincts.
 
 ### Installer les skills sur le VPS
 
@@ -475,6 +516,9 @@ Après installation ou mise à jour, envoyer **`/reload-skills`** dans Telegram 
 - « Enregistre Paris Padel, puis UCPA, puis Sportfield Bercy dans cet ordre. Je préfère 60 minutes, sinon 90 ; pas de 120 minutes. »
 - « Mets intérieur en premier choix, extérieur accepté, avec un plafond de 80 € par heure pour le terrain entier. »
 - « Pour cette recherche seulement, prends extérieur uniquement et 90 minutes. Ne change pas mes préférences enregistrées. »
+- « Réserve et paie lundi prochain à 20 h, Paris Padel puis UCPA, 60 ou 90 minutes, intérieur préféré, maximum 80 €/h. »
+- « Programme cette réservation réelle à l’ouverture vérifiée du club prioritaire. »
+- « Vérifie le résultat du dernier paiement sans le relancer. »
 - « Simule un créneau lundi prochain à 20 h chez Sportfield Bercy, 60 puis 90 minutes, sans payer. »
 - « Quel est le résultat de ma dernière recherche ? »
 
@@ -531,7 +575,7 @@ Si le club préféré est déjà ouvert sans offre compatible, ou si l’utilisa
 
 Cette décision est portée par le skill : Hermes transmet au moteur une demande temporaire limitée aux clubs autorisés. **La commande brute `booking:search` conserve son comportement immédiat** et ne connaît pas cette stratégie. Les préférences enregistrées ne sont pas réordonnées.
 
-Une décision d’attendre ne programme pas de recherche future : le timer collecte toujours les disponibilités, mais ne réserve pas et ne relance pas le moteur. Sur demande, `padel-scheduling` programme une simulation via le cron natif Hermes lorsque la règle d’ouverture est documentée. Le paiement final reste une étape distincte.
+Une décision d’attendre ne programme pas de recherche future : le timer collecte toujours les disponibilités, mais ne réserve pas et ne relance pas le moteur. Sur demande, `padel-scheduling` programme une simulation (`preview`) ou une réservation réelle (`pay`) via le cron natif Hermes lorsque la règle d’ouverture est documentée. Le mode est figé dans la tâche ; les anciennes simulations restent sans paiement.
 
 ### Programmer selon la politique d’ouverture
 
@@ -562,7 +606,7 @@ Cet objet est la valeur de `opening`. Le skill décrit aussi les règles `weekly
 
 Les tâches et leurs résultats restent dans `.auth/scheduled-bookings/`, ignoré par Git. Une tentative est consommée une seule fois. Un retard de plus de cinq minutes donne `missed` ; la recherche est limitée à 90 secondes (timeout natif Hermes attendu : au moins 120 secondes). Une interruption peut laisser `running` et exige une vérification avant une nouvelle tentative. Le scheduler et le démarrage du navigateur ne garantissent pas une exécution à la seconde.
 
-Le résultat revient dans le chat d’origine via Hermes : **récapitulatif atteint, pas réservation confirmée**. Aucun paiement final, retry implicite ni passage automatique au plan B. Il faut réévaluer la stratégie après l’échec du club préféré.
+Le résultat revient dans le chat d’origine via Hermes : `checkout_ready` en simulation, `booked` uniquement après confirmation Anybuddy en mode réel. Ajouter `"mode":"pay"` à côté de `request` et `opening` dans le JSON de préparation pour une réservation réelle ; le défaut reste `preview`. Une interruption en mode réel donne un résultat de paiement incertain à réconcilier. Aucun retry implicite ni passage automatique au plan B après paiement. Il faut réévaluer la stratégie après l’échec du club préféré.
 
 ### Réservations du compte et annulation
 

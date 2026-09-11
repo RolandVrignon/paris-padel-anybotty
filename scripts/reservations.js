@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { loadFixedConfig, repositoryDirectory, validateAccount } from '../lib/config.js'
 import { checkSession } from '../lib/anybuddy-session.js'
 import { discoverMatchesAction, readMatchesPage } from '../lib/anybuddy-actions.js'
-import { listReservations, cancelReservation, cancellationDialog } from '../lib/account-reservations.js'
+import { listReservations, cancelReservation, cancellationDialog, readCancelledReservation } from '../lib/account-reservations.js'
 import { acquireLock } from '../lib/observation-store.js'
 
 let browser
@@ -41,11 +41,19 @@ try {
     if (!await checkSession(context, fixed.account.email)) throw new Error('Session expired; run npm run auth:login')
   }
   await assertSession()
+  const discoveryPage = await context.newPage()
+  const action = await discoverMatchesAction(discoveryPage)
+  await discoveryPage.close()
   const page = await context.newPage()
-  const action = await discoverMatchesAction(page)
+  const journal = id ? join(directory, `cancel-${id}.json`) : null
   const read = async () => {
     await assertSession()
-    return listReservations(after => readMatchesPage(context, action, after))
+    const reservations = await listReservations(after => readMatchesPage(context, action, after))
+    if (id && !reservations.some(item => item.id === id) && existsSync(journal)) {
+      const previous = JSON.parse(readFileSync(journal, 'utf8')).reservation
+      if (previous?.id === id) reservations.push(await readCancelledReservation(page, previous))
+    }
+    return reservations
   }
   let result
   if (command === 'list') {
@@ -57,13 +65,13 @@ try {
     result = { status: 'ok', checkedAt: new Date().toISOString(), reservation }
   } else {
     let dialog
-    const journal = join(directory, `cancel-${id}.json`)
     const save = entry => {
       const temporary = `${journal}.tmp`
       writeFileSync(temporary, JSON.stringify({ ...entry, updatedAt: new Date().toISOString() }), { mode: 0o600 })
       renameSync(temporary, journal)
     }
     result = await cancelReservation({ id, read, confirm: options['--confirm'], expectedVersion: options['--expected-version'],
+      readCancelled: reservation => readCancelledReservation(page, reservation),
       openDialog: async reservation => { dialog = await cancellationDialog(page, reservation); return dialog.terms },
       beforeSubmit: async () => {
         await assertSession()

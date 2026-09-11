@@ -91,3 +91,28 @@ test('late jobs expire and failed execution yields a durable blocked result', as
   store.attach(retry.id, 'cron-retry')
   assert.equal((await store.run(retry.id, async () => { throw new Error('failure') }, { now: new Date(retry.openingAt) })).status, 'blocked')
 })
+
+test('scheduled payment mode is frozen, propagates success and never replays after payment', async t => {
+  const { store } = makeStore(t)
+  const job = store.prepare({ ...input, mode: 'pay' }, catalog, { now })
+  assert.equal(job.mode, 'pay')
+  store.attach(job.id, 'cron-payment')
+  const result = await store.run(job.id, async (actual, mode) => {
+    assert.equal(mode, 'pay')
+    assert.deepEqual(actual, request)
+    return { status: 'booked', paymentSubmitted: true, reservationConfirmed: true }
+  }, { now: new Date(job.openingAt) })
+  assert.equal(result.reservationConfirmed, true)
+  assert.equal(result.paymentSubmitted, true)
+  assert.equal((await store.run(job.id, () => assert.fail('Repeat payment'))).status, 'skipped')
+})
+
+test('interrupted real jobs retain uncertain payment rather than claiming nothing was paid', async t => {
+  const { store } = makeStore(t)
+  const job = store.prepare({ ...input, mode: 'pay' }, catalog, { now })
+  store.attach(job.id, 'cron-payment')
+  const result = await store.run(job.id, async () => { throw new Error('Killed child') }, { now: new Date(job.openingAt) })
+  assert.equal(result.status, 'payment_unverified')
+  assert.equal(result.paymentSubmitted, null)
+  assert.equal(result.reservationConfirmed, false)
+})

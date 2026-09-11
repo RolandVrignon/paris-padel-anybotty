@@ -39,7 +39,10 @@
     "checkout:preview": "node scripts/checkout-preview.js",
     "booking:search": "node scripts/booking-search.js",
     "padel": "node scripts/padel.js",
-    "hermes:install": "node scripts/install-hermes-skills.js"
+    "hermes:install": "node scripts/install-hermes-skills.js",
+    "booking:pay": "node scripts/booking-search.js --pay",
+    "booking:reconcile": "node scripts/booking-search.js --reconcile",
+    "payment:check": "node scripts/check-payment.js"
   },
   "dependencies": {
     "@gradio/client": "^2.6.0",

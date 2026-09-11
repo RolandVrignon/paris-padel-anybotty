@@ -5,7 +5,7 @@ description: Programmer, consulter et annuler une tentative padel à l'ouverture
 
 # Programmer une tentative à l'ouverture
 
-Dépôt : `'{{PROJECT_DIR}}'`. Exécution actuelle : **simulation jusqu'au récapitulatif**, sans paiement final ni réservation confirmée. Ne pas présenter la programmation comme une réservation garantie.
+Dépôt : `'{{PROJECT_DIR}}'`. Deux modes : `preview` (simulation par défaut) et `pay` (réservation réelle avec paiement explicitement demandé). Ne pas présenter la programmation comme une réservation garantie.
 
 ## Préparer la décision
 
@@ -13,7 +13,7 @@ Lire `padel-strategy`, la demande et les observations. Un job cible **un seul cl
 
 Vérifier la session avec `node '{{PROJECT_DIR}}/scripts/login.js' --check --headless` avant de programmer. Si elle est expirée, rétablir la connexion selon `padel-booking`. Ne jamais mettre les credentials dans le JSON ou le cron.
 
-Écrire un fichier temporaire privé contenant `request` (format config.request.json) et `opening`. Règles prises en charge, toujours en Europe/Paris :
+Écrire un fichier temporaire privé contenant `request` (format config.request.json), `opening` et `mode`. Utiliser `"mode":"pay"` pour une demande explicite de réservation réelle, `"mode":"preview"` pour une simulation. Le mode est figé à la préparation ; les anciens jobs restent en simulation. Une demande de réservation réelle déjà autorisée ne nécessite pas une seconde approbation au déclenchement. Vérifier que le paiement est configuré localement sans lire les valeurs de carte ; voir `padel-booking`. Règles prises en charge, toujours en Europe/Paris :
 
 - Quotidienne : `{"mode":"daily","horizonDays":8,"localTime":"08:00","source":"verified_observation","evidence":"références et dates des relevés indépendants"}`. La date du match moins 8 jours ouvre à 08 h. Cet horaire est un exemple, pas une règle réelle d'un club.
 - Hebdomadaire : `{"mode":"weekly","releaseWeekday":5,"targetWeekOffset":1,"localTime":"18:00",...}` : vendredi de la semaine précédente pour toute la semaine suivante, semaines du lundi au dimanche. Offset 0 = semaine en cours. Ne pas ajouter J+x à cette règle.
@@ -42,4 +42,4 @@ node '{{PROJECT_DIR}}/scripts/booking-jobs.js' cancel --id ID
 
 Pour annuler : désactiver **d'abord** la demande locale, puis retirer son cronJobId après avoir retrouvé le job avec `cronjob(action="list")`, et vérifier sa disparition. Si la suppression distante échoue, l'exécution locale reste désactivée. Les traces restent dans `.auth/scheduled-bookings/` ; annuler une tâche n'annule pas une réservation Anybuddy.
 
-Une tâche en cours (`running`) n'est pas rejouable ni annulable par cette commande. Après interruption, vérifier processus et traces avant toute nouvelle demande ; ne pas effacer manuellement l'état pour forcer un retry. Les résultats `checkout_ready`, `no_match`, `blocked`, `incomplete`, `missed` sont terminaux. `checkout_ready` signifie seulement récapitulatif atteint. Modifier une demande programmée = annuler puis préparer une nouvelle tâche, avec une stratégie réévaluée.
+Une tâche en cours (`running`) n'est pas rejouable ni annulable par cette commande. Après interruption, vérifier processus et traces avant toute nouvelle demande ; ne pas effacer manuellement l'état pour forcer un retry. Les résultats `checkout_ready`, `booked`, `existing_reservation`, `payment_failed`, `payment_action_required`, `payment_unverified`, `no_match`, `blocked`, `incomplete`, `missed` sont terminaux. Une interruption en mode réel donne un paiement incertain, jamais « aucun paiement ». Utiliser la demande figée du job et `booking-search.js --config PATH --headless --reconcile` avant toute autre tentative ; ne pas rejouer le job. Le timeout global de 90 secondes peut interrompre une attente de confirmation : le journal privé empêche une nouvelle soumission. `checkout_ready` signifie seulement récapitulatif atteint. Modifier une demande programmée = annuler puis préparer une nouvelle tâche, avec une stratégie réévaluée.

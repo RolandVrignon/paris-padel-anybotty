@@ -8,10 +8,10 @@ import { repositoryDirectory } from '../lib/config.js'
 
 const directory = join(repositoryDirectory, '.auth/scheduled-bookings')
 const store = createJobStore({ directory, scriptsDirectory: join(process.env.HERMES_HOME || join(homedir(), '.hermes'), 'scripts'), projectDirectory: repositoryDirectory })
-const execute = (id, request) => new Promise((resolve, reject) => {
+const execute = (id, request, mode) => new Promise((resolve, reject) => {
   const input = join(directory, `${id}.request.tmp`)
   writeFileSync(input, JSON.stringify(request), { mode: 0o600 })
-  const child = spawn(process.execPath, [join(repositoryDirectory, 'scripts/booking-search.js'), '--config', input, '--headless'], { cwd: repositoryDirectory, stdio: ['ignore', 'pipe', 'pipe'], detached: true })
+  const child = spawn(process.execPath, [join(repositoryDirectory, 'scripts/booking-search.js'), '--config', input, '--headless', ...(mode === 'pay' ? ['--pay'] : [])], { cwd: repositoryDirectory, stdio: ['ignore', 'pipe', 'pipe'], detached: true })
   const stop = () => { try { process.kill(-child.pid, 'SIGKILL') } catch { /* Already exited. */ } }
   const timer = setTimeout(stop, 90000)
   const interrupted = () => { stop(); process.exit(1) }
@@ -46,8 +46,8 @@ try {
   else if (command === 'show') result = store.read(id)
   else if (command === 'cancel') result = store.cancel(id)
   else if (command === 'run') {
-    result = await store.run(id, request => execute(id, request))
-    if (result.status !== 'skipped') console.log(`Padel — ${result.request?.clubs.join(', ')} le ${result.request?.date} à ${result.request?.startTime} : ${result.status}. Aucun paiement ni réservation confirmée. Suivi : ${id}`)
+    result = await store.run(id, (request, mode) => execute(id, request, mode))
+    if (result.status !== 'skipped') console.log(`Padel — ${result.request?.clubs.join(', ')} le ${result.request?.date} à ${result.request?.startTime} : ${result.status}. ${result.reservationConfirmed ? 'Réservation confirmée dans Anybuddy.' : result.mode === 'pay' ? 'Réservation non confirmée ; consulter le résultat avant toute relance.' : 'Simulation sans paiement.'} Suivi : ${id}`)
   } else throw new Error('Usage: booking-jobs.js prepare|attach|list|show|cancel|run [--input PATH] [--id ID] [--cron-job-id ID]')
   if (command !== 'run') console.log(JSON.stringify(result, null, 2))
 } catch (error) {

@@ -108,3 +108,15 @@ test('failure after selecting a court can fall back to another offer before leav
   assert.equal(attempts, 2)
   assert.equal(result.events[0].status, 'preview_error')
 })
+
+test('real search stops at a successful or uncertain payment before trying another club', async () => {
+  for (const status of ['booked', 'payment_unverified', 'payment_failed', 'payment_action_required']) {
+    let attempts = 0
+    const result = await searchBooking(input, clubs, { now, mode: 'pay', fetchAvailability: available, attempt: async () => {
+      attempts++
+      return { status, paymentSubmitted: true, reservationConfirmed: status === 'booked' }
+    } })
+    assert.equal(result.status, status)
+    assert.equal(attempts, 1)
+  }
+})

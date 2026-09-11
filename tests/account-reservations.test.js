@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { chromium } from 'playwright'
 import { decodeActionResponse, readMatchesPage } from '../lib/anybuddy-actions.js'
-import { normalizeReservation, listReservations, cancelReservation, cancellationDialog } from '../lib/account-reservations.js'
+import { normalizeReservation, listReservations, cancelReservation, cancellationDialog, readCancelledReservation } from '../lib/account-reservations.js'
 const now = new Date('2026-09-11T12:00:00Z')
 const match = (overrides = {}) => ({ id: 'match-1', centerService: { centerName: 'Club test', serviceName: 'Court 2', activityId: 'padel' }, dateTime: '2026-09-21T20:00', dateFMT: 'lundi 21 septembre 2026', timeFMT: '20:00 - 21:30', duration: 90, status: 'confirmed', isBooked: true, isCancellableNow: true, cancellationCondition: 'Annulation possible', refundCondition: 'Remboursement selon conditions du club', myReservation: { reservationId: 'own-1', status: 'confirmed', totalPrice: '90 €', pricePaidByCard: '90 €' }, ...overrides })
 const normalized = overrides => normalizeReservation(match(overrides), { now })
@@ -91,6 +91,39 @@ test('only a fresh cancelled status confirms success; timeout checks once and ne
 test('a pre-submit session or uncertain-journal guard prevents all mutation', async () => {
   const { version } = await preview()
   await assert.rejects(cancelReservation({ id: 'match-1', confirm: true, expectedVersion: version, read: async () => [normalized()], openDialog: async () => terms, beforeSubmit: async () => { throw new Error('Reconciliation required') }, submit: () => assert.fail('Guarded action submitted') }), /Reconciliation/)
+})
+
+test('a booking removed from the list requires explicit detail cancellation evidence', async () => {
+  const { version } = await preview()
+  for (const timeout of [false, true]) {
+    let reads = 0
+    let submitted = 0
+    const result = await cancelReservation({ id: 'match-1', confirm: true, expectedVersion: version,
+      read: async () => reads++ ? [] : [normalized()], openDialog: async () => terms,
+      submit: async () => { submitted++; if (timeout) throw new Error('timeout') },
+      readCancelled: async reservation => { assert.equal(reservation.id, 'match-1'); return cancelled() },
+    })
+    assert.equal(result.status, 'cancelled')
+    assert.equal(result.verified, true)
+    assert.equal(submitted, 1)
+  }
+})
+
+test('cancelled detail verification requires the exact booking identity and explicit status', async () => {
+  const browser = await chromium.launch({ headless: true })
+  try {
+    const page = await browser.newPage()
+    page.setDefaultTimeout(300)
+    let status = 'Confirmé'
+    await page.route('**/fr/compte/reservations/match-1', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: `<main><h1>Club test</h1><p>lundi 21 septembre 2026</p><p>20:00 - 21:30</p><span>${status}</span></main>` }))
+    await assert.rejects(readCancelledReservation(page, normalized()))
+    status = 'Annulé'
+    await assert.rejects(readCancelledReservation(page, { ...normalized(), club: 'Wrong club' }))
+    const result = await readCancelledReservation(page, normalized())
+    assert.equal(result.category, 'cancelled')
+    assert.equal(result.verificationSource, 'reservation_detail')
+    assert.equal(result.cancellable, false)
+  } finally { await browser.close() }
 })
 
 test('Playwright cancellation uses the exact detail identity and dialog button; preview does not click confirmation', async () => {

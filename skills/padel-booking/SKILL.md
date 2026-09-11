@@ -1,6 +1,6 @@
 ---
 name: padel-booking
-description: Configurer une demande de padel Anybuddy et chercher un créneau dans l’ordre des clubs, durées et types de terrain depuis Hermes ou Telegram. Vérifier la session et lire le résultat. Le parcours s’arrête au récapitulatif, sans paiement final.
+description: Configurer une demande de padel Anybuddy et chercher un créneau dans l’ordre des clubs, durées et types de terrain depuis Hermes ou Telegram. Vérifier la session et lire le résultat. Simulation ou réservation réelle avec paiement, selon la demande utilisateur.
 ---
 
 # Demandes de padel Anybotty
@@ -71,7 +71,25 @@ node '{{PROJECT_DIR}}/scripts/booking-search.js' --headless
 
 Pour une demande ponctuelle qui ne doit pas modifier les préférences enregistrées, utiliser `--config /tmp/anybotty-request-UNIQUE.json`. Conserver ce fichier jusqu’à la fin du processus puis le supprimer. Si le terminal rend un identifiant de processus, suivre ce processus jusqu’au résultat ; ne pas lancer une deuxième recherche parce que la première dure longtemps. Un verrou local empêche deux recherches simultanées. Ne pas supprimer un verrou sans vérifier son propriétaire.
 
-Le moteur consulte chaque club dans l’ordre et poursuit après une offre trop chère ou indisponible. Il termine au premier récapitulatif conforme. Il ne clique ni les conditions ni Payer. Ne pas modifier le code pour payer, utiliser le formulaire Stripe ou annuler une réservation à partir de ce skill.
+Le moteur consulte chaque club dans l’ordre et poursuit après une offre trop chère ou indisponible. Sans option, il termine au premier récapitulatif conforme.
+
+Quand l’utilisateur demande de **réserver réellement**, utiliser la même demande avec `--pay` :
+
+```sh
+node '{{PROJECT_DIR}}/scripts/booking-search.js' --config PATH --headless --pay
+```
+
+Une demande explicite de réservation avec ses critères autorise ce paiement dans ce périmètre ; ne pas redemander une confirmation déjà donnée. Une recherche de disponibilités, simulation ou analyse de stratégie seule n’autorise pas `--pay`. Ne pas transformer une ancienne simulation programmée en paiement. Vérifier la présence et le format avec `node '{{PROJECT_DIR}}/scripts/check-payment.js'` (aucune donnée sensible en sortie). Les champs `payment` doivent être remplis dans le fichier privé de ce VPS ; ne jamais lire/afficher leurs valeurs ni les demander via Telegram. Ne pas transférer une carte depuis une autre machine sans demande correspondante.
+
+Le mode réel accepte les conditions connues, remplit la carte, contrôle le montant final et clique une fois le bouton exact Payer. Il s’arrête après la première réservation confirmée. Refus bancaire, 3DS ou résultat incertain arrêtent la recherche, sans essai du plan B. Aucun contournement de validation bancaire. En mode visible, le navigateur reste ouvert pendant la vérification (jusqu’à trois minutes) pour une éventuelle validation manuelle.
+
+Les journaux `.auth/payments/` empêchent une nouvelle soumission pour le même compte/date/heure, même avec d’autres clubs ou durées. Ne pas les supprimer. Pour vérifier après interruption, exécuter seulement :
+
+```sh
+node '{{PROJECT_DIR}}/scripts/booking-search.js' --config PATH --headless --reconcile
+```
+
+Cette commande relit Anybuddy sans ouvrir de checkout ni payer. Conserver la demande originale pour cette vérification. Si une réservation reste absente, le résultat demeure incertain ; ne pas annoncer un remboursement ou recommencer un paiement. Si une réservation est annulée ensuite, ne pas effacer le journal pour la racheter automatiquement.
 
 ## Interpréter et consulter le résultat
 
@@ -84,11 +102,16 @@ Le dernier résultat est historique : vérifier `finishedAt` et `request` avant 
 | Statut | Réponse attendue |
 | --- | --- |
 | `checkout_ready` (code 0) | Offre préparée : club, date, heure, terrain, durée, total et €/h. Dire explicitement que la réservation n’est pas confirmée et qu’aucun paiement n’a été soumis. |
+| `booked` (code 0) | Réservation confirmée dans Anybuddy : donner club, date, heure, terrain, durée et montant. |
+| `existing_reservation` (code 0) | Une réservation existe déjà à cette heure ; aucun nouveau paiement. Lire son statut avant de la dire confirmée. |
+| `payment_failed` (code 1) | Paiement refusé/annulé côté Stripe ; arrêter, pas de nouveau débit automatique. |
+| `payment_action_required` (code 1) | Validation bancaire nécessaire ; signaler l’intervention, ne pas relancer. |
+| `payment_unverified` (code 1) | Paiement potentiellement soumis, réservation non vérifiée. Relecture seulement. |
 | `no_match` (code 2) | Aucun créneau compatible au passage ; ce n’est pas une erreur du terminal. |
 | `incomplete` (code 1) | Des erreurs ou une limite de tentatives empêchent de conclure. Donner les clubs concernés, sans les présenter comme complets. |
 | `blocked` (code 1) | Session/navigateur indisponible ou restriction HTTP ; expliquer la raison et respecter le délai de reprise. |
 | `not_run` | Aucune recherche enregistrée sur ce VPS. |
 
-La recherche peut laisser un panier impayé ; un `checkout_ready` n’est jamais une réservation acquise. Pour lister ou annuler les réservations existantes du compte, utiliser `padel-reservations`. Pour programmer une simulation à l’ouverture, utiliser `padel-scheduling`. Le paiement final reste non implémenté. Les commandes Paris Tennis ne fonctionnent pas pour Anybuddy.
+La recherche peut laisser un panier impayé ; un `checkout_ready` n’est jamais une réservation acquise. Pour lister ou annuler les réservations existantes du compte, utiliser `padel-reservations`. Pour programmer une simulation ou une réservation réelle à l’ouverture, utiliser `padel-scheduling` avec le mode correspondant à la demande. Les commandes Paris Tennis ne fonctionnent pas pour Anybuddy.
 
 Pour un planning prévisionnel : `node '{{PROJECT_DIR}}/scripts/anybotty.js' plan`. Pour les heures d’ouverture observées : utiliser `padel-monitoring`. Ne pas créer une réservation programmée ou prétendre qu’une recherche se relancera automatiquement : cette commande réalise un seul passage.
