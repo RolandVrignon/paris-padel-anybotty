@@ -179,7 +179,7 @@ Cette commande lit la date, l’heure, la liste des clubs, les durées, les type
 
 Les conditions restent non cochées et aucun bouton Payer n’est cliqué. Le résultat `checkout_ready` signifie **offre préparée**, pas réservation confirmée. Comme pour la simulation individuelle, la préparation peut laisser des paniers impayés côté serveur.
 
-La recherche ne patiente pas jusqu’à une ouverture future et ne programme pas de nouveau passage. Le déclenchement à l’heure d’ouverture et le paiement final viendront ensuite. Elle refuse une heure de départ passée et limite chaque club à 50 tentatives pour éviter une boucle sur des offres changeantes.
+La recherche ne patiente pas jusqu’à une ouverture future et ne programme pas de nouveau passage. Le déclenchement à l’ouverture passe par `padel-scheduling` ; le paiement final reste à implémenter. Elle refuse une heure de départ passée et limite chaque club à 50 tentatives pour éviter une boucle sur des offres changeantes.
 
 ### Résultat et journal
 
@@ -363,7 +363,7 @@ Les tests locaux couvrent notamment la configuration, les préférences, les mod
 
 ## Piloter depuis Hermes / Telegram
 
-Installer les quatre skills dans le profil Hermes utilisé par le bot :
+Installer les cinq skills dans le profil Hermes utilisé par le bot :
 
 ```sh
 npm run hermes:install
@@ -378,6 +378,7 @@ L’installateur remplace les chemins du dépôt, préserve les autres skills et
 | `padel-booking` | Lire/modifier les préférences, vérifier la session, chercher un créneau et expliquer le résultat |
 | `padel-monitoring` | Lire les ouvertures observées, contrôler le timer et suspendre/reprendre la surveillance sur demande |
 | `padel-strategy` | Arbitrer entre attendre un club prioritaire et essayer un club de repli déjà disponible |
+| `padel-scheduling` | Programmer une simulation à l’ouverture, consulter et annuler les tâches Hermes |
 
 Exemples à envoyer au bot :
 
@@ -390,7 +391,7 @@ Exemples à envoyer au bot :
 - « Quelles heures d’ouverture as-tu observées cette semaine ? »
 - « Suspends la surveillance padel. »
 
-Les recherches restent des **simulations jusqu’au récapitulatif**. Hermes ne peut pas encore payer, lister/annuler les réservations du compte Anybuddy ou réserver automatiquement à l’ouverture. Une demande enregistrée n’est pas une réservation programmée.
+Les recherches restent des **simulations jusqu’au récapitulatif**. Hermes ne peut pas encore payer, lister/annuler les réservations du compte Anybuddy ou confirmer une réservation à l’ouverture. Une demande enregistrée n’est pas une réservation programmée.
 
 ### Attendre un club prioritaire avant de se replier
 
@@ -400,7 +401,38 @@ Si le club préféré est déjà ouvert sans offre compatible, ou si l’utilisa
 
 Cette décision est portée par le skill : Hermes transmet au moteur une demande temporaire limitée aux clubs autorisés. **La commande brute `booking:search` conserve son comportement immédiat** et ne connaît pas cette stratégie. Les préférences enregistrées ne sont pas réordonnées.
 
-Une décision d’attendre ne programme pas de recherche future : le timer collecte toujours les disponibilités, mais ne réserve pas et ne relance pas le moteur. Le prochain essai doit encore être lancé. La programmation à l’ouverture et le paiement final restent des étapes distinctes.
+Une décision d’attendre ne programme pas de recherche future : le timer collecte toujours les disponibilités, mais ne réserve pas et ne relance pas le moteur. Sur demande, `padel-scheduling` programme une simulation via le cron natif Hermes lorsque la règle d’ouverture est documentée. Le paiement final reste une étape distincte.
+
+### Programmer selon la politique d’ouverture
+
+Hermes utilise `padel-scheduling` après la stratégie pour figer une demande sur **un club prioritaire**. Le calcul prend en charge J+x à heure locale fixe, une publication hebdomadaire (jour de publication et semaine cible), un délai glissant en heures ou un instant ISO explicite. Les heures locales sont calculées en Europe/Paris avec changement d’heure ; une heure ambiguë ou inexistante exige un instant explicite.
+
+Une règle doit citer des observations vérifiées ou une instruction horaire explicite de l’utilisateur. Un horizon seul ne permet pas de programmer. Les heures encore inconnues du catalogue ne sont pas inventées : `needs_opening_rule` ne crée aucune tâche. Une ouverture déjà passée retourne `check_now`.
+
+```sh
+node scripts/booking-jobs.js prepare --input /chemin/prive/demande-programmee.json
+node scripts/booking-jobs.js list
+node scripts/booking-jobs.js show --id ID
+node scripts/booking-jobs.js cancel --id ID
+```
+
+Le fichier d’entrée contient `request` au format de `config.request.json`, limité au club retenu, et `opening`. Exemple **hypothétique** de règle :
+
+```json
+{
+  "mode": "daily",
+  "horizonDays": 8,
+  "localTime": "08:00",
+  "source": "user_instruction",
+  "evidence": "Horaire explicitement demandé par l’utilisateur pour cette tentative"
+}
+```
+
+Cet objet est la valeur de `opening`. Le skill décrit aussi les règles `weekly`, `rolling` et `explicit`. `prepare` retourne un script privé et un instant UTC ; Hermes crée un cron ponctuel `no_agent: true`, l’attache avec `attach --id ID --cron-job-id JOB_ID`, puis vérifie son enregistrement. **Préparer un fichier seul ne programme rien.** Annuler désactive d’abord la tâche locale, puis Hermes supprime le cron. Les préférences enregistrées ne sont pas modifiées.
+
+Les tâches et leurs résultats restent dans `.auth/scheduled-bookings/`, ignoré par Git. Une tentative est consommée une seule fois. Un retard de plus de cinq minutes donne `missed` ; la recherche est limitée à 90 secondes (timeout natif Hermes attendu : au moins 120 secondes). Une interruption peut laisser `running` et exige une vérification avant une nouvelle tentative. Le scheduler et le démarrage du navigateur ne garantissent pas une exécution à la seconde.
+
+Le résultat revient dans le chat d’origine via Hermes : **récapitulatif atteint, pas réservation confirmée**. Aucun paiement final, retry implicite ni passage automatique au plan B. Il faut réévaluer la stratégie après l’échec du club préféré.
 
 ### Interface JSON pour Hermes
 
@@ -416,7 +448,7 @@ node scripts/padel.js result
 
 Pour modifier la demande, `request show` fournit une `version`. Écrire la demande complète dans un fichier privé, puis appeler `request set --input PATH --expected-version VERSION`. Le helper valide les critères, sauvegarde la précédente demande dans `.auth/request-backups/`, écrit atomiquement et refuse les conflits entre conversations. Les credentials ne sont jamais acceptés dans cette demande. Les recherches ponctuelles peuvent utiliser `booking-search.js --config PATH` sans modifier les préférences enregistrées.
 
-Les identifiants et `.auth/session.json` doivent être configurés sur le VPS séparément de Git. Ne jamais transmettre le mot de passe au bot Telegram. Les skills sont découverts par les outils `skills_list` et `skill_view` d’Hermes ; après installation sur un gateway déjà démarré, envoyer `/reload-skills` dans Telegram pour actualiser ses commandes sans interrompre les conversations. Invoquer ensuite `/padel-booking`, `/padel-clubs`, `/padel-monitoring` ou `/padel-strategy` (les variantes Telegram avec underscores sont aussi reconnues).
+Les identifiants et `.auth/session.json` doivent être configurés sur le VPS séparément de Git. Ne jamais transmettre le mot de passe au bot Telegram. Les skills sont découverts par les outils `skills_list` et `skill_view` d’Hermes ; après installation sur un gateway déjà démarré, envoyer `/reload-skills` dans Telegram pour actualiser ses commandes sans interrompre les conversations. Invoquer ensuite `/padel-booking`, `/padel-clubs`, `/padel-monitoring`, `/padel-strategy` ou `/padel-scheduling` (les variantes Telegram avec underscores sont aussi reconnues).
 
 ## Licence
 
