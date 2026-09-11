@@ -66,7 +66,7 @@ La mention « non annulable » peut résulter du délai restant avant le crénea
 
 ## Validation de la commande
 
-La commande autonome a également atteint le formulaire Stripe en mode headless sur Sportfield Bercy, le 17 septembre 2026 à 21:30, 60 minutes, Terrain 1, total 60 €. Aucun paiement final soumis. Les essais ont aussi confirmé les arrêts sur un créneau disparu et sur un terrain différent de celui demandé. ESLint et les 71 tests locaux passent.
+La commande autonome a également atteint le formulaire Stripe en mode headless sur Sportfield Bercy, le 17 septembre 2026 à 21:30, 60 minutes, Terrain 1, total 60 €. Aucun paiement final soumis. Les essais ont aussi confirmé les arrêts sur un créneau disparu et sur un terrain différent de celui demandé. Les tests locaux et ESLint vérifient aussi ces parcours.
 
 ## Réutilisation
 
@@ -75,3 +75,11 @@ La commande autonome a également atteint le formulaire Stripe en mode headless 
 L’étape « Confirmer et Payer » et l’étape « Entrez vos informations de paiement » contiennent chacune un bouton « Payer ». Le code clique uniquement celui de la première étape. Il refuse de recommencer s’il se trouve déjà à l’étape paiement et ne rejoue pas un clic après un timeout. La présence de Stripe est vérifiée dans un iframe `js.stripe.com`, intégré dans Anybuddy, avec le formulaire carte ou le choix de méthode chargé.
 
 Les captures et le relevé détaillé de cette session sont conservés localement dans `observations/previews/`, ignoré par Git. La préparation peut laisser des paniers ou sessions Stripe impayés côté serveur. Après les neuf tests, le compte affichait « Aucune réservation à venir » et le compteur « Mes réservations » était à zéro. Ce constat concerne les réservations visibles, pas les paniers techniques. Aucun nettoyage automatique de réservations existantes n’est effectué, et ce test ne certifie pas l’absence de toute entrée en attente dans le compte.
+
+## Recherche ordonnée et plafond horaire
+
+`npm run booking:search` lit le fichier de demande complet et essaie les clubs dans l’ordre, puis les durées, les types et les terrains. `lib/booking-preview.js` partage les contrôles du récapitulatif avec `checkout:preview`. Une offre trop chère est exclue par terrain/durée pour le passage en cours ; une nouvelle page permet de choisir la suivante. Les erreurs techniques restent visibles dans le rapport et ne sont pas assimilées à des disponibilités vides. La recherche termine au premier `checkout_ready`, avec `reservationConfirmed: false` et `paymentSubmitted: false`.
+
+`maxPricePerHourEUR` s’applique au prix total du terrain ramené à 60 minutes, y compris les éléments inclus dans le total du récapitulatif. À 80 €/h, les totaux limites sont 80 €, 120 € et 160 € pour 60, 90 et 120 minutes. 120 € pour deux heures est accepté. Le plafond est revérifié dans `prepareStripeCheckout` avant les CGV ; un changement de prix au-delà du plafond bloque le premier clic Payer. Une ancienne valeur numérique `maxTotalPriceEUR` exige une migration explicite.
+
+Les nouveaux scénarios sont vérifiés sur des pages Playwright locales : changement de terrain après dépassement de prix, passage à la durée et au club suivants, priorité intérieur/extérieur, arrêt avant tout clic de conditions/paiement, accès direct et augmentation du prix avant Stripe. Ces tests ne constituent pas une nouvelle réservation réelle sur Anybuddy. La commande de recherche ne déclenche pas encore de paiement, d’attente d’ouverture ou d’intégration Hermes.

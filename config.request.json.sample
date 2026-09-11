@@ -16,6 +16,6 @@
     "padelistes-bercy",
     "padel-15"
   ],
-  "maxTotalPriceEUR": null,
+  "maxPricePerHourEUR": null,
   "courtEnvironment": ["any"]
 }

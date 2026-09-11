@@ -12,11 +12,12 @@ Le projet est indépendant d’Anybuddy. Il dérive de [Paris Tennis](https://gi
 | Surveillance des ouvertures sur huit clubs, toutes les cinq minutes | Disponible via le timer systemd |
 | Connexion Anybuddy et réutilisation de session | Disponible avec Playwright |
 | Choix de durée, intérieur/extérieur et terrain dans la modale | Disponible |
-| Simulation jusqu’au récapitulatif ou au formulaire Stripe | Disponible |
+| Recherche dans l’ordre des clubs, avec plafond horaire | Disponible ; arrêt au premier récapitulatif conforme |
+| Simulation d’un créneau jusqu’au formulaire Stripe | Disponible |
 | Réservation automatique dès l’ouverture et paiement final | À implémenter |
 | Liste et annulation des réservations Anybuddy | À implémenter |
 
-**`npm start` affiche l’état du projet ; il ne réserve rien et ne lance pas la surveillance.** Les commandes de simulation ciblent un seul club et un seul horaire. La recherche automatique entre plusieurs clubs reste à implémenter.
+**`npm start` affiche l’état du projet ; il ne réserve rien et ne lance pas la surveillance.** `booking:search` essaie les clubs configurés pour une date et une heure ; `checkout:preview` teste un club explicite. Ces deux commandes restent sans paiement final.
 
 ## Démarrage rapide
 
@@ -77,7 +78,7 @@ Dans `config.request.json`, par exemple pour le 21 septembre 2026 à 20 h :
   "durationsMinutes": [60, 90],
   "courtEnvironment": ["indoor", "outdoor"],
   "clubs": ["paris-padel", "ucpa-paris", "sportfield-bercy", "4padel-paris-20"],
-  "maxTotalPriceEUR": null
+  "maxPricePerHourEUR": 80
 }
 ```
 
@@ -112,7 +113,23 @@ Dans le club et le créneau inspectés, le script applique **la durée, puis le 
 
 Avec `[60, 90]` et `["indoor", "outdoor"]`, il préfère **60 minutes dehors à 90 minutes dedans**. Avec `[60, 90]` et `["indoor"]`, il essaie 90 minutes dedans si aucun intérieur n’est proposé à 60 minutes. Les exclusions restent obligatoires, même pour une durée préférée.
 
-`clubs` définit l’ordre de préférence utilisé par le planning ; la simulation ne parcourt pas automatiquement cette liste. `maxTotalPriceEUR` est réservé à un futur plafond : **il n’est pas appliqué au checkout actuel**. Le script vérifie seulement qu’un montant positif est affiché.
+`clubs` définit l’ordre de recherche : toutes les offres compatibles d’un club sont essayées avant de passer au suivant. La recherche s’arrête dès qu’un récapitulatif respecte tous les critères. Le prix filtre les offres ; il ne remplace pas l’ordre de préférence par un classement du moins cher au plus cher.
+
+### Budget par heure
+
+`maxPricePerHourEUR` limite le **prix du terrain entier par heure**, pas le prix par joueur. Il se calcule à partir du total du récapitulatif : `total × 60 / durée en minutes`.
+
+Avec un plafond de **80 €/h** :
+
+| Durée | Total maximum accepté | Exemple |
+| --- | --- | --- |
+| 60 min | 80 € | 81 € est refusé |
+| 90 min | 120 € | 120 € est accepté, 120,01 € est refusé |
+| 120 min | 160 € | 120 € correspond à 60 €/h : accepté |
+
+La comparaison utilise les centimes sans arrondir le taux horaire avant décision. Le plafond est vérifié au récapitulatif, puis de nouveau avant l’ouverture de Stripe si elle est demandée. Un prix manquant ou ambigu est refusé. `null` ou un champ absent signifie aucun plafond ; sinon, utiliser un montant positif avec au plus deux décimales.
+
+**Migration :** remplacer `maxTotalPriceEUR` par `maxPricePerHourEUR`. Une ancienne valeur numérique provoque une erreur explicite, car transformer silencieusement un budget total en budget horaire augmenterait la dépense autorisée. L’ancienne valeur `null` reste acceptée.
 
 ### Fichiers et compatibilité
 
@@ -140,9 +157,46 @@ La connexion utilise le formulaire Anybuddy. Elle n’est validée que lorsque l
 
 En mode manuel, augmenter `browser.timeoutMs` si nécessaire, jusqu’à cinq minutes. Aucun solveur CAPTCHA n’est intégré à la connexion Anybuddy. Une session expirée nécessite une nouvelle connexion ; `auth:check` ne la renouvelle pas automatiquement.
 
+## Chercher parmi les clubs préférés
+
+Après connexion, lancer la recherche avec les souhaits de `config.request.json` :
+
+```sh
+npm run booking:search
+# Même recherche, navigateur masqué
+npm run booking:search -- --headless
+# Autre fichier de demande
+npm run booking:search -- --config config.request.json --headless
+```
+
+Cette commande lit la date, l’heure, la liste des clubs, les durées, les types de terrain et le plafond horaire. Elle réalise **un passage**, dans cet ordre :
+
+1. Consulter les disponibilités du premier club, sans déduire l’absence d’offres de son seul horizon théorique.
+2. Essayer les durées autorisées, puis les types de terrain et les terrains compatibles dans leur ordre de préférence.
+3. Vérifier le récapitulatif. Si l’offre dépasse le budget, exclure ce terrain pour cette durée et poursuivre dans le même club. Une nouvelle page est utilisée pour chaque tentative ; une offre écartée n’est pas rejouée pendant ce passage.
+4. Passer au club suivant lorsque les possibilités sont épuisées.
+5. Au premier récapitulatif conforme, enregistrer le résultat, fermer le navigateur et quitter immédiatement.
+
+Les conditions restent non cochées et aucun bouton Payer n’est cliqué. Le résultat `checkout_ready` signifie **offre préparée**, pas réservation confirmée. Comme pour la simulation individuelle, la préparation peut laisser des paniers impayés côté serveur.
+
+La recherche ne patiente pas jusqu’à une ouverture future et ne programme pas de nouveau passage. Le déclenchement à l’heure d’ouverture et le paiement final viendront ensuite. Elle refuse une heure de départ passée et limite chaque club à 50 tentatives pour éviter une boucle sur des offres changeantes.
+
+### Résultat et journal
+
+Le JSON final est écrit sur la sortie standard et dans `.auth/booking-search/latest.json`. Les événements par club sont écrits sur la sortie d’erreur : absence de créneau, dépassement du budget, erreur de simulation ou offre retenue. En cas d’erreur de navigateur, les derniers diagnostics sont conservés dans `.auth/booking-search/failure.*`. Ces fichiers restent locaux et ignorés par Git.
+
+| Statut | Signification | Code de sortie |
+| --- | --- | --- |
+| `checkout_ready` | Premier récapitulatif conforme trouvé ; aucun paiement soumis | 0 |
+| `no_match` | Aucun créneau compatible après le passage | 2 |
+| `incomplete` | Une erreur technique ou la limite de tentatives empêche de conclure à l’absence d’offres | 1 |
+| `blocked` | Session/navigateur indisponible, ou restriction d’accès HTTP 401/403/429 | 1 |
+
+Une erreur technique n’est pas comptée comme une indisponibilité. Le moteur essaie la possibilité suivante lorsque c’est possible, mais s’arrête sur une restriction d’accès ou une session inutilisable. Un verrou local empêche deux recherches simultanées dans ce dépôt ; il ne constitue pas encore une protection contre les doubles réservations payées. Relancer la commande recommence une recherche.
+
 ## Simuler une réservation
 
-La commande exige **le club, la date au format `YYYY-MM-DD` et l’heure**. Elle reprend seulement les préférences de durée et de type depuis le fichier de demande. Les exemples ci-dessous utilisent des dates de septembre 2026 : les adapter aux disponibilités actuelles.
+La commande exige **le club, la date au format `YYYY-MM-DD` et l’heure**. Elle reprend les préférences de durée, de type et le plafond horaire depuis le fichier de demande. Contrairement à `booking:search`, elle effectue une seule tentative de récapitulatif et s’arrête sur une offre trop chère. Les exemples ci-dessous utilisent des dates de septembre 2026 : les adapter aux disponibilités actuelles.
 
 ### S’arrêter au récapitulatif
 
@@ -169,11 +223,12 @@ L’ouverture du récapitulatif peut déjà créer un panier serveur. Même sans
 | `--durations 60,90,120` | Remplace la liste ordonnée de durées |
 | `--duration 90` | Impose une seule durée ; incompatible avec `--durations` |
 | `--court-environment indoor,outdoor` | Préfère l’intérieur ; accepte aussi `outdoor,indoor`, `indoor`, `outdoor` ou `any` |
+| `--max-price-per-hour 80` | Remplace le plafond par 80 €/h pour cet essai |
 | `--court "Terrain 1"` | Impose ce nom exact de terrain |
 | `--headless` | Masque le navigateur |
 | `--to-stripe` | Accepte les conditions et ouvre Stripe, sans paiement final |
 
-Ces options ne modifient pas la configuration. Sans fichier de demande, les préférences par défaut sont `[60, 90]` et `["any"]`.
+Ces options ne modifient pas la configuration. Sans fichier de demande, les préférences par défaut sont `[60, 90]`, `["any"]` et aucun plafond de prix.
 
 Le type est lu sur les caractéristiques du **terrain**, pas dans la description générale du club. Un type absent ou ambigu bloque tous les modes sauf `["any"]`. Sans modale, les préférences à deux types acceptent l’offre directe si son type est connu. Après sélection dans une modale, le type et la durée du récapitulatif doivent correspondre au choix effectué.
 
@@ -282,7 +337,7 @@ systemctl --user disable --now anybotty-observe.timer
 systemctl --user stop anybotty-observe.service
 ```
 
-**Hermes** peut exécuter `node scripts/observe.js --report` depuis le dépôt pour lire le rapport JSON. Le timer assure la collecte sans solliciter un modèle toutes les cinq minutes. L’intégration Hermes pour réserver reste à implémenter. Un `git push` ne déploie pas le VPS et n’y transfère ni identifiants ni session.
+**Hermes** peut exécuter `node scripts/observe.js --report` depuis le dépôt pour lire le rapport JSON. Le timer assure la collecte sans solliciter un modèle toutes les cinq minutes. `booking:search` fournit aussi un résultat JSON, exploité par les skills Hermes décrits ci-dessous. Un `git push` ne déploie pas le VPS et n’y transfère ni identifiants ni session.
 
 ## Dépannage et validation
 
@@ -303,7 +358,53 @@ npm test
 npm run test:reference
 ```
 
-Les tests locaux couvrent notamment la configuration, les préférences, les modales, les contrôles avant Stripe et le suivi des ouvertures. Ils ne remplacent pas une vérification du site lorsqu’Anybuddy change son interface.
+Les tests locaux couvrent notamment la configuration, les préférences, les modales, le calcul du plafond horaire, la recherche entre clubs, l’arrêt au premier résultat, les contrôles avant Stripe et le suivi des ouvertures. Ils ne remplacent pas une vérification du site lorsqu’Anybuddy change son interface.
+
+
+## Piloter depuis Hermes / Telegram
+
+Installer les trois skills dans le profil Hermes utilisé par le bot :
+
+```sh
+npm run hermes:install
+# Pour un profil non standard : HERMES_HOME=/chemin/du/profil npm run hermes:install
+```
+
+L’installateur remplace les chemins du dépôt, préserve les autres skills et sauvegarde une version précédente si elle change. Les sources sont versionnées dans `skills/` ; la copie installée se trouve dans `~/.hermes/skills/` par défaut.
+
+| Skill | Demandes prises en charge |
+| --- | --- |
+| `padel-clubs` | Vérifier un nom exact, lister les centres et consulter les disponibilités publiques d’une date |
+| `padel-booking` | Lire/modifier les préférences, vérifier la session, chercher un créneau et expliquer le résultat |
+| `padel-monitoring` | Lire les ouvertures observées, contrôler le timer et suspendre/reprendre la surveillance sur demande |
+
+Exemples à envoyer au bot :
+
+- « Quels clubs Bercy connais-tu ? »
+- « Quelles disponibilités à 4PADEL Paris 20 dimanche, à partir des horaires affichés ? »
+- « Cherche lundi prochain à 20 h : Paris Padel puis UCPA, 60 puis 90 minutes, intérieur préféré et 80 €/h maximum. »
+- « Mets mes préférences sur extérieur uniquement et 90 minutes. »
+- « Quel est le dernier résultat de recherche padel ? »
+- « Quelles heures d’ouverture as-tu observées cette semaine ? »
+- « Suspends la surveillance padel. »
+
+Les recherches restent des **simulations jusqu’au récapitulatif**. Hermes ne peut pas encore payer, lister/annuler les réservations du compte Anybuddy ou réserver automatiquement à l’ouverture. Une demande enregistrée n’est pas une réservation programmée.
+
+### Interface JSON pour Hermes
+
+```sh
+node scripts/padel.js clubs list
+node scripts/padel.js clubs find --query 'bercy'
+node scripts/padel.js availability --club sportfield-bercy --date 2026-09-21 --time 20:00 --durations 60,90,120
+node scripts/padel.js request show
+node scripts/padel.js result
+```
+
+`clubs find` distingue une correspondance exacte, partielle unique, ambiguë ou absente du catalogue. Les prix publics de `availability` sont indicatifs ; le récapitulatif final reste la référence. Une erreur n’est jamais traduite en liste vide.
+
+Pour modifier la demande, `request show` fournit une `version`. Écrire la demande complète dans un fichier privé, puis appeler `request set --input PATH --expected-version VERSION`. Le helper valide les critères, sauvegarde la précédente demande dans `.auth/request-backups/`, écrit atomiquement et refuse les conflits entre conversations. Les credentials ne sont jamais acceptés dans cette demande. Les recherches ponctuelles peuvent utiliser `booking-search.js --config PATH` sans modifier les préférences enregistrées.
+
+Les identifiants et `.auth/session.json` doivent être configurés sur le VPS séparément de Git. Ne jamais transmettre le mot de passe au bot Telegram. Les skills sont découverts par les outils `skills_list` et `skill_view` d’Hermes ; après installation sur un gateway déjà démarré, envoyer `/reload-skills` dans Telegram pour actualiser ses commandes sans interrompre les conversations. Invoquer ensuite `/padel-booking`, `/padel-clubs` ou `/padel-monitoring` (les variantes Telegram avec underscores sont aussi reconnues).
 
 ## Licence
 

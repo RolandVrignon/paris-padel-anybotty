@@ -36,7 +36,10 @@
     "auth:login-headed": "node scripts/login.js --headed",
     "auth:check": "node scripts/login.js --check",
     "auth:login-manual": "node scripts/login.js --headed --manual",
-    "checkout:preview": "node scripts/checkout-preview.js"
+    "checkout:preview": "node scripts/checkout-preview.js",
+    "booking:search": "node scripts/booking-search.js",
+    "padel": "node scripts/padel.js",
+    "hermes:install": "node scripts/install-hermes-skills.js"
   },
   "dependencies": {
     "@gradio/client": "^2.6.0",

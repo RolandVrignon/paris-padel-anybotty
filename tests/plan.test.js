@@ -30,7 +30,7 @@ test('duration choices and account-free request validation', () => {
   assert.throws(() => validateRequest({ ...request, durationsMinutes: [45] }, catalog), /durationsMinutes/)
   assert.throws(() => validateRequest({ ...request, clubs: ['unknown'] }, catalog), /club IDs/)
   assert.throws(() => validateRequest({ ...request, account: { password: 'fixture' } }, catalog), /Unsupported field/)
-  assert.throws(() => validateRequest({ ...request, maxTotalPriceEUR: -1 }, catalog), /positive/)
+  assert.throws(() => validateRequest({ ...request, maxPricePerHourEUR: -1 }, catalog), /positive/)
 })
 
 

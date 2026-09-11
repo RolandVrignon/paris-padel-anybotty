@@ -148,3 +148,9 @@ test('duration preference precedes environment preference but never bypasses a s
   await page.setContent(durationModal(offers))
   assert.equal((await selectCourtIfOffered(page, { durationsMinutes: [60, 90], court: 'Indoor 90' })).durationMinutes, 90)
 }))
+
+
+test('an unreadable direct checkout is a technical error, not a claim of no matching offers', () => withPage(async page => {
+  await page.setContent('<section data-testid="booking-sheet"><p>Unexpected loading state</p></section>')
+  await assert.rejects(selectCourtIfOffered(page, { durationsMinutes: [60, 90] }), error => error.code !== 'NO_MATCHING_OFFER')
+}))
