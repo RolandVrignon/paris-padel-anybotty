@@ -11,9 +11,10 @@ La base actuelle contient :
 - le catalogue des neuf centres et les dernières disponibilités relevées manuellement ;
 - une configuration de demande avec heure, durées de 60/90 minutes et centres préférés ;
 - un planning **prévisionnel** calculé à partir des horizons observés ;
-- un protocole pour mesurer les véritables heures d’ouverture.
+- un collecteur des disponibilités publiques, prévu toutes les cinq minutes ;
+- un historique compressé, un rapport et des intervalles de première apparition.
 
-**La consultation automatique d’Anybuddy, la surveillance des ouvertures, la réservation, le paiement et l’intégration Hermes padel ne sont pas encore implémentés.** Aucun cron n’est lancé par l’installation. Le code et les workflows de réservation Paris Tennis restent dans le dossier de référence.
+**Le collecteur consulte Anybuddy et détecte les changements. La réservation, le paiement et l’intégration de réservation Hermes padel ne sont pas encore implémentés.** `npm ci` ne programme rien : la surveillance continue est activée séparément avec le timer systemd ci-dessous. Le code et les workflows de réservation Paris Tennis restent dans le dossier de référence.
 
 ## Installation
 
@@ -78,6 +79,8 @@ npm run booking:plan -- --config config.json.sample
 npm run eslint
 npm test
 npm run test:reference
+npm run observe:once
+npm run observe:report
 ```
 
 `npm start` affiche l’état du projet. `clubs:list` lit le catalogue local, sans contacter Anybuddy. `booking:plan` produit du JSON avec deux groupes :
@@ -87,7 +90,60 @@ npm run test:reference
 
 Ce planning ne déclenche aucune tâche et n’est pas une mesure d’ouverture. Pour le 21 septembre, les J+8 conduisent théoriquement au 13 septembre, les J+6 au 15, les J+5 au 16, les J+3 au 18 et les J+1 au 20.
 
-## Prochaine étape : mesurer les ouvertures
+## Surveillance toutes les cinq minutes
+
+```sh
+# Un passage sur les neuf clubs
+npm run observe:once
+# Dernier état de chaque club et ouvertures candidates observées
+npm run observe:report
+```
+
+Le collecteur lit la même route publique que le calendrier web : `https://www.anybuddyapp.com/api/v1/availabilities`, avec le club, le sport `padel` et une plage de dates. Aucun compte, token, modèle Hugging Face ou navigateur n’est nécessaire. Cette interface peut évoluer ; une réponse inattendue est enregistrée comme erreur, jamais comme absence de créneau.
+
+Chaque passage interroge les neuf clubs **séquentiellement**, avec une seconde entre les requêtes, de J à J+35 inclus. Il conserve **toutes les durées** proposées, même 120 minutes, indépendamment de la demande dans `config.json`. Les dates sont celles de Paris. Un premier relevé constitue une référence ; il ne prouve pas une ouverture.
+
+Les événements distinguent :
+
+- `new_day_candidate` : créneaux apparus au-delà de la dernière date historiquement disponible, dans une plage déjà vérifiée ;
+- `slots_added` : horaires ajoutés sur une date connue, éventuellement à la suite d’une annulation ;
+- `slots_removed` : horaires disparus dans la plage encore observée ;
+- `first_seen_outside_previous_window` : date vue pour la première fois parce que la plage de collecte a avancé ; aucune heure d’ouverture n’en est déduite.
+
+Chaque apparition mesurable contient `lastValidAbsentAt`, `firstAvailableAt`, `firstAvailableParis` et `intervalSeconds`. L’intervalle inclut le temps de réponse réseau ; une panne l’élargit. Le premier relevé valide après une erreur est comparé au dernier relevé réussi. Une journée complète ou fermée reste indiscernable d’une journée non publiée à partir d’une simple absence.
+
+Le rapport indique aussi `window` et `reachesWindowEnd` : si des créneaux atteignent J+35, **la limite réelle du club n’a pas été trouvée**. Le relevé initial manuel n’est pas une limite imposée au collecteur. Par exemple, le 11 septembre, l’interface publique renvoyait pour Trinquet Village des disponibilités au-delà du 25 septembre relevé dans le calendrier.
+
+Les fichiers `observations/<club>/<jour UTC>/<horodatage>.json.gz` contiennent les relevés, les offres de service et leurs prix en centimes, les erreurs et les événements. Ils sont exclus de Git. Conservation glissante de 30 jours, avec maintien du dernier relevé et des 100 dernières ouvertures candidates par club. `ANYBOTTY_OBSERVATIONS_DIR` permet de choisir un autre dossier local. Les identifiants de service ne sont pas interprétés comme des identifiants de courts physiques.
+
+Une erreur entraîne une attente croissante avant nouvel essai ; `Retry-After` est respecté. Une réponse 401, 403 ou 429 arrête le passage et suspend tous les clubs jusqu’à la fin de cette attente. Le collecteur n’envoie aucune notification à chaque passage : ses sorties JSON vont dans le journal du service, que Hermes peut lire.
+
+### Activation sur le VPS
+
+Les unités fournies ciblent `/home/<utilisateur>/paris-padel-anybotty` et `/usr/local/bin/node` ; adapter ces chemins si nécessaire. Après clonage et installation des dépendances sur le VPS :
+
+```sh
+mkdir -p ~/.config/systemd/user
+cp deploy/anybotty-observe.service deploy/anybotty-observe.timer ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now anybotty-observe.timer
+systemctl --user start anybotty-observe.service
+systemctl --user list-timers anybotty-observe.timer
+journalctl --user -u anybotty-observe.service -n 30 --no-pager
+```
+
+Le timer passe à `:00`, `:05`, `:10`, etc., et reprend après redémarrage. Le compte doit avoir le maintien des services utilisateur activé (`loginctl show-user "$USER" -p Linger`, attendu `yes`). Une seule exécution est autorisée à la fois. Chaque requête expire après 20 secondes, le service après quatre minutes.
+
+```sh
+# Suspendre la surveillance
+systemctl --user disable --now anybotty-observe.timer
+# Arrêter également un éventuel passage en cours
+systemctl --user stop anybotty-observe.service
+```
+
+Hermes peut lancer `node scripts/observe.js --report` depuis le dépôt et lire les mêmes résultats. Le timer système réalise la collecte sans solliciter un modèle toutes les cinq minutes.
+
+## Interpréter les ouvertures
 
 Le [protocole d’observation](docs/opening-observation.md) décrit les données à collecter et les critères de validation. Il faut déterminer, pour chaque centre, si les créneaux ouvrent tous ensemble à heure fixe ou progressivement dans une fenêtre glissante.
 

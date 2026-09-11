@@ -12,8 +12,8 @@ try {
   let result
   if (command === 'status' && !args.length) result = {
     project: 'Paris Padel - anybotty', phase: 'foundation', automaticBooking: false,
-    openingMonitoring: 'not_started', clubs: catalog.length,
-    nextStep: 'Measure opening times and distinguish fixed daily releases from rolling releases.',
+    openingMonitoring: 'available_via_observe_script', clubs: catalog.length,
+    nextStep: 'Run observe:report for recorded evidence; scheduling status must be checked on the host.',
   }
   else if (command === 'clubs' && !args.length) result = catalog
   else if (command === 'plan') {

@@ -1,0 +1,12 @@
+[Unit]
+Description=Anybotty public padel availability observation
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/paris-padel-anybotty
+ExecStart=/usr/local/bin/node %h/paris-padel-anybotty/scripts/observe.js
+TimeoutStartSec=240
+UMask=0077
+NoNewPrivileges=true

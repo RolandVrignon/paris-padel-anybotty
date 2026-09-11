@@ -15,7 +15,7 @@ Deux comportements sont notamment possibles :
 
 Il peut aussi exister des différences selon les courts, les durées, les jours de semaine ou les canaux de réservation.
 
-## Collecte à implémenter
+## Collecte implémentée
 
 1. Lire le calendrier et les créneaux depuis une interface accessible et autorisée d’Anybuddy, sans ouvrir de commande ni effectuer de paiement.
 2. Observer la date située juste au-delà du dernier horizon connu, et une date déjà ouverte comme témoin.
@@ -24,7 +24,9 @@ Il peut aussi exister des différences selon les courts, les durées, les jours 
 5. Comparer deux relevés valides. Encadrer l’apparition entre le dernier relevé sans ce créneau et le premier avec ce créneau.
 6. Suivre également les extensions horaires d’une date déjà visible : la seule dernière date ne suffit pas pour détecter une fenêtre glissante.
 
-Proposition initiale à ajuster aux conditions et limites de la plateforme : un relevé par centre toutes les 15 minutes pendant l’exploration, requêtes séquentielles, arrêt/backoff en cas d’erreur ou limitation. Une fois une plage plausible repérée, resserrer temporairement la mesure autour de cette plage. Aucun collecteur ni calendrier de surveillance n’est actuellement actif.
+Le collecteur `scripts/observe.js` effectue un passage ; `deploy/anybotty-observe.timer` le lance toutes les **cinq minutes** sur le VPS après activation. Il lit de J à J+35, séquentiellement, avec une seconde entre clubs. Les réponses sont horodatées avant et après chaque requête et conservées dans des fichiers gzip ignorés par Git. Les erreurs déclenchent une attente croissante et ne remplacent pas le dernier relevé valide. Voir le README pour l’installation, la consultation et l’arrêt.
+
+La frontière historique est conservée même si les derniers créneaux disparaissent : leur retour ne doit pas produire une fausse ouverture de journée. Les horaires apparus hors de l’ancienne plage de collecte sont enregistrés sans intervalle d’ouverture. Un club dont les disponibilités atteignent la fin de la plage reste sans horizon établi.
 
 ## Preuve attendue
 

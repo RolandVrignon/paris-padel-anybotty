@@ -28,7 +28,9 @@
     "eslint": "eslint .",
     "test": "node --test tests/*.test.js",
     "test:reference": "node scripts/test-reference.js",
-    "postinstall": "npx playwright install chromium"
+    "postinstall": "npx playwright install chromium",
+    "observe:once": "node scripts/observe.js",
+    "observe:report": "node scripts/observe.js --report"
   },
   "dependencies": {
     "@gradio/client": "^2.6.0",

@@ -1,0 +1,11 @@
+[Unit]
+Description=Observe Anybuddy availability every five minutes
+
+[Timer]
+OnCalendar=*-*-* *:00/5:00
+AccuracySec=1s
+Persistent=true
+Unit=anybotty-observe.service
+
+[Install]
+WantedBy=timers.target
