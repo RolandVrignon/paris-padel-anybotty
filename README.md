@@ -363,7 +363,7 @@ Les tests locaux couvrent notamment la configuration, les préférences, les mod
 
 ## Piloter depuis Hermes / Telegram
 
-Installer les trois skills dans le profil Hermes utilisé par le bot :
+Installer les quatre skills dans le profil Hermes utilisé par le bot :
 
 ```sh
 npm run hermes:install
@@ -377,6 +377,7 @@ L’installateur remplace les chemins du dépôt, préserve les autres skills et
 | `padel-clubs` | Vérifier un nom exact, lister les centres et consulter les disponibilités publiques d’une date |
 | `padel-booking` | Lire/modifier les préférences, vérifier la session, chercher un créneau et expliquer le résultat |
 | `padel-monitoring` | Lire les ouvertures observées, contrôler le timer et suspendre/reprendre la surveillance sur demande |
+| `padel-strategy` | Arbitrer entre attendre un club prioritaire et essayer un club de repli déjà disponible |
 
 Exemples à envoyer au bot :
 
@@ -384,11 +385,22 @@ Exemples à envoyer au bot :
 - « Quelles disponibilités à 4PADEL Paris 20 dimanche, à partir des horaires affichés ? »
 - « Cherche lundi prochain à 20 h : Paris Padel puis UCPA, 60 puis 90 minutes, intérieur préféré et 80 €/h maximum. »
 - « Mets mes préférences sur extérieur uniquement et 90 minutes. »
+- « Paris Padel est mon premier choix mais n’a pas encore ouvert lundi prochain : vaut-il mieux attendre ou prendre Sportfield à 20 h ? »
 - « Quel est le dernier résultat de recherche padel ? »
 - « Quelles heures d’ouverture as-tu observées cette semaine ? »
 - « Suspends la surveillance padel. »
 
 Les recherches restent des **simulations jusqu’au récapitulatif**. Hermes ne peut pas encore payer, lister/annuler les réservations du compte Anybuddy ou réserver automatiquement à l’ouverture. Une demande enregistrée n’est pas une réservation programmée.
+
+### Attendre un club prioritaire avant de se replier
+
+`padel-strategy` intervient avant une recherche multi-clubs. Par défaut, si un club préféré doit encore ouvrir la date souhaitée, Hermes recommande d’attendre cette ouverture au lieu de passer directement au club suivant. Il compare les disponibilités de la journée entière, les horaires demandés, les observations et les horizons théoriques. Une estimation reste présentée comme telle ; aucune heure n’est inventée.
+
+Si le club préféré est déjà ouvert sans offre compatible, ou si l’utilisateur demande explicitement de prendre le premier disponible maintenant, la stratégie peut autoriser un repli. Elle conserve les exclusions de durée/type et le plafond horaire. Le bot annonce le prochain essai, les incertitudes et le plan B ; le créneau de repli peut disparaître pendant l’attente.
+
+Cette décision est portée par le skill : Hermes transmet au moteur une demande temporaire limitée aux clubs autorisés. **La commande brute `booking:search` conserve son comportement immédiat** et ne connaît pas cette stratégie. Les préférences enregistrées ne sont pas réordonnées.
+
+Une décision d’attendre ne programme pas de recherche future : le timer collecte toujours les disponibilités, mais ne réserve pas et ne relance pas le moteur. Le prochain essai doit encore être lancé. La programmation à l’ouverture et le paiement final restent des étapes distinctes.
 
 ### Interface JSON pour Hermes
 
@@ -404,7 +416,7 @@ node scripts/padel.js result
 
 Pour modifier la demande, `request show` fournit une `version`. Écrire la demande complète dans un fichier privé, puis appeler `request set --input PATH --expected-version VERSION`. Le helper valide les critères, sauvegarde la précédente demande dans `.auth/request-backups/`, écrit atomiquement et refuse les conflits entre conversations. Les credentials ne sont jamais acceptés dans cette demande. Les recherches ponctuelles peuvent utiliser `booking-search.js --config PATH` sans modifier les préférences enregistrées.
 
-Les identifiants et `.auth/session.json` doivent être configurés sur le VPS séparément de Git. Ne jamais transmettre le mot de passe au bot Telegram. Les skills sont découverts par les outils `skills_list` et `skill_view` d’Hermes ; après installation sur un gateway déjà démarré, envoyer `/reload-skills` dans Telegram pour actualiser ses commandes sans interrompre les conversations. Invoquer ensuite `/padel-booking`, `/padel-clubs` ou `/padel-monitoring` (les variantes Telegram avec underscores sont aussi reconnues).
+Les identifiants et `.auth/session.json` doivent être configurés sur le VPS séparément de Git. Ne jamais transmettre le mot de passe au bot Telegram. Les skills sont découverts par les outils `skills_list` et `skill_view` d’Hermes ; après installation sur un gateway déjà démarré, envoyer `/reload-skills` dans Telegram pour actualiser ses commandes sans interrompre les conversations. Invoquer ensuite `/padel-booking`, `/padel-clubs`, `/padel-monitoring` ou `/padel-strategy` (les variantes Telegram avec underscores sont aussi reconnues).
 
 ## Licence
 

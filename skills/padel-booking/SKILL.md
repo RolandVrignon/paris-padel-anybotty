@@ -43,6 +43,12 @@ node '{{PROJECT_DIR}}/scripts/padel.js' request set --input /tmp/anybotty-reques
 
 Utiliser la `version` de la lecture précédente (`missing` pour une première configuration). Un conflit exige de relire et de réappliquer seulement les changements demandés, pas d’écraser aveuglément la nouvelle version. Le helper conserve une sauvegarde privée. Supprimer son fichier temporaire après usage. Une sauvegarde ne programme aucune tâche et ne réserve rien.
 
+## Choisir quand chercher
+
+Avant une recherche multi-clubs ou lorsque la date visée n’est pas encore publiée par un club préféré, charger `padel-strategy`. Préserver par défaut la priorité temporelle : un club préféré susceptible d’ouvrir prochainement ne doit pas être sauté simplement parce qu’un club suivant a déjà une offre. Une instruction explicite de prendre le premier disponible maintenant reste prioritaire.
+
+Le skill de stratégie détermine les clubs autorisés pour la tentative. Si un club prioritaire est en attente, ne pas lancer la recherche sur toute la liste ; utiliser une demande temporaire limitée aux clubs autorisés, ou ne pas lancer de checkout si la décision est d’attendre. Un échec doit revenir à cette décision stratégique avant d’élargir la liste. La configuration persistante conserve l’ordre souhaité.
+
 ## Session et recherche
 
 ```sh
@@ -57,7 +63,7 @@ node '{{PROJECT_DIR}}/scripts/login.js' --headless
 
 Si la connexion nécessite une intervention interactive, signaler le besoin d’une connexion manuelle depuis un navigateur visible. Ne pas demander de mot de passe dans Telegram et ne pas afficher `config.fixed.json`, `.auth/session.json` ni des captures d’authentification.
 
-Quand l’utilisateur demande de chercher/simuler, exécuter :
+Quand l’utilisateur demande de chercher/simuler et que le périmètre a été décidé, exécuter la commande ci-dessous seulement si toute la liste enregistrée est autorisée ; sinon utiliser le fichier temporaire restreint avec `--config` :
 
 ```sh
 node '{{PROJECT_DIR}}/scripts/booking-search.js' --headless

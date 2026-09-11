@@ -53,4 +53,4 @@ systemctl --user list-timers anybotty-observe.timer --no-pager
 
 Ces opérations conservent les relevés. Ne pas effacer l’historique, modifier les autres services Hermes, les demandes Paris Tennis ou les identifiants. Les instantanés sont privés dans `observations/`, conservés 30 jours. Une désactivation du timer ne supprime aucune réservation.
 
-Pour chercher un créneau selon les préférences, utiliser `padel-booking` ; le moteur ne transforme pas encore les observations en réservation automatique à une heure donnée.
+Pour décider entre attendre une ouverture et essayer un club de repli, utiliser `padel-strategy`. Pour chercher ensuite un créneau sur le périmètre retenu, utiliser `padel-booking` ; le moteur ne transforme pas encore les observations en réservation automatique à une heure donnée.
