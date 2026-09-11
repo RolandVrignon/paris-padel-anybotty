@@ -8,3 +8,6 @@ logs/
 observations/
 img/
 *.ics
+config.fixed.json
+config.request.json
+.auth/

@@ -9,7 +9,8 @@ Le dépôt est initialisé à partir de [Paris Tennis](https://github.com/Roland
 La base actuelle contient :
 
 - le catalogue des neuf centres et les dernières disponibilités relevées manuellement ;
-- une configuration de demande avec heure, durées de 60/90 minutes et centres préférés ;
+- deux configurations séparées : compte/options fixes et demande de réservation ;
+- une connexion Playwright avec sauvegarde et vérification de session ;
 - un planning **prévisionnel** calculé à partir des horizons observés ;
 - un collecteur des disponibilités publiques, prévu toutes les cinq minutes ;
 - un historique compressé, un rapport et des intervalles de première apparition.
@@ -24,15 +25,35 @@ Node.js 22.22.2 ou 24 et npm sont utilisés pour cette base.
 git clone https://github.com/RolandVrignon/paris-padel-anybotty.git
 cd paris-padel-anybotty
 npm ci
-cp -n config.json.sample config.json
-chmod 600 config.json
+npm run config:init
 ```
 
-`npm ci` installe les dépendances héritées et Chromium. Aucun identifiant de compte n’a été copié depuis Paris Tennis. `config.json`, les journaux et les observations locales sont ignorés par Git.
+`npm ci` installe les dépendances héritées et Chromium. Aucun identifiant de compte n’a été copié depuis Paris Tennis. `config.fixed.json`, `config.request.json`, l’ancien `config.json`, `.auth/`, les journaux et les observations locales sont ignorés par Git.
 
-## Configurer une demande
+## Configuration fixe : compte et navigateur
 
-Exemple : lundi 21 septembre 2026 à 20 h, pendant 60 ou 90 minutes. Remplacer la date par la date souhaitée.
+`npm run config:init` crée les deux fichiers locaux avec des permissions `0600`, sans écraser les fichiers existants. Si un ancien `config.json` existe, ses données sont réparties entre les deux fichiers et le fichier source est conservé.
+
+Compléter **`config.fixed.json`** :
+
+```json
+{
+  "account": {
+    "email": "votre@email.fr",
+    "password": "votre-mot-de-passe"
+  },
+  "browser": {
+    "headed": true,
+    "timeoutMs": 60000
+  }
+}
+```
+
+Ce fichier contient les identifiants Anybuddy et les options du navigateur. Les clés de demande n’y sont pas acceptées. `browser.headed` ouvre Chromium de façon visible ; `timeoutMs` accepte de 1 000 à 300 000 millisecondes.
+
+## Configuration variable : réservation souhaitée
+
+Compléter **`config.request.json`**. Exemple : lundi 21 septembre 2026 à 20 h, pendant 60 ou 90 minutes. Remplacer la date par la date souhaitée.
 
 ```json
 {
@@ -49,6 +70,33 @@ Exemple : lundi 21 septembre 2026 à 20 h, pendant 60 ou 90 minutes. Remplacer l
 - `durationsMinutes` : `[60]`, `[90]` ou `[60, 90]` si les deux conviennent. Il faudra vérifier que le club propose ces durées.
 - `clubs` : identifiants issus du catalogue, dans l’ordre de préférence.
 - `maxTotalPriceEUR` : futur plafond total par réservation. `null` signifie non renseigné ; aucune autorisation de paiement n’en découle.
+
+La demande ne peut pas contenir `account`, `browser` ou d’autres options fixes. `booking:plan` lit uniquement la demande ; il fonctionne même sans identifiants. La connexion lit uniquement le fichier fixe et ne dépend pas de la date de réservation.
+
+Chemins personnalisés : `ANYBOTTY_FIXED_CONFIG_PATH` et `ANYBOTTY_REQUEST_CONFIG_PATH`. Un chemin explicite absent est une erreur ; aucun autre fichier n’est utilisé silencieusement à sa place. Les fichiers séparés prennent priorité sur l’ancien `config.json`.
+
+## Connexion Anybuddy avec Playwright
+
+```sh
+# Connexion par email et mot de passe, navigateur visible
+npm run auth:login-headed
+# Respecter browser.headed du fichier fixe
+npm run auth:login
+# Connexion sans interface, si le compte le permet
+npm run auth:login -- --headless
+# Vérifier la session sauvegardée dans un nouveau navigateur
+npm run auth:check -- --headless
+# Connexion effectuée manuellement dans Chromium
+npm run auth:login-manual
+```
+
+Le script utilise le formulaire officiel `/fr/login`, remplit l’email et le mot de passe puis clique sur « Se connecter ». Une connexion n’est déclarée réussie que lorsque `/api/me` confirme une identité correspondant à l’email configuré. Les identifiants refusés, une identité différente ou une session expirée sont signalés sans publier les valeurs sensibles.
+
+Après confirmation, `.auth/session.json` conserve les cookies, le stockage local et IndexedDB nécessaires à la session, avec des permissions `0600` dans un dossier `0700`. Ce fichier est sensible et ignoré par Git. Il permet aux prochaines commandes Playwright de restaurer la session. `auth:check` ne reconnecte pas automatiquement un compte dont la session a expiré : relancer `auth:login`.
+
+Le mode manuel permet de terminer une connexion interactive dans Chromium ; augmenter `browser.timeoutMs` si nécessaire, jusqu’à cinq minutes. Aucun solveur CAPTCHA n’est utilisé pour la connexion Anybuddy. Ces commandes s’arrêtent après vérification de l’authentification et n’effectuent aucune réservation.
+
+Les identifiants Paris Tennis ne sont jamais repris automatiquement. Une installation sur le VPS possède ses propres fichiers locaux ; les identifiants et la session du Mac ne sont pas envoyés par un `git push`. Le collecteur public de disponibilités continue de fonctionner sans ces fichiers.
 
 ## Catalogue initial
 
@@ -77,7 +125,7 @@ npm start
 npm run clubs:list
 npm run booking:plan
 # Utiliser directement l’exemple, sans configuration locale
-npm run booking:plan -- --config config.json.sample
+npm run booking:plan -- --config config.request.json.sample
 npm run eslint
 npm test
 npm run test:reference

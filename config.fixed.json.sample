@@ -1,0 +1,10 @@
+{
+  "account": {
+    "email": "",
+    "password": ""
+  },
+  "browser": {
+    "headed": true,
+    "timeoutMs": 60000
+  }
+}

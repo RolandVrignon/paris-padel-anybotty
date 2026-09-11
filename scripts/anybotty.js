@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildPlan } from '../lib/plan.js'
+import { loadRequestConfig } from '../lib/config.js'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const [command = 'status', ...args] = process.argv.slice(2)
@@ -18,7 +19,7 @@ try {
   else if (command === 'clubs' && !args.length) result = catalog
   else if (command === 'plan') {
     if (args.length && (args.length !== 2 || args[0] !== '--config' || !args[1])) throw new Error('Usage: plan [--config PATH]')
-    result = buildPlan(readJson(resolve(args[1] || resolve(root, 'config.json'))), catalog)
+    result = buildPlan(loadRequestConfig({ path: args[1] }), catalog)
   } else throw new Error('Usage: anybotty.js status|clubs|plan [--config PATH]')
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
 } catch (error) {
