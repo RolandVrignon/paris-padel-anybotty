@@ -26,9 +26,16 @@ test('calendar dates remain Paris dates when UTC is on the previous day', () => 
   assert.ok(plan.checkNow.some(club => club.id === 'paris-padel'))
 })
 test('duration choices and account-free request validation', () => {
-  for (const duration of [[60], [90], [60, 90]]) assert.deepEqual(validateRequest({ ...request, durationsMinutes: duration }, catalog).durationsMinutes, duration)
-  assert.throws(() => validateRequest({ ...request, durationsMinutes: [120] }, catalog), /durationsMinutes/)
+  for (const duration of [[60], [90], [120], [60, 90], [60, 90, 120], [120, 60, 90]]) assert.deepEqual(validateRequest({ ...request, durationsMinutes: duration }, catalog).durationsMinutes, duration)
+  assert.throws(() => validateRequest({ ...request, durationsMinutes: [45] }, catalog), /durationsMinutes/)
   assert.throws(() => validateRequest({ ...request, clubs: ['unknown'] }, catalog), /club IDs/)
   assert.throws(() => validateRequest({ ...request, account: { password: 'fixture' } }, catalog), /Unsupported field/)
   assert.throws(() => validateRequest({ ...request, maxTotalPriceEUR: -1 }, catalog), /positive/)
+})
+
+
+test('planning preserves the requested court environment without pretending to verify availability', () => {
+  for (const courtEnvironment of [['any'], ['indoor'], ['outdoor'], ['indoor', 'outdoor'], ['outdoor', 'indoor']]) assert.deepEqual(validateRequest({ ...request, courtEnvironment }, catalog).courtEnvironment, courtEnvironment)
+  assert.deepEqual(validateRequest({ ...request, courtEnvironment: undefined }, catalog).courtEnvironment, ['any'])
+  for (const courtEnvironment of ['covered', null, false]) assert.throws(() => validateRequest({ ...request, courtEnvironment }, catalog), /courtEnvironment/)
 })

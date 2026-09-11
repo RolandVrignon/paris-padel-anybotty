@@ -35,7 +35,8 @@
     "auth:login": "node scripts/login.js",
     "auth:login-headed": "node scripts/login.js --headed",
     "auth:check": "node scripts/login.js --check",
-    "auth:login-manual": "node scripts/login.js --headed --manual"
+    "auth:login-manual": "node scripts/login.js --headed --manual",
+    "checkout:preview": "node scripts/checkout-preview.js"
   },
   "dependencies": {
     "@gradio/client": "^2.6.0",

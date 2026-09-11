@@ -11,11 +11,12 @@ La base actuelle contient :
 - le catalogue des neuf centres et les dernières disponibilités relevées manuellement ;
 - deux configurations séparées : compte/options fixes et demande de réservation ;
 - une connexion Playwright avec sauvegarde et vérification de session ;
+- une simulation du checkout, avec acceptation des conditions et arrêt au formulaire Stripe ;
 - un planning **prévisionnel** calculé à partir des horizons observés ;
 - un collecteur des disponibilités publiques, prévu toutes les cinq minutes ;
 - un historique compressé, un rapport et des intervalles de première apparition.
 
-**Le collecteur consulte Anybuddy et détecte les changements. La réservation, le paiement et l’intégration de réservation Hermes padel ne sont pas encore implémentés.** `npm ci` ne programme rien : la surveillance continue est activée séparément avec le timer systemd ci-dessous. Le code et les workflows de réservation Paris Tennis restent dans le dossier de référence.
+**Le collecteur détecte les changements et la simulation peut atteindre le formulaire Stripe. La confirmation de réservation, le paiement effectif et l’intégration de réservation Hermes padel ne sont pas implémentés.** `npm ci` ne programme rien : la surveillance continue est activée séparément avec le timer systemd ci-dessous. Le code et les workflows de réservation Paris Tennis restent dans le dossier de référence.
 
 ## Installation
 
@@ -53,13 +54,14 @@ Ce fichier contient les identifiants Anybuddy et les options du navigateur. Les 
 
 ## Configuration variable : réservation souhaitée
 
-Compléter **`config.request.json`**. Exemple : lundi 21 septembre 2026 à 20 h, pendant 60 ou 90 minutes. Remplacer la date par la date souhaitée.
+Compléter **`config.request.json`**. Exemple : lundi 21 septembre 2026 à 20 h, avec 60 minutes en priorité, puis 90 minutes. Remplacer la date par la date souhaitée.
 
 ```json
 {
   "date": "21/09/2026",
   "startTime": "20:00",
   "durationsMinutes": [60, 90],
+  "courtEnvironment": ["any"],
   "clubs": ["paris-padel", "ucpa-paris", "padelistes-bercy", "4padel-paris-20"],
   "maxTotalPriceEUR": null
 }
@@ -67,9 +69,22 @@ Compléter **`config.request.json`**. Exemple : lundi 21 septembre 2026 à 20 h,
 
 - `date` : date du match au format `DD/MM/YYYY`, en `Europe/Paris`.
 - `startTime` : heure de début exacte, au format `HH:mm`.
-- `durationsMinutes` : `[60]`, `[90]` ou `[60, 90]` si les deux conviennent. Il faudra vérifier que le club propose ces durées.
+- `durationsMinutes` : liste ordonnée de durées autorisées parmi `60`, `90`, `120`, sans doublons. `[60, 90, 120]` privilégie 60 min, puis 90, puis 120. `[60, 90]` exclut 120 min. `[120, 90, 60]` privilégie les séances longues. Une durée absente de la liste ne sera jamais choisie.
+- `courtEnvironment` : contrainte ou préférence intérieur/extérieur, selon le tableau ci-dessous.
 - `clubs` : identifiants issus du catalogue, dans l’ordre de préférence.
 - `maxTotalPriceEUR` : futur plafond total par réservation. `null` signifie non renseigné ; aucune autorisation de paiement n’en découle.
+
+| `courtEnvironment` | Choix du terrain |
+| --- | --- |
+| `["indoor", "outdoor"]` | Intérieur en priorité ; extérieur si aucun intérieur compatible n’est disponible |
+| `["outdoor", "indoor"]` | Extérieur en priorité ; intérieur si aucun extérieur compatible n’est disponible |
+| `["indoor"]` | Intérieur uniquement |
+| `["outdoor"]` | Extérieur uniquement |
+| `["any"]` | Premier terrain compatible, sans préférence (valeur par défaut) |
+
+La liste ne doit contenir ni doublons ni valeurs inconnues. `["any"]` doit être utilisé seul. Les anciennes valeurs textuelles restent acceptées et sont converties en listes ; utilisez désormais ce format dans les configurations. En ligne de commande : `--court-environment indoor,outdoor`, `outdoor,indoor`, `indoor`, `outdoor` ou `any`.
+
+Par exemple, `"courtEnvironment": ["indoor", "outdoor"]` permet les deux types tout en privilégiant l’intérieur. L’ordre de sélection est **durée, puis préférence intérieur/extérieur, puis ordre affiché des terrains**. Les critères stricts (intérieur/extérieur uniquement, terrain nommé) restent obligatoires. Ainsi, `[60, 90]` avec `["indoor", "outdoor"]` choisit 60 min dehors avant 90 min dedans ; avec `["indoor"]`, il passe à 90 min si aucun intérieur n’est disponible à 60 min. Cette priorité s’applique aux offres du club et du créneau inspectés ; elle ne réordonne pas les clubs du planning. Un `--court` explicite reste une contrainte : la préférence de type s’applique parmi les offres de ce terrain.
 
 La demande ne peut pas contenir `account`, `browser` ou d’autres options fixes. `booking:plan` lit uniquement la demande ; il fonctionne même sans identifiants. La connexion lit uniquement le fichier fixe et ne dépend pas de la date de réservation.
 
@@ -97,6 +112,43 @@ Après confirmation, `.auth/session.json` conserve les cookies, le stockage loca
 Le mode manuel permet de terminer une connexion interactive dans Chromium ; augmenter `browser.timeoutMs` si nécessaire, jusqu’à cinq minutes. Aucun solveur CAPTCHA n’est utilisé pour la connexion Anybuddy. Ces commandes s’arrêtent après vérification de l’authentification et n’effectuent aucune réservation.
 
 Les identifiants Paris Tennis ne sont jamais repris automatiquement. Une installation sur le VPS possède ses propres fichiers locaux ; les identifiants et la session du Mac ne sont pas envoyés par un `git push`. Le collecteur public de disponibilités continue de fonctionner sans ces fichiers.
+
+## Simulation jusqu’au formulaire Stripe
+
+Après `npm run auth:login-headed`, tester un créneau explicite :
+
+```bash
+# Utiliser les durées ordonnées de config.request.json, sans accepter les conditions
+npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30
+
+# Remplacer ponctuellement la liste autorisée
+npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30 --durations 60,90,120
+
+# Imposer une seule durée pour cet essai
+npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30 --duration 60
+
+# Accepter les conditions connues puis ouvrir le formulaire Stripe
+npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30 --duration 60 --to-stripe
+
+# Facultatif : imposer un terrain précis au lieu du premier disponible
+npm run checkout:preview -- --club ucpa-paris --date 2026-09-12 --time 07:00 --duration 60 --court "Terrain 7 Padel HC" --to-stripe
+```
+
+Le navigateur est visible par défaut ; `--headless` le masque. Ces dates sont des exemples de la vérification du 11 septembre 2026 : adapter aux disponibilités actuelles. Cette commande utilise la session locale et le fichier fixe. Elle reprend `courtEnvironment` et `durationsMinutes` depuis `config.request.json` (ou le chemin `ANYBOTTY_REQUEST_CONFIG_PATH` / la configuration héritée). Sans fichier de demande, elle utilise `["any"]` et `[60, 90]` ; 120 min n’est jamais ajouté automatiquement. L’option `--court-environment indoor,outdoor` remplace cette préférence pour un essai ponctuel. La date, l’heure et le club restent fournis en arguments. `--durations 60,90,120` remplace la liste ordonnée ; `--duration 120` impose une seule durée. Ces deux options sont mutuellement exclusives ; la commande ne modifie pas le fichier de demande. Pour tous les clubs, si une modale de choix apparaît, le script parcourt les durées autorisées dans leur ordre, cherche les types de terrain dans l’ordre de préférence configuré, puis choisit le premier terrain compatible. Il passe à la durée suivante si aucune offre ne respecte les contraintes strictes. Il valide aussi une modale avec un seul terrain préselectionné. Sans modale, il poursuit directement vers le récapitulatif. `--court` reste une option pour imposer un terrain précis ; aucun nom de terrain n’est nécessaire par défaut. Le navigateur utilise la locale française ; si la bannière initiale de cookies apparaît, la commande refuse les cookies facultatifs. Une date ou un terrain différent du récapitulatif provoque un arrêt. La durée du récapitulatif doit être autorisée et correspondre à celle effectivement sélectionnée, y compris avant l’ouverture de Stripe. Un accès direct à une offre de 120 min est donc refusé avec `[60, 90]`.
+
+Exemple pour préférer un intérieur, en acceptant un extérieur en second choix :
+
+```bash
+npm run checkout:preview -- --club 4padel-saint-ouen --date 2026-09-12 --time 09:00 --duration 90 --court-environment indoor,outdoor
+```
+
+Le filtre se base sur le libellé Anybuddy **du terrain**, pas sur la description générale du club. Le récapitulatif est revérifié même en cas d’accès direct sans modale, puis avant l’acceptation des conditions si `--to-stripe` est utilisé. Les modes stricts `["indoor"]` et `["outdoor"]` refusent l’autre type. Les modes `["indoor", "outdoor"]` et `["outdoor", "indoor"]` acceptent le second type si le premier n’est pas proposé parmi les offres compatibles. Sans modale, ils acceptent l’unique offre si son type est connu. Un type absent ou ambigu est refusé dans ces quatre modes ; `["any"]` conserve le comportement antérieur, même si le type n’est pas renseigné. Après sélection dans une modale, le type du récapitulatif doit correspondre à celui retenu, même en mode préférence. Le planning reprend ce critère sans prétendre avoir vérifié les offres ; le collecteur d’ouverture continue d’observer tous les terrains.
+
+**Deux boutons portent le nom « Payer ».** Sur les parcours observés, le premier, dans « Confirmer et Payer », prépare le paiement et ouvre **Stripe intégré dans la fenêtre Anybuddy**. Le second apparaît avec « Entrez vos informations de paiement » et sert au paiement effectif. La simulation s’arrête avant ce second clic, ne remplit aucune donnée bancaire et ferme le navigateur. Elle ne relance jamais un clic de paiement après une erreur.
+
+`--to-stripe` autorise l’acceptation des CGV et la préparation de la session de paiement. Même sans cette option, l’ouverture du récapitulatif peut créer un panier serveur. Ce n’est donc pas un dry-run en lecture seule ; un panier ou une session de paiement non payé peut persister. Aucun paiement n’est soumis par cette commande, et elle ne prétend pas prouver l’absence de toute réservation en attente côté plateforme.
+
+Le [relevé des neuf clubs](docs/checkout.md) et [les profils utilisés par le code](data/checkout-requirements.json) conservent les cases et particularités constatées. Une condition inconnue, une CGV manquante ou un autre club bloque le parcours. Les préférences marketing du compte restent inchangées. En cas d’échec, une capture et un diagnostic sont enregistrés localement dans `.auth/checkout-failure.*`, ignorés par Git. Le code dispose aussi d’un blocage des requêtes de confirmation Stripe connues ; le garde-fou principal reste l’arrêt avant l’étape de paiement final.
 
 ## Catalogue initial
 

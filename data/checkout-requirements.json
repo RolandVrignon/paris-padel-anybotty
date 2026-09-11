@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "scope": "Anybuddy desktop web, authenticated account, observed on 2026-09-11. Conditions can change; not evidence for the mobile app or other accounts.",
+  "paymentFlow": "Embedded Stripe form after the first Anybuddy Pay button; stop before the second Pay button.",
+  "optionalLabel": "Je ne souhaite pas recevoir ces emails.",
+  "clubs": [
+    {
+      "clubId": "paris-padel",
+      "name": "Paris Padel",
+      "requiredLabels": [
+        "J'accepte les Conditions Générales de Vente et les conditions du club"
+      ],
+      "notes": "Matériel payant ; consigne du club : aucune annulation à moins de 72 h.",
+      "sample": {
+        "date": "2026-09-12",
+        "time": "08:00",
+        "durationMinutes": 60,
+        "court": "💥 Padel",
+        "totalEUR": 70
+      },
+      "checkedAt": "2026-09-11T13:56:29.602Z",
+      "stripeReached": true,
+      "paymentSubmitted": false
+    },
+    {
+      "clubId": "ucpa-paris",
+      "name": "UCPA Sport Station Hostel Paris",
+      "requiredLabels": [
+        "J'accepte les Conditions Générales de Vente et les conditions du club"
+      ],
+      "notes": "Chaussures adaptées demandées ; accès susceptible d’être refusé sinon. Stripe propose d’abord Carte bancaire, Revolut Pay ou Satispay.",
+      "sample": {
+        "date": "2026-09-12",
+        "time": "07:00",
+        "durationMinutes": 60,
+        "court": "Terrain 7 Padel HC",
+        "totalEUR": 38
+      },
+      "checkedAt": "2026-09-11T14:02:42.077Z",
+      "stripeReached": true,
+      "stripeMethods": [
+        "Carte bancaire",
+        "Revolut Pay",
+        "Satispay"
+      ],
+      "paymentSubmitted": false
+    },
+    {
+      "clubId": "sportfield-bercy",
+      "name": "Sportfield Paris 12 - Bercy",
+      "requiredLabels": [
+        "J'accepte les Conditions Générales de Vente et les conditions du club"
+      ],
+      "notes": "Accès autonome ; annulation annoncée jusqu’à 6 h avant le début ; matériel payant.",
+      "sample": {
+        "date": "2026-09-17",
+        "time": "22:30",
+        "durationMinutes": 60,
+        "court": "Terrain 1",
+        "totalEUR": 60
+      },
+      "checkedAt": "2026-09-11T13:55:20.281Z",
+      "stripeReached": true,
+      "paymentSubmitted": false
+    },
+    {
+      "clubId": "4padel-paris-20",
+      "name": "4PADEL Paris 20",
+      "requiredLabels": [
+        "J'accepte les Conditions Générales de Vente et les conditions du club"
+      ],
+      "notes": "Incohérence à vérifier avant une vraie réservation : consigne de 48 h, mais récapitulatif annulable jusqu’au 12/09 à 12:30 pour le 13/09 à 12:30 (24 h).",
+      "sample": {
+        "date": "2026-09-13",
+        "time": "12:30",
+        "durationMinutes": 90,
+        "court": "Piste 2",
+        "totalEUR": 84
+      },
+      "checkedAt": "2026-09-11T13:55:35.994Z",
+      "stripeReached": true,
+      "paymentSubmitted": false
+    },
+    {
+      "clubId": "aquaboulevard",
+      "name": "Forest Hill Aquaboulevard De Paris",
+      "requiredLabels": [
+        "J'accepte les Conditions Générales de Vente et les conditions du club"
+      ],
+      "notes": "Non annulable ; arriver 15 min avant pour le contrôle à l’accueil ; pas de prêt de matériel ; 4 joueurs maximum et règles de tenue/comportement.",
+      "sample": {
+        "date": "2026-09-12",
+        "time": "00:00",
+        "durationMinutes": 60,
+        "court": "Padel",
+        "totalEUR": 54
+      },
+      "checkedAt": "2026-09-11T13:58:18.729Z",
+      "stripeReached": true,
+      "paymentSubmitted": false
+    },
+    {
+      "clubId": "4padel-saint-ouen",
+      "name": "4Padel Saint-Ouen",
+      "requiredLabels": [
+        "J'accepte les Conditions Générales de Vente et les conditions du club"
+      ],
+      "notes": "Annulation gratuite annoncée jusqu’à 48 h avant ; créneau testé non annulable.",
+      "sample": {
+        "date": "2026-09-12",
+        "time": "09:00",
+        "durationMinutes": 90,
+        "court": "Piste Babolat",
+        "totalEUR": 84
+      },
+      "checkedAt": "2026-09-11T13:59:38.565Z",
+      "stripeReached": true,
+      "paymentSubmitted": false
+    },
+    {
+      "clubId": "trinquet-village",
+      "name": "Trinquet Village",
+      "requiredLabels": [
+        "J'accepte les Conditions Générales de Vente et les conditions du club"
+      ],
+      "notes": "Pas de location de matériel ; remboursement pour pluie exclusivement en crédits Anybuddy utilisables dans ce club.",
+      "sample": {
+        "date": "2026-09-12",
+        "time": "08:00",
+        "durationMinutes": 60,
+        "court": "Padel 3 deuxieme terrain en partant de la droite",
+        "totalEUR": 54
+      },
+      "checkedAt": "2026-09-11T14:00:01.738Z",
+      "stripeReached": true,
+      "paymentSubmitted": false
+    },
+    {
+      "clubId": "padelistes-bercy",
+      "name": "Padelistes Bercy - Paris 12",
+      "requiredLabels": [
+        "J'accepte les Conditions Générales de Vente et les conditions du club"
+      ],
+      "notes": "4 joueurs maximum ; chaussures adaptées ; horaires à respecter ; maximum 4 réservations par jour.",
+      "sample": {
+        "date": "2026-09-12",
+        "time": "06:00",
+        "durationMinutes": 90,
+        "court": "Piste Alpine",
+        "totalEUR": 50
+      },
+      "checkedAt": "2026-09-11T14:00:38.969Z",
+      "stripeReached": true,
+      "paymentSubmitted": false
+    },
+    {
+      "clubId": "padel-15",
+      "name": "Padel 15",
+      "requiredLabels": [
+        "J'accepte les Conditions Générales de Vente et les conditions du club"
+      ],
+      "notes": "Annulation annoncée jusqu’à 48 h avant ; code de réservation pour accéder ; matériel disponible via le casier payant.",
+      "sample": {
+        "date": "2026-09-13",
+        "time": "19:30",
+        "durationMinutes": 60,
+        "court": "Court CUPRA",
+        "totalEUR": 60
+      },
+      "checkedAt": "2026-09-11T14:01:00.234Z",
+      "stripeReached": true,
+      "paymentSubmitted": false
+    }
+  ]
+}

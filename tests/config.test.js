@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
-import { loadFixedConfig, loadRequestConfig, readConfig, splitLegacy, validateAccount } from '../lib/config.js'
+import { loadFixedConfig, loadRequestConfig, readConfig, splitLegacy, validateAccount, resolveCourtEnvironment } from '../lib/config.js'
 
 const fixture = t => {
   const root = mkdtempSync(join(tmpdir(), 'anybotty-config-'))
@@ -53,4 +53,24 @@ test('malformed JSON errors redact content; account validation emits no credenti
   assert.throws(() => validateAccount({ account: { email: 'bad', password: 'secret' } }), /account.email/)
   assert.throws(() => validateAccount({ account: { email: account.email, password: '' } }), /account.password/)
   assert.doesNotThrow(() => validateAccount({ account: { email: account.email } }, { requirePassword: false }))
+})
+
+
+test('court environment comes from request configuration with a validated CLI override and compatible default', t => {
+  const { root, write } = fixture(t)
+  assert.deepEqual(resolveCourtEnvironment(undefined, { root, env: {} }), ['any'])
+  write('config.request.json', { date: '21/09/2026' })
+  assert.deepEqual(resolveCourtEnvironment(undefined, { root, env: {} }), ['any'])
+  for (const courtEnvironment of [['any'], ['indoor'], ['outdoor'], ['indoor', 'outdoor'], ['outdoor', 'indoor']]) {
+    write('config.request.json', { courtEnvironment })
+    assert.deepEqual(loadRequestConfig({ root, env: {} }).courtEnvironment, courtEnvironment)
+    assert.deepEqual(resolveCourtEnvironment(undefined, { root, env: {} }), courtEnvironment)
+  }
+  assert.deepEqual(resolveCourtEnvironment('indoor', { root, env: {} }), ['indoor'])
+  for (const courtEnvironment of ['inside', null, true]) {
+    write('config.request.json', { courtEnvironment })
+    assert.throws(() => loadRequestConfig({ root, env: {} }), /courtEnvironment/)
+    assert.throws(() => resolveCourtEnvironment(courtEnvironment, { root, env: {} }), /courtEnvironment/)
+  }
+  assert.throws(() => resolveCourtEnvironment(undefined, { root, env: { ANYBOTTY_REQUEST_CONFIG_PATH: join(root, 'missing.json') } }), /Cannot read/)
 })
