@@ -64,3 +64,26 @@ test('field rejection strips Playwright values and leaves the final payment unto
     assert.equal(await page.evaluate(() => globalThis.submitted), undefined)
   }, form.replace('name="number"', 'name="number" aria-invalid="true"'))
 })
+
+test('detects direct card entry without clicking payment method or Link buttons', async () => {
+  await withPage(async page => {
+    let detected
+    await findStripeCardFrame(page, { onDetected: result => { detected = result } })
+    assert.equal(detected.route, 'direct_card')
+    assert.equal(await page.evaluate(() => globalThis.submitted), undefined)
+  })
+})
+
+test('opens only Carte bancaire when methods are collapsed, then reports the selectable path', async () => {
+  const choices = `<button onclick='globalThis.cardClicks=(globalThis.cardClicks||0)+1;document.querySelector("#fields").hidden=false'>Carte bancaire</button><button onclick='globalThis.wallet=true'>Revolut Pay</button><button onclick='globalThis.wallet=true'>Satispay</button><div id="fields" hidden>${form}</div>`
+  await withPage(async page => {
+    let detected
+    const frame = await findStripeCardFrame(page, { onDetected: result => { detected = result } })
+    assert.equal(detected.route, 'select_card')
+    assert.deepEqual(detected.observedMethodButtons, ['Carte bancaire', 'Revolut Pay', 'Satispay'])
+    assert.equal(await frame.evaluate(() => globalThis.cardClicks), 1)
+    assert.equal(await frame.evaluate(() => globalThis.wallet), undefined)
+    assert.equal(await frame.evaluate(() => globalThis.submitted), undefined)
+    assert.equal(await frame.locator('[autocomplete=cc-number]').inputValue(), '')
+  }, choices)
+})

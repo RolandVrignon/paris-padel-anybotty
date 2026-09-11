@@ -1,0 +1,427 @@
+{
+  "checkedAt": "2026-09-11T16:23:03.755Z",
+  "source": "Live authenticated Anybuddy checkout with empty Stripe forms",
+  "scope": "One available slot per catalogue club; observations are not fixed payment policies. Runtime detection remains mandatory.",
+  "cardFilled": false,
+  "paymentSubmitted": false,
+  "clubs": [
+    {
+      "clubId": "paris-padel",
+      "clubName": "Paris Padel",
+      "checkedAt": "2026-09-11T16:21:57.516Z",
+      "status": "verified",
+      "route": "direct_card",
+      "observedMethodButtons": [],
+      "date": "2026-09-12",
+      "startTime": "08:00",
+      "durationMinutes": 60,
+      "court": "💥 Padel",
+      "totalEUR": 70,
+      "usedCourtModal": false,
+      "fields": [
+        {
+          "key": "cardNumber",
+          "tag": "input",
+          "id": "payment-numberInput",
+          "name": "number",
+          "autocomplete": "cc-number"
+        },
+        {
+          "key": "expiry",
+          "tag": "input",
+          "id": "payment-expiryInput",
+          "name": "expiry",
+          "autocomplete": "cc-exp"
+        },
+        {
+          "key": "cvc",
+          "tag": "input",
+          "id": "payment-cvcInput",
+          "name": "cvc",
+          "autocomplete": "cc-csc"
+        },
+        {
+          "key": "billingCountry",
+          "tag": "select",
+          "id": "payment-countryInput",
+          "name": "country",
+          "autocomplete": "billing country"
+        }
+      ],
+      "paymentSubmitted": false,
+      "cardFilled": false
+    },
+    {
+      "clubId": "ucpa-paris",
+      "clubName": "UCPA Sport Station Hostel Paris",
+      "checkedAt": "2026-09-11T16:22:02.893Z",
+      "status": "verified",
+      "route": "select_card",
+      "observedMethodButtons": [
+        "Carte bancaire",
+        "Revolut Pay",
+        "Satispay"
+      ],
+      "date": "2026-09-12",
+      "startTime": "11:00",
+      "durationMinutes": 60,
+      "court": "Terrain 7 Padel HP",
+      "totalEUR": 50,
+      "usedCourtModal": false,
+      "fields": [
+        {
+          "key": "cardNumber",
+          "tag": "input",
+          "id": "payment-numberInput",
+          "name": "number",
+          "autocomplete": "cc-number"
+        },
+        {
+          "key": "expiry",
+          "tag": "input",
+          "id": "payment-expiryInput",
+          "name": "expiry",
+          "autocomplete": "cc-exp"
+        },
+        {
+          "key": "cvc",
+          "tag": "input",
+          "id": "payment-cvcInput",
+          "name": "cvc",
+          "autocomplete": "cc-csc"
+        },
+        {
+          "key": "billingCountry",
+          "tag": "select",
+          "id": "payment-countryInput",
+          "name": "country",
+          "autocomplete": "billing country"
+        }
+      ],
+      "paymentSubmitted": false,
+      "cardFilled": false
+    },
+    {
+      "clubId": "sportfield-bercy",
+      "clubName": "Sportfield Paris 12 - Bercy",
+      "checkedAt": "2026-09-11T16:22:25.276Z",
+      "status": "verified",
+      "route": "direct_card",
+      "observedMethodButtons": [],
+      "date": "2026-09-12",
+      "startTime": "07:30",
+      "durationMinutes": 60,
+      "court": "Terrain 1",
+      "totalEUR": 50,
+      "usedCourtModal": false,
+      "fields": [
+        {
+          "key": "cardNumber",
+          "tag": "input",
+          "id": "payment-numberInput",
+          "name": "number",
+          "autocomplete": "cc-number"
+        },
+        {
+          "key": "expiry",
+          "tag": "input",
+          "id": "payment-expiryInput",
+          "name": "expiry",
+          "autocomplete": "cc-exp"
+        },
+        {
+          "key": "cvc",
+          "tag": "input",
+          "id": "payment-cvcInput",
+          "name": "cvc",
+          "autocomplete": "cc-csc"
+        },
+        {
+          "key": "billingCountry",
+          "tag": "select",
+          "id": "payment-countryInput",
+          "name": "country",
+          "autocomplete": "billing country"
+        }
+      ],
+      "paymentSubmitted": false,
+      "cardFilled": false
+    },
+    {
+      "clubId": "4padel-paris-20",
+      "clubName": "4PADEL Paris 20",
+      "checkedAt": "2026-09-11T16:22:30.596Z",
+      "status": "verified",
+      "route": "direct_card",
+      "observedMethodButtons": [],
+      "date": "2026-09-12",
+      "startTime": "09:00",
+      "durationMinutes": 120,
+      "court": "Piste 2",
+      "totalEUR": 112,
+      "usedCourtModal": false,
+      "fields": [
+        {
+          "key": "cardNumber",
+          "tag": "input",
+          "id": "payment-numberInput",
+          "name": "number",
+          "autocomplete": "cc-number"
+        },
+        {
+          "key": "expiry",
+          "tag": "input",
+          "id": "payment-expiryInput",
+          "name": "expiry",
+          "autocomplete": "cc-exp"
+        },
+        {
+          "key": "cvc",
+          "tag": "input",
+          "id": "payment-cvcInput",
+          "name": "cvc",
+          "autocomplete": "cc-csc"
+        },
+        {
+          "key": "billingCountry",
+          "tag": "select",
+          "id": "payment-countryInput",
+          "name": "country",
+          "autocomplete": "billing country"
+        }
+      ],
+      "paymentSubmitted": false,
+      "cardFilled": false
+    },
+    {
+      "clubId": "aquaboulevard",
+      "clubName": "Forest Hill Aquaboulevard De Paris",
+      "checkedAt": "2026-09-11T16:22:35.597Z",
+      "status": "verified",
+      "route": "direct_card",
+      "observedMethodButtons": [],
+      "date": "2026-09-12",
+      "startTime": "00:00",
+      "durationMinutes": 60,
+      "court": "Padel",
+      "totalEUR": 54,
+      "usedCourtModal": false,
+      "fields": [
+        {
+          "key": "cardNumber",
+          "tag": "input",
+          "id": "payment-numberInput",
+          "name": "number",
+          "autocomplete": "cc-number"
+        },
+        {
+          "key": "expiry",
+          "tag": "input",
+          "id": "payment-expiryInput",
+          "name": "expiry",
+          "autocomplete": "cc-exp"
+        },
+        {
+          "key": "cvc",
+          "tag": "input",
+          "id": "payment-cvcInput",
+          "name": "cvc",
+          "autocomplete": "cc-csc"
+        },
+        {
+          "key": "billingCountry",
+          "tag": "select",
+          "id": "payment-countryInput",
+          "name": "country",
+          "autocomplete": "billing country"
+        }
+      ],
+      "paymentSubmitted": false,
+      "cardFilled": false
+    },
+    {
+      "clubId": "4padel-saint-ouen",
+      "clubName": "4Padel Saint-Ouen",
+      "checkedAt": "2026-09-11T16:22:42.542Z",
+      "status": "verified",
+      "route": "direct_card",
+      "observedMethodButtons": [],
+      "date": "2026-09-12",
+      "startTime": "09:00",
+      "durationMinutes": 90,
+      "court": "Piste Babolat",
+      "totalEUR": 84,
+      "usedCourtModal": true,
+      "fields": [
+        {
+          "key": "cardNumber",
+          "tag": "input",
+          "id": "payment-numberInput",
+          "name": "number",
+          "autocomplete": "cc-number"
+        },
+        {
+          "key": "expiry",
+          "tag": "input",
+          "id": "payment-expiryInput",
+          "name": "expiry",
+          "autocomplete": "cc-exp"
+        },
+        {
+          "key": "cvc",
+          "tag": "input",
+          "id": "payment-cvcInput",
+          "name": "cvc",
+          "autocomplete": "cc-csc"
+        },
+        {
+          "key": "billingCountry",
+          "tag": "select",
+          "id": "payment-countryInput",
+          "name": "country",
+          "autocomplete": "billing country"
+        }
+      ],
+      "paymentSubmitted": false,
+      "cardFilled": false
+    },
+    {
+      "clubId": "trinquet-village",
+      "clubName": "Trinquet Village",
+      "checkedAt": "2026-09-11T16:22:48.179Z",
+      "status": "verified",
+      "route": "direct_card",
+      "observedMethodButtons": [],
+      "date": "2026-09-12",
+      "startTime": "08:00",
+      "durationMinutes": 60,
+      "court": "Padel 3 deuxieme terrain en partant de la droite",
+      "totalEUR": 54,
+      "usedCourtModal": false,
+      "fields": [
+        {
+          "key": "cardNumber",
+          "tag": "input",
+          "id": "payment-numberInput",
+          "name": "number",
+          "autocomplete": "cc-number"
+        },
+        {
+          "key": "expiry",
+          "tag": "input",
+          "id": "payment-expiryInput",
+          "name": "expiry",
+          "autocomplete": "cc-exp"
+        },
+        {
+          "key": "cvc",
+          "tag": "input",
+          "id": "payment-cvcInput",
+          "name": "cvc",
+          "autocomplete": "cc-csc"
+        },
+        {
+          "key": "billingCountry",
+          "tag": "select",
+          "id": "payment-countryInput",
+          "name": "country",
+          "autocomplete": "billing country"
+        }
+      ],
+      "paymentSubmitted": false,
+      "cardFilled": false
+    },
+    {
+      "clubId": "padelistes-bercy",
+      "clubName": "Padelistes Bercy - Paris 12",
+      "checkedAt": "2026-09-11T16:22:53.486Z",
+      "status": "verified",
+      "route": "direct_card",
+      "observedMethodButtons": [],
+      "date": "2026-09-12",
+      "startTime": "06:00",
+      "durationMinutes": 90,
+      "court": "Piste Alpine",
+      "totalEUR": 50,
+      "usedCourtModal": true,
+      "fields": [
+        {
+          "key": "cardNumber",
+          "tag": "input",
+          "id": "payment-numberInput",
+          "name": "number",
+          "autocomplete": "cc-number"
+        },
+        {
+          "key": "expiry",
+          "tag": "input",
+          "id": "payment-expiryInput",
+          "name": "expiry",
+          "autocomplete": "cc-exp"
+        },
+        {
+          "key": "cvc",
+          "tag": "input",
+          "id": "payment-cvcInput",
+          "name": "cvc",
+          "autocomplete": "cc-csc"
+        },
+        {
+          "key": "billingCountry",
+          "tag": "select",
+          "id": "payment-countryInput",
+          "name": "country",
+          "autocomplete": "billing country"
+        }
+      ],
+      "paymentSubmitted": false,
+      "cardFilled": false
+    },
+    {
+      "clubId": "padel-15",
+      "clubName": "Padel 15",
+      "checkedAt": "2026-09-11T16:22:58.872Z",
+      "status": "verified",
+      "route": "direct_card",
+      "observedMethodButtons": [],
+      "date": "2026-09-13",
+      "startTime": "19:30",
+      "durationMinutes": 60,
+      "court": "Court CUPRA",
+      "totalEUR": 60,
+      "usedCourtModal": false,
+      "fields": [
+        {
+          "key": "cardNumber",
+          "tag": "input",
+          "id": "payment-numberInput",
+          "name": "number",
+          "autocomplete": "cc-number"
+        },
+        {
+          "key": "expiry",
+          "tag": "input",
+          "id": "payment-expiryInput",
+          "name": "expiry",
+          "autocomplete": "cc-exp"
+        },
+        {
+          "key": "cvc",
+          "tag": "input",
+          "id": "payment-cvcInput",
+          "name": "cvc",
+          "autocomplete": "cc-csc"
+        },
+        {
+          "key": "billingCountry",
+          "tag": "select",
+          "id": "payment-countryInput",
+          "name": "country",
+          "autocomplete": "billing country"
+        }
+      ],
+      "paymentSubmitted": false,
+      "cardFilled": false
+    }
+  ]
+}

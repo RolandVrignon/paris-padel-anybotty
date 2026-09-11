@@ -336,7 +336,7 @@ Ces options ne modifient pas la configuration. Sans fichier de demande, les pré
 
 Le type est lu sur les caractéristiques du **terrain**, pas dans la description générale du club. Un type absent ou ambigu bloque tous les modes sauf `["any"]`. Sans modale, les préférences à deux types acceptent l’offre directe si son type est connu. Après sélection dans une modale, le type et la durée du récapitulatif doivent correspondre au choix effectué.
 
-Les neuf clubs ont été inspectés jusqu’à Stripe le 11 septembre 2026. Une condition inconnue ou manquante bloque la préparation du paiement ; les préférences marketing restent inchangées. Les détails, cases et particularités sont dans le [relevé des checkouts](docs/checkout.md) et les [profils de clubs](data/checkout-requirements.json).
+Les neuf clubs ont été inspectés jusqu’à Stripe le 11 septembre 2026. Un nouvel audit des formulaires carte confirme : **UCPA demande de cliquer sur Carte bancaire ; les huit autres clubs ouvrent directement les champs**. Le bot détecte automatiquement les deux parcours et laisse les options Link facultatives intactes. Voir le [relevé par club](data/payment-routes.json) et la [procédure d’audit](docs/checkout.md#parcours-carte-par-club--audit-du-11-septembre-2026), relançable avec `npm run checkout:audit`. Une condition inconnue ou manquante bloque la préparation du paiement ; les préférences marketing restent inchangées. Les détails, cases et particularités sont dans le [relevé des checkouts](docs/checkout.md) et les [profils de clubs](data/checkout-requirements.json).
 
 ## Clubs et horizons observés
 

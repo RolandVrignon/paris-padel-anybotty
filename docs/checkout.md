@@ -93,3 +93,42 @@ Le clic final utilise le bouton DOM `Payer [montant] €` dans `[data-testid="bo
 Après annulation, Anybuddy peut retirer le match de la liste renvoyée par son action de lecture. Le script vérifie alors la fiche exacte (club, date, heure, statut `Annulé`) pour les réservations connues du journal ; une simple absence de la liste ne prouve jamais l’annulation.
 
 Le contrôle réel du formulaire final a confirmé que Stripe masque les lignes club/date/terrain/total. Ces informations sont donc vérifiées juste avant son ouverture ; au dernier stade, le bouton Payer fournit le montant à comparer au total autorisé et au plafond horaire. La page doit rester la même. Le terrain est désormais extrait du récapitulatif même sans modale de choix. Contrôle sans nouveau paiement : UCPA, 19/09/2026 à 07:00, Terrain 7 Padel HC, 60 minutes, 38 €, saisie de carte et contrôles finaux réussis, confirmation réseau bloquée.
+
+## Parcours carte par club — audit du 11 septembre 2026
+
+Les neuf clubs ont été parcourus à nouveau jusqu’aux champs Stripe, sans saisir de carte ni payer. Le relevé daté et les attributs HTML observés sont conservés dans [`data/payment-routes.json`](../data/payment-routes.json).
+
+| Club | Parcours observé | Boutons de méthodes observés avant sélection |
+| --- | --- | --- |
+| Paris Padel | Champs de carte directement visibles | Aucun choix de méthode à effectuer |
+| UCPA Sport Station Hostel Paris | Cliquer sur **Carte bancaire**, puis remplir | Carte bancaire, Revolut Pay, Satispay |
+| Sportfield Paris 12 - Bercy | Champs de carte directement visibles | Aucun choix de méthode à effectuer |
+| 4PADEL Paris 20 | Champs de carte directement visibles | Aucun choix de méthode à effectuer |
+| Forest Hill Aquaboulevard De Paris | Champs de carte directement visibles | Aucun choix de méthode à effectuer |
+| 4Padel Saint-Ouen | Champs de carte directement visibles | Aucun choix de méthode à effectuer |
+| Trinquet Village | Champs de carte directement visibles | Aucun choix de méthode à effectuer |
+| Padelistes Bercy - Paris 12 | Champs de carte directement visibles | Aucun choix de méthode à effectuer |
+| Padel 15 | Champs de carte directement visibles | Aucun choix de méthode à effectuer |
+
+Sur ces neuf formulaires, les champs utilisés ont les mêmes attributs :
+
+| Champ | ID HTML | Sélecteur utilisé |
+| --- | --- | --- |
+| Numéro | `payment-numberInput` | `input[autocomplete="cc-number"]` |
+| Expiration | `payment-expiryInput` | `input[autocomplete="cc-exp"]` |
+| CVC | `payment-cvcInput` | `input[autocomplete="cc-csc"]` |
+| Pays | `payment-countryInput` | `select[autocomplete="billing country"]` |
+
+Le nom du titulaire et le code postal n’étaient pas présents dans les champs carte observés. Les éventuels champs facultatifs d’inscription Link restent hors du remplissage carte ; le bot ne les active pas.
+
+`findStripeCardFrame` détecte le formulaire visible dans un iframe Stripe rattaché au checkout. Si les champs sont déjà ouverts, il les utilise directement. Sinon, il clique uniquement le bouton exact Carte bancaire, par son élément DOM, puis attend les champs. Il ne sélectionne pas Revolut Pay ou Satispay. Le choix se fait à chaque exécution : aucun club n’est figé dans un parcours sur la seule base de cet audit. Le tableau décrit une observation, pas une garantie sur les futurs moyens de paiement.
+
+Pour refaire le relevé :
+
+```sh
+npm run checkout:audit
+# Un seul club
+npm run checkout:audit -- --club ucpa-paris
+```
+
+Le script choisit un créneau disponible à partir du lendemain, accepte les conditions connues et ouvre Stripe. Il ne remplit aucune carte, n’arme jamais l’autorisation réseau de paiement et ferme chaque page après inspection. Comme tout accès au checkout, il peut laisser des paniers impayés. Son résultat privé est `.auth/payment-routes-audit/latest.json` ; les erreurs restent `unverified`, jamais assimilées à un parcours direct. Il partage le verrou de recherche pour éviter un audit simultané avec une réservation dans ce dépôt.
