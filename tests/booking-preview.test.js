@@ -90,6 +90,7 @@ test('120 minutes at 120 EUR meets an 80 EUR/hour cap; a later price increase is
   const page = await context.newPage()
   const normalized = { ...request, date: '2026-09-21' }
   const result = await previewBookingOffer(page, clubs[0], normalized)
+  assert.equal(result.court, 'Two hours')
   assert.equal(result.totalEUR, 120)
   assert.equal(result.pricePerHourEUR, 60)
   await page.getByText('Total à payer 120 €', { exact: true }).evaluate(element => { element.textContent = 'Total à payer 161 €' })

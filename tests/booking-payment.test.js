@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
-import { paymentStore, payBookingOffer, inspectFinalPayment, clickFinalPayment, reconcilePayment } from '../lib/booking-payment.js'
+import { paymentStore, payBookingOffer, inspectFinalPayment, clickFinalPayment, reconcilePayment, verifyPaymentSummary } from '../lib/booking-payment.js'
 import { installPaymentGuard } from '../lib/checkout.js'
 
 const request = { date: '2026-09-19', startTime: '07:00', maxPricePerHourEUR: 80, durationsMinutes: [60], courtEnvironment: ['any'] }
@@ -60,14 +60,14 @@ test('real mode journals before one click, waits for confirmed booking, and a re
   const deps = {
     store, payment: {}, timeoutMs: 100, pollMs: 1,
     readReservations: async () => clicked ? [++readsAfterClick > 1 ? reservation : { ...reservation, reservationConfirmed: false, category: 'pending' }] : [],
-    prepare: async () => {}, fill: async () => {}, inspect: async () => ({}),
+    verifySummary: async () => {}, prepare: async () => {}, fill: async () => {}, inspect: async () => ({}),
     click: async () => { assert.equal(store.read().status, 'payment_started'); clicked++; await context.send(url, 'POST', { status: 'requires_capture', amount: 3800, currency: 'eur' }) },
   }
-  const result = await payBookingOffer({ context: () => context }, offer, request, deps)
+  const result = await payBookingOffer({ context: () => context, url: () => 'https://www.anybuddyapp.com/fr/club/ucpa-paris/padel' }, offer, request, deps)
   assert.equal(result.status, 'booked')
   assert.equal(result.reservation.id, reservation.id)
   assert.equal(clicked, 1)
-  assert.equal((await payBookingOffer({ context: () => context }, offer, request, { ...deps, click: () => assert.fail('Repeat payment') })).status, 'booked')
+  assert.equal((await payBookingOffer({ context: () => context, url: () => 'https://www.anybuddyapp.com/fr/club/ucpa-paris/padel' }, offer, request, { ...deps, click: () => assert.fail('Repeat payment') })).status, 'booked')
   assert.equal(clicked, 1)
 })
 
@@ -76,8 +76,8 @@ test('decline, 3DS, amount mismatch and unknown outcome stop without retry or in
     const { store } = storeFor(t)
     const context = fakeContext()
     let clicks = 0
-    const result = await payBookingOffer({ context: () => context }, offer, request, {
-      store, payment: {}, timeoutMs: 5, pollMs: 1, readReservations: async () => [], prepare: async () => {}, fill: async () => {}, inspect: async () => ({}),
+    const result = await payBookingOffer({ context: () => context, url: () => 'https://www.anybuddyapp.com/fr/club/ucpa-paris/padel' }, offer, request, {
+      store, payment: {}, timeoutMs: 5, pollMs: 1, readReservations: async () => [], verifySummary: async () => {}, prepare: async () => {}, fill: async () => {}, inspect: async () => ({}),
       click: async () => { clicks++; await context.send(url, 'POST', { status: stripeStatus, amount, currency: 'eur' }); throw new Error('Transport interrupted after click') },
     })
     assert.equal(result.status, expected)
@@ -91,10 +91,10 @@ test('decline, 3DS, amount mismatch and unknown outcome stop without retry or in
 test('existing booking and preflight failures cannot submit; wrong date/court/club cannot confirm', async t => {
   const { store } = storeFor(t)
   const context = fakeContext()
-  const base = { store, readReservations: async () => [reservation], prepare: () => assert.fail('Existing booking paid') }
-  assert.equal((await payBookingOffer({ context: () => context }, offer, request, base)).status, 'existing_reservation')
+  const base = { store, verifySummary: async () => {}, readReservations: async () => [reservation], prepare: () => assert.fail('Existing booking paid') }
+  assert.equal((await payBookingOffer({ context: () => context, url: () => 'https://www.anybuddyapp.com/fr/club/ucpa-paris/padel' }, offer, request, base)).status, 'existing_reservation')
   assert.equal(store.read(), null)
-  await assert.rejects(payBookingOffer({ context: () => context }, offer, request, { ...base, readReservations: async () => [], prepare: async () => { throw new Error('Conditions changed') } }))
+  await assert.rejects(payBookingOffer({ context: () => context, url: () => 'https://www.anybuddyapp.com/fr/club/ucpa-paris/padel' }, offer, request, { ...base, readReservations: async () => [], prepare: async () => { throw new Error('Conditions changed') } }))
   assert.equal(store.read(), null)
   for (const changed of [{ court: 'Wrong' }, { club: 'Wrong' }, { dateTime: '2026-09-20T07:00' }, { durationMinutes: 90 }, { hasOwnReservation: false }]) {
     assert.equal((await reconcilePayment({ offer, baselineIds: [] }, async () => [{ ...reservation, ...changed }])).reservationConfirmed, false)
@@ -109,8 +109,10 @@ test('final DOM click targets exact price button, never Revolut; changed total/i
     page.setDefaultTimeout(1000)
     await page.route('https://js.stripe.com/fixture', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: '<input autocomplete="cc-number" value="4242424242424242"><input autocomplete="cc-exp" value="1229"><input autocomplete="cc-csc" value="123"><button onclick="globalThis.wallet=true">Revolut Pay</button>' }))
     await page.setContent('<section data-testid="booking-sheet"><p>Entrez vos informations de paiement</p><p>UCPA Sport Station Hostel Paris</p><p>19 septembre 2026</p><p>07:00 (60 min)</p><p>Terrain 6</p><p>Total à payer 38 €</p><iframe src="https://js.stripe.com/fixture"></iframe><button onclick="globalThis.paid=(globalThis.paid||0)+1">Payer 38 €</button><button onclick="globalThis.wallet=true">Revolut Pay</button></section>')
+    await verifyPaymentSummary(page, offer, request)
+    await assert.rejects(verifyPaymentSummary(page, { ...offer, court: 'Other court' }, request))
+    await page.getByTestId('booking-sheet').locator('p').filter({ hasNotText: 'Entrez vos informations de paiement' }).evaluateAll(nodes => nodes.forEach(node => node.remove()))
     const button = await inspectFinalPayment(page, offer, request)
-    await assert.rejects(inspectFinalPayment(page, { ...offer, court: 'Other court' }, request))
     await assert.rejects(inspectFinalPayment(page, { ...offer, totalCents: 4000 }, request))
     await assert.rejects(inspectFinalPayment(page, offer, { ...request, maxPricePerHourEUR: 30 }))
     await clickFinalPayment(button, 3800)
