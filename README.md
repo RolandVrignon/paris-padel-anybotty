@@ -103,40 +103,45 @@ npm run observe:report
 
 Le collecteur lit la même route publique que le calendrier web : `https://www.anybuddyapp.com/api/v1/availabilities`, avec le club, le sport `padel` et une plage de dates. Aucun compte, token, modèle Hugging Face ou navigateur n’est nécessaire. Cette interface peut évoluer ; une réponse inattendue est enregistrée comme erreur, jamais comme absence de créneau.
 
-Chaque club possède un suivi indépendant et persistant dans `openingWatch`. Au démarrage de son suivi, le script fixe la date cible à **date du jour à Paris + horizon observé + 1 jour**. Cette date ne change pas à minuit ni après un redémarrage. Une `monitoring.targetDate` explicite dans le catalogue prend priorité. Lorsqu’elle change, seul le suivi du club concerné redémarre ; les anciennes observations sont conservées.
+Chaque passage interroge les **huit clubs actifs en parallèle**, une requête par club, sur une fenêtre de **J à J+35 inclus** au minimum. Si l’horizon observé d’un club dépasse 21 jours, la fenêtre s’étend jusqu’à cet horizon + 14 jours. Toutes les durées sont conservées, indépendamment de `config.json`.
 
-Exemples avec un démarrage le **11 septembre 2026** :
+**Trinquet Village est exclu** (`monitoring.enabled: false`). Il reste dans le catalogue et ses anciens relevés sont conservés.
 
-| Centres | Horizon | Date cible |
-| --- | --- | --- |
-| Paris Padel, UCPA, Padelistes Bercy | J+8 | 20 septembre |
-| Sportfield Bercy | J+14 | 26 septembre |
-| 4PADEL Paris 20 | J+3 | 15 septembre |
-| Aquaboulevard | J+6 | 18 septembre |
-| 4Padel Saint-Ouen | J+1 | 13 septembre |
-| Padel 15 | J+5 | 17 septembre |
+### Plusieurs dates suivies simultanément
 
-**Trinquet Village est exclu de la surveillance** (`monitoring.enabled: false`), car il propose déjà des disponibilités très en avance. Il reste dans le catalogue ; son historique est conservé. Le collecteur, son rapport et les attentes après erreur prennent uniquement en compte les huit clubs actifs.
+Chaque date de la fenêtre possède son propre état dans `calendar.watches` :
 
-Les clubs actifs sont interrogés **en parallèle**, une requête par club et par passage, uniquement pour leur date cible. Toutes les durées proposées sont conservées, indépendamment de `config.json`.
+1. **`waiting`** : aucun créneau visible ; enregistrer le dernier contrôle valide sans disponibilité.
+2. **`verifying`** : première apparition ; enregistrer l’intervalle d’ouverture puis réaliser cinq contrôles supplémentaires espacés d’environ cinq minutes. Un lancement manuel quelques secondes avant un passage du timer ne compte pas comme un contrôle de cinq minutes.
+3. **`complete`** : cinq confirmations obtenues ; archiver le résultat de cette date. La collecte du calendrier continue, y compris pour voir les horaires ajoutés ensuite sur les dates déjà ouvertes.
 
-1. **`waiting`** : vérifier toutes les cinq minutes si la date cible dispose de créneaux.
-2. **`verifying`** : dès leur première apparition, conserver l’intervalle entre le dernier relevé sans disponibilité et le premier avec disponibilité. Puis effectuer **cinq relevés supplémentaires**, aux cinq passages suivants, soit environ 25 minutes.
-3. **`complete`** : après ces cinq confirmations, archiver le résultat de la date dans `completedWatches`. Au passage suivant, le club surveille **la date suivante** et recommence le même cycle. Chaque club avance indépendamment. Une cible explicitement fixée par `monitoring.targetDate` reste une campagne unique ; les huit clubs actifs utilisent le suivi continu.
+Une date fermée ou complète ne bloque **aucune autre date**. Si sept dates deviennent visibles au même passage, leurs sept contrôles démarrent ensemble. La fenêtre avance chaque jour, et les nouvelles dates commencent avec une référence initiale : on ne leur invente pas d’heure d’ouverture.
 
-Une confirmation signifie que **la date a toujours des créneaux disponibles**. Leur nombre et le nombre de créneaux initiaux encore présents sont enregistrés à chaque contrôle : certains peuvent avoir été réservés par d’autres personnes. Si la date n’a plus aucun créneau, l’essai est conservé dans `failedAttempts` et le suivi repart en attente, avec un nouveau cycle de cinq confirmations lors de la prochaine apparition.
+Les anciennes cibles (par exemple le 26 septembre pour Sportfield) et leurs preuves sont reprises automatiquement lors de cette mise à jour. `openingWatch` reste un repère de lecture compatible avec l’ancien rapport ; les mesures complètes sont dans `calendar` et `completedWatches`.
 
-Les erreurs réseau ne comptent jamais comme confirmation ou disparition. Elles peuvent allonger la période au-delà de 25 minutes. Une attente croissante et `Retry-After` sont respectés ; une réponse 401, 403 ou 429 suspend tous les passages suivants pendant cette attente. Les requêtes déjà parties en parallèle peuvent terminer.
+Une confirmation signifie que la date possède encore des créneaux. Leur nombre et le nombre de créneaux initiaux encore présents sont conservés. Si tous disparaissent avant les cinq confirmations, le suivi de cette date repart en attente et le lot correspondant est marqué non confirmé. Une date déjà disponible au premier relevé peut être confirmée, mais son heure d’ouverture reste inconnue.
 
-Le rapport inclut les 30 dernières campagnes terminées par club dans `completedWatches`, ainsi que `measuredOpeningDays` (campagnes avec intervalle mesuré et cinq confirmations). Une date déjà ouverte au premier contrôle ne compte pas comme heure d’ouverture mesurée.
+### Détecter les publications par jour, semaine ou horaire
 
-Le rapport `observe:report` expose `openingWatch.targetDate`, `phase`, `openingInterval` (UTC et Paris), `firstAvailableAt`, `confirmations`, `completedAt` et `result`. L’intervalle inclut le temps de réponse réseau. **Une seule ouverture observée donne une heure approximative pour cette date, pas encore une règle quotidienne garantie.**
+`calendar.batches` regroupe les dates devenues visibles au même relevé. Pour chaque groupe, le rapport donne :
 
-Si la date est déjà disponible au premier contrôle, le script effectue les cinq vérifications mais laisse `openingInterval` à `null` et conclut `already_available_at_first_check`. Il ne transforme pas l’heure de son démarrage en heure d’ouverture.
+- le jour et l’heure de publication observés, en Europe/Paris ;
+- les dates concernées et si elles sont consécutives ;
+- les semaines des dates concernées, avec des semaines commençant le lundi ;
+- `targetWeekOffsets` : `0` pour la semaine de publication, `1` pour la suivante, `2` pour celle d’après ;
+- les intervalles de première apparition et les confirmations par date.
 
-Les fichiers `observations/<club>/<jour UTC>/<horodatage>.json.gz` contiennent le suivi, les offres et prix en centimes, les erreurs et les changements. Ils sont exclus de Git. Conservation glissante de 30 jours, en conservant toujours le dernier état du club, y compris après la fin de son suivi. `ANYBOTTY_OBSERVATIONS_DIR` permet de choisir un autre dossier local. Les identifiants de service ne sont pas assimilés à des courts physiques.
+Cela permet de comparer une publication quotidienne, une ouverture en fin de semaine pour la semaine suivante, une ouverture le lundi pour la semaine en cours ou des groupes de dates irréguliers. Les dates vues au même relevé ne sont pas nécessairement publiées à la même seconde : la résolution reste celle de la collecte.
 
-Les anciens relevés larges restent consultables dans l’historique. Les suivis en cours sont conservés lors des mises à jour et des redémarrages. Le passage à la date suivante est automatique après les cinq confirmations. Pour lancer une série indépendante, choisir un nouveau `ANYBOTTY_OBSERVATIONS_DIR` dans le service ; les résultats précédents restent dans l’ancien dossier.
+`calendar.additionalSlots` conserve séparément les horaires ou durées ajoutés sur une date déjà disponible, avec leur délai avant le match (`leadTimeHours`). Ils peuvent révéler une ouverture progressive, mais aussi une annulation ou une modification des disponibilités ; aucune cause n’est affirmée automatiquement.
+
+Le rapport compte les **jours et semaines de publication distincts** (`independentPublicationDays`, `independentPublicationWeeks`) après les cinq confirmations. Sept dates publiées ensemble comptent comme **une seule publication observée**, pas sept répétitions indépendantes.
+
+### Historique et erreurs
+
+`observations/<club>/<jour UTC>/<horodatage>.json.gz` conserve les instantanés, offres, prix en centimes, états, erreurs et événements pendant 30 jours. Ces fichiers sont ignorés par Git. Les résumés conservent jusqu’à 200 campagnes, groupes et ajouts d’horaires des 30 derniers jours ; les instantanés bruts permettent de retrouver les détails au-delà de cette limite de résumé. `ANYBOTTY_OBSERVATIONS_DIR` choisit un autre dossier local.
+
+Les erreurs ne comptent jamais comme absence ou confirmation et peuvent élargir les intervalles. L’attente croît en cas d’échec, `Retry-After` est respecté et une réponse 401, 403 ou 429 suspend les passages suivants. Les requêtes déjà parties en parallèle peuvent terminer. Les anciennes observations sont conservées lors des mises à jour et redémarrages.
 
 ### Activation sur le VPS
 
@@ -163,17 +168,13 @@ systemctl --user stop anybotty-observe.service
 
 Hermes peut lancer `node scripts/observe.js --report` depuis le dépôt et lire les mêmes résultats. Le timer système réalise la collecte sans solliciter un modèle toutes les cinq minutes.
 
-## Comparer quatre à cinq jours
+## Établir une règle par club
 
-Laisser tourner le timer permet de recueillir plusieurs ouvertures par club, sans relancer manuellement le script. Comparer les intervalles en heure de Paris, les jours de semaine, les délais et les erreurs. Quatre ou cinq ouvertures concordantes donnent un premier indice de régularité ; elles ne garantissent pas les week-ends, jours fériés ou changements de politique du club.
+Quatre à cinq **publications quotidiennes** concordantes donnent un premier indice de régularité. Pour une hypothèse **hebdomadaire**, observer plutôt **deux à trois semaines**, afin de comparer plusieurs cycles. Les dates déjà ouvertes au démarrage et les groupes non confirmés ne prouvent pas une heure de publication.
 
-Le nombre de jours de fonctionnement ne garantit pas autant de mesures : si une date ne s’ouvre pas, disparaît avant cinq confirmations, ou est déjà ouverte au début du suivi, le rapport le montre. Le script garde une cible tant que son cycle n’est pas terminé. La date suivante commence au passage suivant la cinquième confirmation : si elle est déjà ouverte, son heure d’apparition reste inconnue.
+Comparer les jours et heures de publication, les semaines des matchs, les intervalles, les ajouts d’horaires et les erreurs. Vérifier aussi les différences entre semaine et week-end, courts et durées. Une absence peut signifier une date complète, fermée ou non publiée. La fenêtre interrogée est bornée : les disponibilités au-delà de sa fin restent inconnues.
 
-## Interpréter les ouvertures
-
-Le [protocole d’observation](docs/opening-observation.md) décrit les données à collecter et les critères de validation. Il faut déterminer, pour chaque centre, si les créneaux ouvrent tous ensemble à heure fixe ou progressivement dans une fenêtre glissante.
-
-La stratégie cible sera ensuite : vérifier les centres déjà ouverts ; si le créneau demandé manque, tenter les prochaines ouvertures ; arrêter toutes les tentatives après une confirmation et vérifier le compte en cas de résultat incertain.
+Le [protocole d’observation](docs/opening-observation.md) détaille ces hypothèses. Aucune heure de réservation définitive n’est déduite d’un seul groupe de dates. La réservation automatique reste à implémenter.
 
 ## Licence
 

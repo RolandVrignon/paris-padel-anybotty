@@ -1,30 +1,34 @@
-# Mesurer une ouverture par club
+# Comparer les modes de publication Anybuddy
 
-Le suivi opérationnel est décrit dans le [README](../README.md#surveillance-toutes-les-cinq-minutes).
+Le collecteur surveille huit clubs toutes les cinq minutes, en parallèle. Trinquet Village reste exclu. Il lit au minimum les dates de J à J+35 et couvre au moins deux semaines au-delà de l’horizon observé du club.
 
-## Cible fixe
+## Hypothèses à comparer
 
-Chaque club démarre avec la date du jour en Europe/Paris et l’horizon du catalogue. Sa cible vaut date de départ + horizon + 1 jour. Le 11 septembre 2026, Sportfield Bercy à J+14 cible donc le samedi 26 septembre. La cible est persistée et reste fixe après minuit et les redémarrages.
+| Hypothèse | Évidence à rechercher |
+| --- | --- |
+| Ouverture quotidienne | Une nouvelle date apparaît à une heure similaire plusieurs jours consécutifs. |
+| Fin de semaine pour la suivante | Plusieurs dates de la semaine suivante apparaissent ensemble, le vendredi, samedi ou dimanche. |
+| Début de semaine pour la semaine en cours | Plusieurs dates de la semaine de publication apparaissent ensemble le lundi ou mardi. |
+| Lots irréguliers | Plusieurs dates sont publiées ensemble, sans cadence encore établie. |
+| Fenêtre glissante | De nouveaux horaires deviennent visibles progressivement, avec un délai avant match similaire. |
+| Annulation ou changement de disponibilités | Des horaires reviennent sur une date déjà ouverte, sans preuve d’une nouvelle publication régulière. |
 
-Les huit suivis actifs avancent en parallèle, chacun avec son état et ses confirmations. Une requête publique de disponibilités couvre uniquement la date cible et toutes les durées proposées.
+Les semaines vont du lundi au dimanche. Le fuseau de publication est Europe/Paris, avec les horodatages UTC conservés.
 
-## Détection et cinq contrôles supplémentaires
+## Collecte et preuve
 
-- Sans créneau : attendre le passage suivant, cinq minutes plus tard.
-- Première disponibilité après une absence valide : enregistrer l’intervalle d’apparition, borné par les horodatages des deux observations.
-- Aux cinq passages suivants : vérifier la présence de créneaux pour cette date, environ 25 minutes au total. Conserver le nombre de créneaux et le nombre de créneaux initiaux encore disponibles.
-- Après cinq confirmations : archiver le résultat dans `completedWatches`, puis démarrer au passage suivant le suivi de la date suivante pour ce club. Les autres clubs avancent indépendamment. Une cible explicite `monitoring.targetDate` reste fixe et ne se renouvelle pas automatiquement.
-- Si les disponibilités disparaissent : conserver l’essai interrompu puis repartir en attente.
-- Une erreur ne compte pas comme une absence ni comme une confirmation. Le prochain relevé valide peut donner un intervalle plus large ou prolonger les contrôles.
+Chaque date de la fenêtre a son propre suivi. Une journée absente ne bloque pas les autres. Après une première apparition précédée d’une absence valide, le suivi enregistre l’intervalle puis cinq contrôles supplémentaires à environ cinq minutes d’écart. Une réponse erronée ne compte pas. Une disparition avant la fin invalide la confirmation de cette apparition.
 
-Une date déjà disponible au premier relevé fait l’objet des cinq contrôles, mais aucune heure d’ouverture ne peut en être déduite. Le résultat est `already_available_at_first_check` et l’intervalle reste nul.
+Les dates apparues au même relevé sont regroupées dans `calendar.batches`, avec leurs semaines, leurs écarts à la semaine de publication, les intervalles et les confirmations individuelles. Le regroupement prouve une détection commune à la précision de collecte, pas une simultanéité exacte côté serveur.
 
-## Interprétation
+Les nouveaux horaires d’une date déjà ouverte sont enregistrés dans `calendar.additionalSlots`. Les heures de départ, durées et délais avant match permettent d’examiner une fenêtre glissante. Une annulation reste une explication possible ; le script ne confond pas ces ajouts avec une règle confirmée.
 
-L’heure estimée concerne la date surveillée. Une ouverture peut être progressive, et un créneau peut réapparaître après une annulation. Une seule campagne et cinq confirmations ne prouvent donc pas une règle universelle du club. Pour établir une règle quotidienne, répéter les campagnes sur plusieurs dates puis comparer les résultats.
+Au premier relevé et lorsqu’une date entre dans la fenêtre, une disponibilité déjà présente ne permet pas de dater sa publication. Les preuves du précédent suivi ciblé sont reprises uniquement pour les dates qu’il couvrait. Les erreurs laissent intact le dernier relevé valide et élargissent la mesure.
 
-Les dates du catalogue sont des horizons initialement observés, pas des limites confirmées. Si une cible est déjà ouverte au démarrage (pour un club surveillé), le rapport le signale sans inventer une heure de publication.
+## Durée d’observation
 
-Trinquet Village reste dans le catalogue mais est exclu de la collecte via `monitoring.enabled: false`. Son ancien suivi et ses observations sont conservés, sans nouvelles requêtes.
+Quatre à cinq publications indépendantes peuvent soutenir une hypothèse quotidienne. Pour une cadence hebdomadaire, viser au moins deux à trois semaines. Sept dates ouvertes ensemble ne constituent qu’une seule publication observée. Le rapport compte séparément dates, jours et semaines de publication.
 
-Le rapport conserve les 30 dernières campagnes terminées et compte les ouvertures réellement mesurées dans `measuredOpeningDays`. Quatre à cinq observations concordantes soutiennent une hypothèse de régularité sans prouver une règle sans exceptions. Un jour sans ouverture ni cinq confirmations laisse le suivi sur sa cible ; les dates déjà ouvertes au démarrage ne constituent pas des mesures d’heure d’ouverture.
+Comparer les cycles avant de retenir une heure de réservation. Des exceptions restent possibles selon les jours, durées, terrains, jours fériés et modifications du club. Aucune règle quotidienne ou hebdomadaire n’est automatiquement déclarée certaine.
+
+L’historique brut est conservé 30 jours, avec les détails indiqués dans le [README](../README.md#surveillance-toutes-les-cinq-minutes).
