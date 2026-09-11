@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { fetchAvailability, nextRecord, failureRecord } from '../lib/availability.js'
 import { acquireLock, latestRecord, saveRecord, pruneRecords } from '../lib/observation-store.js'
 
-import { createWatch, advanceWatch, watchIsDue } from '../lib/opening-watch.js'
+import { selectWatch, advanceWatch, watchIsDue } from '../lib/opening-watch.js'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const args = process.argv.slice(2)
@@ -30,7 +30,7 @@ if (args[0] === '--report') {
       const outcomes = await Promise.allSettled((globalPause ? [] : clubs).map(async club => {
         if (controller.signal.aborted) return
         let previous = latestRecord(directory, club.id)
-        const watch = previous?.openingWatch || createWatch(club)
+        const watch = selectWatch(club, previous?.openingWatch)
         if (!watchIsDue(watch)) {
           console.log(JSON.stringify({ clubId: club.id, status: watch.phase === 'complete' ? 'completed' : 'not_due', targetDate: watch.targetDate, confirmations: watch.confirmations.length, nextCheckAt: watch.nextCheckAt }))
           return

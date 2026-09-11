@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { createWatch, advanceWatch, watchIsDue } from '../lib/opening-watch.js'
+import { createWatch, selectWatch, advanceWatch, watchIsDue } from '../lib/opening-watch.js'
 import { failureRecord } from '../lib/availability.js'
 
 const club = { id: 'sportfield-bercy', observation: { horizonDays: 14 } }
@@ -70,4 +70,21 @@ test('changed slots keep the date available but report the original-slot overlap
 
 test('a response that does not cover the target cannot advance its watch', () => {
   assert.throws(() => advanceWatch(initial(), snap('2026-09-11T13:00:00Z', true, '2026-09-25')), /not covered/)
+})
+
+
+test('an explicit Trinquet target overrides its lower-bound horizon and resets only that campaign', () => {
+  const trinquet = { observation: { horizonDays: 61 }, monitoring: { targetDate: '2026-11-11' } }
+  const old = { ...initial(), targetDate: '2026-09-26', phase: 'complete', confirmations: [1, 2, 3, 4, 5] }
+  const replacement = selectWatch(trinquet, old, '2026-09-11T13:00:00Z')
+  assert.equal(replacement.targetDate, '2026-11-11')
+  assert.equal(replacement.targetSource, 'configured_date')
+  assert.equal(replacement.supersedesTargetDate, '2026-09-26')
+  assert.equal(replacement.phase, 'waiting')
+  assert.deepEqual(replacement.confirmations, [])
+  assert.equal(selectWatch(club, old, '2026-09-12T13:00:00Z'), old)
+  assert.equal(selectWatch(trinquet, replacement, '2026-09-12T13:00:00Z'), replacement)
+  const available = advanceWatch(replacement, snap('2026-09-11T13:00:00Z', true, '2026-11-11'))
+  assert.equal(available.openingInterval, null)
+  assert.equal(available.phase, 'verifying')
 })

@@ -52,7 +52,7 @@ Exemple : lundi 21 septembre 2026 à 20 h, pendant 60 ou 90 minutes. Remplacer l
 
 ## Catalogue initial
 
-Les données ci-dessous proviennent des observations manuelles du **11 septembre 2026**, considéré comme J+0. Elles décrivent les dernières disponibilités vues, pas des règles d’ouverture confirmées.
+Les données ci-dessous ont été revérifiées via les disponibilités publiques Anybuddy le **11 septembre 2026**, considéré comme J+0, sur une plage allant jusqu’au 11 novembre. Elles décrivent les dernières disponibilités vues, pas des règles d’ouverture confirmées. Les résultats sont conservés dans [le relevé de vérification](data/horizon-audit-2026-09-11.json).
 
 | Identifiant | Centre | Dernière disponibilité observée | Horizon observé |
 | --- | --- | --- | --- |
@@ -62,9 +62,11 @@ Les données ci-dessous proviennent des observations manuelles du **11 septembre
 | `4padel-paris-20` | 4PADEL Paris 20 | 14 septembre | J+3 |
 | `aquaboulevard` | Forest Hill Aquaboulevard De Paris | 17 septembre | J+6 |
 | `4padel-saint-ouen` | 4Padel Saint-Ouen | 12 septembre | J+1 |
-| `trinquet-village` | Trinquet Village | 25 septembre | J+14 |
+| `trinquet-village` | Trinquet Village | 11 novembre (limite de la recherche atteinte) | **au moins J+61** |
 | `padelistes-bercy` | Padelistes Bercy - Paris 12 | 19 septembre | J+8 |
 | `padel-15` | Padel 15 | 16 septembre | J+5 |
+
+Le 10 novembre correspond à **J+60**, mais le 11 novembre affiche déjà des créneaux pour Trinquet Village : 26 heures de départ sur le site lors de cette vérification. Sa limite réelle reste inconnue ; `horizonIsLowerBound: true` empêche de lire J+61 comme une limite confirmée. Le champ est un indicateur de lecture du catalogue, pas une règle de réservation automatique.
 
 Les liens des centres, les dates d’observation et le statut de vérification sont dans [`data/clubs.json`](data/clubs.json). Toutes les heures d’ouverture sont actuellement `null` et toutes les règles `verified: false`.
 
@@ -101,14 +103,15 @@ npm run observe:report
 
 Le collecteur lit la même route publique que le calendrier web : `https://www.anybuddyapp.com/api/v1/availabilities`, avec le club, le sport `padel` et une plage de dates. Aucun compte, token, modèle Hugging Face ou navigateur n’est nécessaire. Cette interface peut évoluer ; une réponse inattendue est enregistrée comme erreur, jamais comme absence de créneau.
 
-Chaque club possède un suivi indépendant et persistant dans `openingWatch`. Au démarrage de son suivi, le script fixe la date cible à **date du jour à Paris + horizon observé + 1 jour**. Cette date ne change pas à minuit ni après un redémarrage.
+Chaque club possède un suivi indépendant et persistant dans `openingWatch`. Au démarrage de son suivi, le script fixe la date cible à **date du jour à Paris + horizon observé + 1 jour**. Cette date ne change pas à minuit ni après un redémarrage. Une `monitoring.targetDate` explicite dans le catalogue prend priorité. Lorsqu’elle change, seul le suivi du club concerné redémarre ; les anciennes observations sont conservées.
 
 Exemples avec un démarrage le **11 septembre 2026** :
 
 | Centres | Horizon | Date cible |
 | --- | --- | --- |
 | Paris Padel, UCPA, Padelistes Bercy | J+8 | 20 septembre |
-| Sportfield Bercy, Trinquet Village | J+14 | 26 septembre |
+| Sportfield Bercy | J+14 | 26 septembre |
+| Trinquet Village | Au moins J+61 | **11 novembre (cible explicite)** |
 | 4PADEL Paris 20 | J+3 | 15 septembre |
 | Aquaboulevard | J+6 | 18 septembre |
 | 4Padel Saint-Ouen | J+1 | 13 septembre |
@@ -126,7 +129,7 @@ Les erreurs réseau ne comptent jamais comme confirmation ou disparition. Elles 
 
 Le rapport `observe:report` expose `openingWatch.targetDate`, `phase`, `openingInterval` (UTC et Paris), `firstAvailableAt`, `confirmations`, `completedAt` et `result`. L’intervalle inclut le temps de réponse réseau. **Une seule ouverture observée donne une heure approximative pour cette date, pas encore une règle quotidienne garantie.**
 
-Si la date est déjà disponible au premier contrôle, le script effectue les cinq vérifications mais laisse `openingInterval` à `null` et conclut `already_available_at_first_check`. Il ne transforme pas l’heure de son démarrage en heure d’ouverture. Ce cas est notamment possible pour Trinquet Village, dont les disponibilités observées dépassent l’horizon initial J+14.
+Si la date est déjà disponible au premier contrôle, le script effectue les cinq vérifications mais laisse `openingInterval` à `null` et conclut `already_available_at_first_check`. Il ne transforme pas l’heure de son démarrage en heure d’ouverture. Ce cas est notamment possible pour Trinquet Village, dont la cible explicite du 11 novembre était déjà disponible lors de la vérification.
 
 Les fichiers `observations/<club>/<jour UTC>/<horodatage>.json.gz` contiennent le suivi, les offres et prix en centimes, les erreurs et les changements. Ils sont exclus de Git. Conservation glissante de 30 jours, en conservant toujours le dernier état du club, y compris après la fin de son suivi. `ANYBOTTY_OBSERVATIONS_DIR` permet de choisir un autre dossier local. Les identifiants de service ne sont pas assimilés à des courts physiques.
 

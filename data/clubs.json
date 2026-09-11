@@ -4,10 +4,13 @@
     "name": "Paris Padel",
     "url": "https://www.anybuddyapp.com/fr/club/paris-padel/padel",
     "observation": {
-      "source": "user_manual_observation",
+      "source": "anybuddy_public_availability",
       "date": "2026-09-11",
       "lastAvailableDate": "2026-09-19",
-      "horizonDays": 8
+      "horizonDays": 8,
+      "checkedAt": "2026-09-11T13:23:37.269Z",
+      "searchedThrough": "2026-11-11",
+      "horizonIsLowerBound": false
     },
     "opening": {
       "timeZone": "Europe/Paris",
@@ -21,10 +24,13 @@
     "name": "UCPA Sport Station Hostel Paris",
     "url": "https://www.anybuddyapp.com/fr/club/ucpa-sport-station-a-paris-paris/padel",
     "observation": {
-      "source": "user_manual_observation",
+      "source": "anybuddy_public_availability",
       "date": "2026-09-11",
       "lastAvailableDate": "2026-09-19",
-      "horizonDays": 8
+      "horizonDays": 8,
+      "checkedAt": "2026-09-11T13:23:37.361Z",
+      "searchedThrough": "2026-11-11",
+      "horizonIsLowerBound": false
     },
     "opening": {
       "timeZone": "Europe/Paris",
@@ -38,10 +44,13 @@
     "name": "Sportfield Paris 12 - Bercy",
     "url": "https://www.anybuddyapp.com/fr/club/sportfield-bercy-paris/padel",
     "observation": {
-      "source": "user_manual_observation",
+      "source": "anybuddy_public_availability",
       "date": "2026-09-11",
       "lastAvailableDate": "2026-09-25",
-      "horizonDays": 14
+      "horizonDays": 14,
+      "checkedAt": "2026-09-11T13:23:37.532Z",
+      "searchedThrough": "2026-11-11",
+      "horizonIsLowerBound": false
     },
     "opening": {
       "timeZone": "Europe/Paris",
@@ -55,10 +64,13 @@
     "name": "4PADEL Paris 20",
     "url": "https://www.anybuddyapp.com/fr/club/4padel-paris-20/padel",
     "observation": {
-      "source": "user_manual_observation",
+      "source": "anybuddy_public_availability",
       "date": "2026-09-11",
       "lastAvailableDate": "2026-09-14",
-      "horizonDays": 3
+      "horizonDays": 3,
+      "checkedAt": "2026-09-11T13:23:37.614Z",
+      "searchedThrough": "2026-11-11",
+      "horizonIsLowerBound": false
     },
     "opening": {
       "timeZone": "Europe/Paris",
@@ -72,10 +84,13 @@
     "name": "Forest Hill Aquaboulevard De Paris",
     "url": "https://www.anybuddyapp.com/fr/club/aquaboulevard-de-paris/padel",
     "observation": {
-      "source": "user_manual_observation",
+      "source": "anybuddy_public_availability",
       "date": "2026-09-11",
       "lastAvailableDate": "2026-09-17",
-      "horizonDays": 6
+      "horizonDays": 6,
+      "checkedAt": "2026-09-11T13:23:39.042Z",
+      "searchedThrough": "2026-11-11",
+      "horizonIsLowerBound": false
     },
     "opening": {
       "timeZone": "Europe/Paris",
@@ -89,10 +104,13 @@
     "name": "4Padel Saint-Ouen",
     "url": "https://www.anybuddyapp.com/fr/club/4-padel-saint-ouen-saint-ouen-sur-seine/padel",
     "observation": {
-      "source": "user_manual_observation",
+      "source": "anybuddy_public_availability",
       "date": "2026-09-11",
       "lastAvailableDate": "2026-09-12",
-      "horizonDays": 1
+      "horizonDays": 1,
+      "checkedAt": "2026-09-11T13:23:39.144Z",
+      "searchedThrough": "2026-11-11",
+      "horizonIsLowerBound": false
     },
     "opening": {
       "timeZone": "Europe/Paris",
@@ -106,16 +124,23 @@
     "name": "Trinquet Village",
     "url": "https://www.anybuddyapp.com/fr/club/trinquet-village-paris/padel",
     "observation": {
-      "source": "user_manual_observation",
+      "source": "anybuddy_public_availability",
       "date": "2026-09-11",
-      "lastAvailableDate": "2026-09-25",
-      "horizonDays": 14
+      "lastAvailableDate": "2026-11-11",
+      "horizonDays": 61,
+      "checkedAt": "2026-09-11T13:23:40.020Z",
+      "searchedThrough": "2026-11-11",
+      "horizonIsLowerBound": true
     },
     "opening": {
       "timeZone": "Europe/Paris",
       "mode": "unknown",
       "localTime": null,
       "verified": false
+    },
+    "monitoring": {
+      "targetDate": "2026-11-11",
+      "reason": "Explicit user target: November 10 is J+60; November 11 already has public availability, so its opening time cannot be inferred."
     }
   },
   {
@@ -123,10 +148,13 @@
     "name": "Padelistes Bercy - Paris 12",
     "url": "https://www.anybuddyapp.com/fr/club/les-padelistes-bercy-paris/padel",
     "observation": {
-      "source": "user_manual_observation",
+      "source": "anybuddy_public_availability",
       "date": "2026-09-11",
       "lastAvailableDate": "2026-09-19",
-      "horizonDays": 8
+      "horizonDays": 8,
+      "checkedAt": "2026-09-11T13:23:40.110Z",
+      "searchedThrough": "2026-11-11",
+      "horizonIsLowerBound": false
     },
     "opening": {
       "timeZone": "Europe/Paris",
@@ -140,10 +168,13 @@
     "name": "Padel 15",
     "url": "https://www.anybuddyapp.com/fr/club/padel-15-paris/padel",
     "observation": {
-      "source": "user_manual_observation",
+      "source": "anybuddy_public_availability",
       "date": "2026-09-11",
       "lastAvailableDate": "2026-09-16",
-      "horizonDays": 5
+      "horizonDays": 5,
+      "checkedAt": "2026-09-11T13:23:40.193Z",
+      "searchedThrough": "2026-11-11",
+      "horizonIsLowerBound": false
     },
     "opening": {
       "timeZone": "Europe/Paris",

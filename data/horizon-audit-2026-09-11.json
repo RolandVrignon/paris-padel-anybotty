@@ -1,0 +1,110 @@
+{
+  "referenceDate": "2026-09-11",
+  "window": {
+    "from": "2026-09-11",
+    "to": "2026-11-11"
+  },
+  "source": "Anybuddy public availability endpoint; Trinquet November 11 also checked on the website",
+  "note": "Availability observations, not verified booking rules. Trinquet reaches the end of the queried window; its horizon is a lower bound. No checkout performed.",
+  "results": [
+    {
+      "clubId": "paris-padel",
+      "name": "Paris Padel",
+      "checkedAt": "2026-09-11T13:23:37.269Z",
+      "lastAvailableDate": "2026-09-19",
+      "dates": 9,
+      "slotCount": 41,
+      "nov10": 0,
+      "nov11": 0,
+      "bookingRules": null
+    },
+    {
+      "clubId": "ucpa-paris",
+      "name": "UCPA Sport Station Hostel Paris",
+      "checkedAt": "2026-09-11T13:23:37.361Z",
+      "lastAvailableDate": "2026-09-19",
+      "dates": 9,
+      "slotCount": 44,
+      "nov10": 0,
+      "nov11": 0,
+      "bookingRules": null
+    },
+    {
+      "clubId": "sportfield-bercy",
+      "name": "Sportfield Paris 12 - Bercy",
+      "checkedAt": "2026-09-11T13:23:37.532Z",
+      "lastAvailableDate": "2026-09-25",
+      "dates": 15,
+      "slotCount": 441,
+      "nov10": 0,
+      "nov11": 0,
+      "bookingRules": null
+    },
+    {
+      "clubId": "4padel-paris-20",
+      "name": "4PADEL Paris 20",
+      "checkedAt": "2026-09-11T13:23:37.614Z",
+      "lastAvailableDate": "2026-09-14",
+      "dates": 4,
+      "slotCount": 34,
+      "nov10": 0,
+      "nov11": 0,
+      "bookingRules": null
+    },
+    {
+      "clubId": "aquaboulevard",
+      "name": "Forest Hill Aquaboulevard De Paris",
+      "checkedAt": "2026-09-11T13:23:39.042Z",
+      "lastAvailableDate": "2026-09-17",
+      "dates": 7,
+      "slotCount": 138,
+      "nov10": 0,
+      "nov11": 0,
+      "bookingRules": null
+    },
+    {
+      "clubId": "4padel-saint-ouen",
+      "name": "4Padel Saint-Ouen",
+      "checkedAt": "2026-09-11T13:23:39.144Z",
+      "lastAvailableDate": "2026-09-12",
+      "dates": 2,
+      "slotCount": 8,
+      "nov10": 0,
+      "nov11": 0,
+      "bookingRules": null
+    },
+    {
+      "clubId": "trinquet-village",
+      "name": "Trinquet Village",
+      "checkedAt": "2026-09-11T13:23:40.020Z",
+      "lastAvailableDate": "2026-11-11",
+      "dates": 62,
+      "slotCount": 4021,
+      "nov10": 74,
+      "nov11": 74,
+      "bookingRules": null
+    },
+    {
+      "clubId": "padelistes-bercy",
+      "name": "Padelistes Bercy - Paris 12",
+      "checkedAt": "2026-09-11T13:23:40.110Z",
+      "lastAvailableDate": "2026-09-19",
+      "dates": 8,
+      "slotCount": 44,
+      "nov10": 0,
+      "nov11": 0,
+      "bookingRules": null
+    },
+    {
+      "clubId": "padel-15",
+      "name": "Padel 15",
+      "checkedAt": "2026-09-11T13:23:40.193Z",
+      "lastAvailableDate": "2026-09-16",
+      "dates": 5,
+      "slotCount": 57,
+      "nov10": 0,
+      "nov11": 0,
+      "bookingRules": null
+    }
+  ]
+}
