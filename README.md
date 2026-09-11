@@ -1,8 +1,10 @@
 # Paris Padel — anybotty
 
-Préparer un créneau de padel sur **Anybuddy** et observer quand les clubs publient leurs disponibilités, pour viser les horaires les plus demandés dès leur ouverture.
+Préparer un créneau de padel sur **Anybuddy**, suivre les ouvertures et gérer ses réservations depuis un terminal ou en **langage naturel avec Hermes et Telegram sur un VPS**.
 
 Le projet est indépendant d’Anybuddy. Il dérive de [Paris Tennis](https://github.com/RolandVrignon/par-ici-tennis), dont la base est conservée dans [`reference/paris-tennis/`](reference/paris-tennis/) et documentée dans [ORIGIN.md](ORIGIN.md).
+
+Pour utiliser le bot directement, consulter [Hermes et Telegram](#piloter-depuis-hermes--telegram) et les [exemples en langage naturel](#parler-au-bot-en-langage-naturel).
 
 ## Ce qui fonctionne aujourd’hui
 
@@ -14,7 +16,8 @@ Le projet est indépendant d’Anybuddy. Il dérive de [Paris Tennis](https://gi
 | Choix de durée, intérieur/extérieur et terrain dans la modale | Disponible |
 | Recherche dans l’ordre des clubs, avec plafond horaire | Disponible ; arrêt au premier récapitulatif conforme |
 | Simulation d’un créneau jusqu’au formulaire Stripe | Disponible |
-| Réservation automatique dès l’ouverture et paiement final | À implémenter |
+| Stratégie et simulation programmée à l’ouverture | Disponible via les skills et le cron Hermes |
+| Confirmation d’une nouvelle réservation et paiement final | À implémenter |
 | Liste et détails des réservations Anybuddy | Disponible, lecture validée sur le compte réel |
 | Annulation Anybuddy avec vérification du statut | Implémentée ; confirmation testée sur données simulées |
 
@@ -364,36 +367,102 @@ Les tests locaux couvrent notamment la configuration, les préférences, les mod
 
 ## Piloter depuis Hermes / Telegram
 
-Installer les six skills dans le profil Hermes utilisé par le bot :
+Une fois le VPS configuré, écrire directement au bot Telegram en français. Il n’est pas nécessaire de connaître les commandes du dépôt, les IDs des clubs ou la structure des fichiers JSON : Hermes choisit le skill adapté et exécute les commandes du projet.
+
+**Les nouvelles recherches s’arrêtent au récapitulatif, sans paiement ni réservation confirmée.** La gestion des réservations existantes permet, elle, une annulation réelle sur demande explicite. Une recherche immédiate, une tentative programmée et une réservation du compte sont trois objets distincts.
+
+### Installer les skills sur le VPS
+
+Hermes et sa connexion Telegram doivent déjà être configurés. Sur l’installation `dev-station` :
 
 ```sh
+ssh dev-station
+cd /home/rolexx/paris-padel-anybotty
 npm run hermes:install
-# Pour un profil non standard : HERMES_HOME=/chemin/du/profil npm run hermes:install
 ```
 
-L’installateur remplace les chemins du dépôt, préserve les autres skills et sauvegarde une version précédente si elle change. Les sources sont versionnées dans `skills/` ; la copie installée se trouve dans `~/.hermes/skills/` par défaut.
+Les six skills sont versionnés dans [skills/](skills/). L’installateur renseigne automatiquement le chemin du dépôt, les copie dans `~/.hermes/skills/`, préserve les autres skills et sauvegarde les versions remplacées. Il ne crée aucune tâche programmée et n’envoie aucun message. Pour un autre profil, utiliser `HERMES_HOME=/chemin/du/profil npm run hermes:install` depuis le dépôt.
 
-| Skill | Demandes prises en charge |
-| --- | --- |
-| `padel-clubs` | Vérifier un nom exact, lister les centres et consulter les disponibilités publiques d’une date |
-| `padel-booking` | Lire/modifier les préférences, vérifier la session, chercher un créneau et expliquer le résultat |
-| `padel-monitoring` | Lire les ouvertures observées, contrôler le timer et suspendre/reprendre la surveillance sur demande |
-| `padel-strategy` | Arbitrer entre attendre un club prioritaire et essayer un club de repli déjà disponible |
-| `padel-scheduling` | Programmer une simulation à l’ouverture, consulter et annuler les tâches Hermes |
-| `padel-reservations` | Lister les réservations du compte, consulter les conditions et annuler une réservation identifiée |
+Si `npm` est introuvable dans une session SSH utilisant l’installation fnm de ce VPS :
 
-Exemples à envoyer au bot :
+```sh
+export PATH="/home/rolexx/.local/share/fnm/node-versions/v22.22.2/installation/bin:$PATH"
+```
 
-- « Quels clubs Bercy connais-tu ? »
-- « Quelles disponibilités à 4PADEL Paris 20 dimanche, à partir des horaires affichés ? »
-- « Cherche lundi prochain à 20 h : Paris Padel puis UCPA, 60 puis 90 minutes, intérieur préféré et 80 €/h maximum. »
-- « Mets mes préférences sur extérieur uniquement et 90 minutes. »
-- « Paris Padel est mon premier choix mais n’a pas encore ouvert lundi prochain : vaut-il mieux attendre ou prendre Sportfield à 20 h ? »
-- « Quel est le dernier résultat de recherche padel ? »
-- « Quelles heures d’ouverture as-tu observées cette semaine ? »
+Les credentials doivent être configurés dans le fichier privé `config.fixed.json` du VPS et la session initialisée avec `npm run auth:login -- --headless`. Vérifier ensuite la session avec `npm run auth:check -- --headless`. Ne jamais envoyer le mot de passe dans Telegram ; Git ne transfère ni les credentials ni `.auth/session.json`.
+
+Après installation ou mise à jour, envoyer **`/reload-skills`** dans Telegram pour actualiser les skills du gateway sans interrompre les conversations. On peut ensuite parler naturellement ou invoquer un skill explicitement :
+
+| Skill | Commande Telegram | Rôle |
+| --- | --- | --- |
+| [padel-clubs](skills/padel-clubs/SKILL.md) | `/padel_clubs` | Résoudre un nom exact, lister les clubs et consulter les disponibilités publiques |
+| [padel-booking](skills/padel-booking/SKILL.md) | `/padel_booking` | Lire/modifier les préférences et simuler une recherche |
+| [padel-monitoring](skills/padel-monitoring/SKILL.md) | `/padel_monitoring` | Lire les observations et gérer la surveillance des ouvertures |
+| [padel-strategy](skills/padel-strategy/SKILL.md) | `/padel_strategy` | Décider entre attendre un club préféré et essayer un club de repli |
+| [padel-scheduling](skills/padel-scheduling/SKILL.md) | `/padel_scheduling` | Programmer, consulter et annuler une tentative future |
+| [padel-reservations](skills/padel-reservations/SKILL.md) | `/padel_reservations` | Lister les réservations du compte et annuler une réservation identifiée |
+
+### Parler au bot en langage naturel
+
+**Trouver un club ou consulter ses disponibilités**
+
+- « Quels clubs de padel connais-tu à Bercy ? »
+- « Vérifie le nom exact de 4PADEL Paris 20. »
+- « Quels créneaux sont disponibles dimanche à 4PADEL Paris 20, autour de 12 h 30 ? »
+
+**Définir ses préférences et chercher maintenant**
+
+- « Affiche mes préférences de réservation. »
+- « Enregistre Paris Padel, puis UCPA, puis Sportfield Bercy dans cet ordre. Je préfère 60 minutes, sinon 90 ; pas de 120 minutes. »
+- « Mets intérieur en premier choix, extérieur accepté, avec un plafond de 80 € par heure pour le terrain entier. »
+- « Pour cette recherche seulement, prends extérieur uniquement et 90 minutes. Ne change pas mes préférences enregistrées. »
+- « Simule un créneau lundi prochain à 20 h chez Sportfield Bercy, 60 puis 90 minutes, sans payer. »
+- « Quel est le résultat de ma dernière recherche ? »
+
+**Choisir entre attendre et se replier**
+
+- « Je veux jouer lundi prochain à 20 h. Paris Padel est mon premier choix, puis UCPA, puis Sportfield Bercy. Si Paris Padel n’a pas encore ouvert ses réservations, je préfère attendre. Quelle stratégie proposes-tu ? »
+- « Cette fois, prends le premier créneau disponible maintenant parmi mes clubs, sans attendre les prochaines ouvertures. Fais une simulation. »
+- « À quelle heure ces clubs ont-ils publié leurs nouveaux créneaux ? Est-ce confirmé par plusieurs jours d’observation ? »
+
+**Programmer et suivre une tentative**
+
+- « Programme une simulation à l’ouverture pour Paris Padel lundi prochain à 20 h, avec mes préférences habituelles. Utilise la règle d’ouverture vérifiée. »
+- « Quelles tentatives padel sont programmées ? »
+- « Annule la tentative programmée pour lundi à 20 h. »
+- « Passe cette tentative à 21 h : annule l’ancienne tâche et prépare la nouvelle selon la stratégie. »
+
+**Gérer les réservations déjà présentes sur le compte**
+
+- « Liste mes réservations Anybuddy à venir. »
+- « Montre mon historique et mes réservations annulées. »
+- « Donne-moi les détails et les conditions d’annulation de ma réservation de jeudi à 20 h chez Sportfield Bercy. »
+- « Annule ma réservation de jeudi à 20 h chez Sportfield Bercy. »
+
+**Suivre les ouvertures**
+
+- « La surveillance des clubs fonctionne-t-elle ? »
+- « Y a-t-il des clubs qui ouvrent plusieurs jours d’un coup, par exemple toute la semaine suivante ? »
 - « Suspends la surveillance padel. »
+- « Reprends la surveillance padel. »
 
-Les recherches restent des **simulations jusqu’au récapitulatif**. Hermes peut gérer les réservations existantes via `padel-reservations`, mais ne peut pas encore payer ou confirmer une nouvelle réservation à l’ouverture. Une demande enregistrée n’est pas une réservation programmée.
+Les jours relatifs comme « lundi prochain » sont résolus en `Europe/Paris`. Hermes vérifie le club et demande seulement les informations manquantes ou ambiguës. Une instruction d’enregistrer des préférences ne crée pas un cron. Une demande explicite d’annulation identifiée vaut autorisation ; les conséquences financières non encore acceptées doivent être clarifiées avant l’action.
+
+### Exemple de demande complète
+
+> Je veux jouer lundi prochain à 20 h. Mes clubs, par ordre de préférence : Paris Padel, UCPA Sport Station Hostel Paris, puis Sportfield Paris 12 - Bercy. Je préfère 60 minutes, sinon 90 ; 120 minutes est exclu. Intérieur de préférence, extérieur accepté. Maximum 80 € par heure pour le terrain entier. Si le club préféré n’a pas encore ouvert, attends son ouverture et programme une simulation si sa règle est vérifiée. Garde les autres clubs comme plan B. Ne paie pas.
+
+Hermes consulte les disponibilités et les observations, choisit le club à tenter, puis programme si les informations le permettent. Il doit annoncer le club retenu, la date du match, l’heure de lancement et si la tâche a effectivement été enregistrée. Une règle inconnue est signalée ; il n’invente pas d’heure. Le plan B n’est pas déclenché automatiquement : il est réévalué après le résultat du club prioritaire.
+
+### Déroulement d’une tentative programmée
+
+1. Hermes valide la date, l’heure, les clubs et les préférences de durée, de terrain et de budget.
+2. La stratégie choisit un club prioritaire et une règle d’ouverture documentée : J+x à heure fixe, publication hebdomadaire, délai glissant ou instant explicite.
+3. Le helper fige la demande et calcule l’instant en tenant compte du fuseau Europe/Paris et du changement d’heure.
+4. Hermes crée un cron ponctuel `no_agent=true`, rattache son ID à la demande et vérifie son enregistrement. Le script exécuté à l’ouverture n’a pas besoin d’un modèle pour choisir ses paramètres.
+5. À l’heure prévue, le script consulte les offres et tente d’atteindre un récapitulatif conforme. Le résultat revient au chat/topic Telegram d’origine.
+
+L’heure prévue est celle du déclenchement, pas une garantie d’obtenir le terrain à la seconde. Le réseau, la session, le navigateur et les autres joueurs influencent le résultat. `checkout_ready` signifie **récapitulatif atteint**, jamais réservation confirmée. Pour annuler une tentative future, demander l’annulation de la tâche ; pour annuler un match déjà réservé, demander l’annulation de la réservation.
 
 ### Attendre un club prioritaire avant de se replier
 
@@ -480,7 +549,7 @@ node scripts/padel.js result
 
 Pour modifier la demande, `request show` fournit une `version`. Écrire la demande complète dans un fichier privé, puis appeler `request set --input PATH --expected-version VERSION`. Le helper valide les critères, sauvegarde la précédente demande dans `.auth/request-backups/`, écrit atomiquement et refuse les conflits entre conversations. Les credentials ne sont jamais acceptés dans cette demande. Les recherches ponctuelles peuvent utiliser `booking-search.js --config PATH` sans modifier les préférences enregistrées.
 
-Les identifiants et `.auth/session.json` doivent être configurés sur le VPS séparément de Git. Ne jamais transmettre le mot de passe au bot Telegram. Les skills sont découverts par les outils `skills_list` et `skill_view` d’Hermes ; après installation sur un gateway déjà démarré, envoyer `/reload-skills` dans Telegram pour actualiser ses commandes sans interrompre les conversations. Invoquer ensuite `/padel-booking`, `/padel-clubs`, `/padel-monitoring`, `/padel-strategy`, `/padel-scheduling` ou `/padel-reservations` (les variantes Telegram avec underscores sont aussi reconnues).
+Les commandes ci-dessus sont l’interface technique utilisée par les skills. Depuis Telegram, les [demandes en langage naturel](#parler-au-bot-en-langage-naturel) suffisent ; Hermes utilise les helpers pour préserver les mêmes validations et traces de suivi.
 
 ## Licence
 
