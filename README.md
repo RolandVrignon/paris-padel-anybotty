@@ -101,22 +101,36 @@ npm run observe:report
 
 Le collecteur lit la même route publique que le calendrier web : `https://www.anybuddyapp.com/api/v1/availabilities`, avec le club, le sport `padel` et une plage de dates. Aucun compte, token, modèle Hugging Face ou navigateur n’est nécessaire. Cette interface peut évoluer ; une réponse inattendue est enregistrée comme erreur, jamais comme absence de créneau.
 
-Chaque passage interroge les neuf clubs **séquentiellement**, avec une seconde entre les requêtes, de J à J+35 inclus. Il conserve **toutes les durées** proposées, même 120 minutes, indépendamment de la demande dans `config.json`. Les dates sont celles de Paris. Un premier relevé constitue une référence ; il ne prouve pas une ouverture.
+Chaque club possède un suivi indépendant et persistant dans `openingWatch`. Au démarrage de son suivi, le script fixe la date cible à **date du jour à Paris + horizon observé + 1 jour**. Cette date ne change pas à minuit ni après un redémarrage.
 
-Les événements distinguent :
+Exemples avec un démarrage le **11 septembre 2026** :
 
-- `new_day_candidate` : créneaux apparus au-delà de la dernière date historiquement disponible, dans une plage déjà vérifiée ;
-- `slots_added` : horaires ajoutés sur une date connue, éventuellement à la suite d’une annulation ;
-- `slots_removed` : horaires disparus dans la plage encore observée ;
-- `first_seen_outside_previous_window` : date vue pour la première fois parce que la plage de collecte a avancé ; aucune heure d’ouverture n’en est déduite.
+| Centres | Horizon | Date cible |
+| --- | --- | --- |
+| Paris Padel, UCPA, Padelistes Bercy | J+8 | 20 septembre |
+| Sportfield Bercy, Trinquet Village | J+14 | 26 septembre |
+| 4PADEL Paris 20 | J+3 | 15 septembre |
+| Aquaboulevard | J+6 | 18 septembre |
+| 4Padel Saint-Ouen | J+1 | 13 septembre |
+| Padel 15 | J+5 | 17 septembre |
 
-Chaque apparition mesurable contient `lastValidAbsentAt`, `firstAvailableAt`, `firstAvailableParis` et `intervalSeconds`. L’intervalle inclut le temps de réponse réseau ; une panne l’élargit. Le premier relevé valide après une erreur est comparé au dernier relevé réussi. Une journée complète ou fermée reste indiscernable d’une journée non publiée à partir d’une simple absence.
+Les clubs actifs sont interrogés **en parallèle**, une requête par club et par passage, uniquement pour leur date cible. Toutes les durées proposées sont conservées, indépendamment de `config.json`.
 
-Le rapport indique aussi `window` et `reachesWindowEnd` : si des créneaux atteignent J+35, **la limite réelle du club n’a pas été trouvée**. Le relevé initial manuel n’est pas une limite imposée au collecteur. Par exemple, le 11 septembre, l’interface publique renvoyait pour Trinquet Village des disponibilités au-delà du 25 septembre relevé dans le calendrier.
+1. **`waiting`** : vérifier toutes les cinq minutes si la date cible dispose de créneaux.
+2. **`verifying`** : dès leur première apparition, conserver l’intervalle entre le dernier relevé sans disponibilité et le premier avec disponibilité. Puis effectuer **cinq relevés supplémentaires**, aux cinq passages suivants, soit environ 25 minutes.
+3. **`complete`** : après ces cinq confirmations, enregistrer le résultat et cesser les requêtes pour ce club. Les autres clubs continuent leur propre suivi. Quand tous sont terminés, le timer reste installé mais n’effectue plus de requête Anybuddy.
 
-Les fichiers `observations/<club>/<jour UTC>/<horodatage>.json.gz` contiennent les relevés, les offres de service et leurs prix en centimes, les erreurs et les événements. Ils sont exclus de Git. Conservation glissante de 30 jours, avec maintien du dernier relevé et des 100 dernières ouvertures candidates par club. `ANYBOTTY_OBSERVATIONS_DIR` permet de choisir un autre dossier local. Les identifiants de service ne sont pas interprétés comme des identifiants de courts physiques.
+Une confirmation signifie que **la date a toujours des créneaux disponibles**. Leur nombre et le nombre de créneaux initiaux encore présents sont enregistrés à chaque contrôle : certains peuvent avoir été réservés par d’autres personnes. Si la date n’a plus aucun créneau, l’essai est conservé dans `failedAttempts` et le suivi repart en attente, avec un nouveau cycle de cinq confirmations lors de la prochaine apparition.
 
-Une erreur entraîne une attente croissante avant nouvel essai ; `Retry-After` est respecté. Une réponse 401, 403 ou 429 arrête le passage et suspend tous les clubs jusqu’à la fin de cette attente. Le collecteur n’envoie aucune notification à chaque passage : ses sorties JSON vont dans le journal du service, que Hermes peut lire.
+Les erreurs réseau ne comptent jamais comme confirmation ou disparition. Elles peuvent allonger la période au-delà de 25 minutes. Une attente croissante et `Retry-After` sont respectés ; une réponse 401, 403 ou 429 suspend tous les passages suivants pendant cette attente. Les requêtes déjà parties en parallèle peuvent terminer.
+
+Le rapport `observe:report` expose `openingWatch.targetDate`, `phase`, `openingInterval` (UTC et Paris), `firstAvailableAt`, `confirmations`, `completedAt` et `result`. L’intervalle inclut le temps de réponse réseau. **Une seule ouverture observée donne une heure approximative pour cette date, pas encore une règle quotidienne garantie.**
+
+Si la date est déjà disponible au premier contrôle, le script effectue les cinq vérifications mais laisse `openingInterval` à `null` et conclut `already_available_at_first_check`. Il ne transforme pas l’heure de son démarrage en heure d’ouverture. Ce cas est notamment possible pour Trinquet Village, dont les disponibilités observées dépassent l’horizon initial J+14.
+
+Les fichiers `observations/<club>/<jour UTC>/<horodatage>.json.gz` contiennent le suivi, les offres et prix en centimes, les erreurs et les changements. Ils sont exclus de Git. Conservation glissante de 30 jours, en conservant toujours le dernier état du club, y compris après la fin de son suivi. `ANYBOTTY_OBSERVATIONS_DIR` permet de choisir un autre dossier local. Les identifiants de service ne sont pas assimilés à des courts physiques.
+
+Les anciens relevés larges restent consultables dans l’historique. Au premier passage de cette version, chaque club commence le nouveau suivi ciblé. Pour lancer une nouvelle campagne indépendante, choisir un nouveau `ANYBOTTY_OBSERVATIONS_DIR` dans le service ; les résultats précédents restent dans l’ancien dossier.
 
 ### Activation sur le VPS
 
