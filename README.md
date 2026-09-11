@@ -122,11 +122,13 @@ Les clubs actifs sont interrogés **en parallèle**, une requête par club et pa
 
 1. **`waiting`** : vérifier toutes les cinq minutes si la date cible dispose de créneaux.
 2. **`verifying`** : dès leur première apparition, conserver l’intervalle entre le dernier relevé sans disponibilité et le premier avec disponibilité. Puis effectuer **cinq relevés supplémentaires**, aux cinq passages suivants, soit environ 25 minutes.
-3. **`complete`** : après ces cinq confirmations, enregistrer le résultat et cesser les requêtes pour ce club. Les autres clubs continuent leur propre suivi. Quand tous sont terminés, le timer reste installé mais n’effectue plus de requête Anybuddy.
+3. **`complete`** : après ces cinq confirmations, archiver le résultat de la date dans `completedWatches`. Au passage suivant, le club surveille **la date suivante** et recommence le même cycle. Chaque club avance indépendamment. Une cible explicitement fixée par `monitoring.targetDate` reste une campagne unique ; les huit clubs actifs utilisent le suivi continu.
 
 Une confirmation signifie que **la date a toujours des créneaux disponibles**. Leur nombre et le nombre de créneaux initiaux encore présents sont enregistrés à chaque contrôle : certains peuvent avoir été réservés par d’autres personnes. Si la date n’a plus aucun créneau, l’essai est conservé dans `failedAttempts` et le suivi repart en attente, avec un nouveau cycle de cinq confirmations lors de la prochaine apparition.
 
 Les erreurs réseau ne comptent jamais comme confirmation ou disparition. Elles peuvent allonger la période au-delà de 25 minutes. Une attente croissante et `Retry-After` sont respectés ; une réponse 401, 403 ou 429 suspend tous les passages suivants pendant cette attente. Les requêtes déjà parties en parallèle peuvent terminer.
+
+Le rapport inclut les 30 dernières campagnes terminées par club dans `completedWatches`, ainsi que `measuredOpeningDays` (campagnes avec intervalle mesuré et cinq confirmations). Une date déjà ouverte au premier contrôle ne compte pas comme heure d’ouverture mesurée.
 
 Le rapport `observe:report` expose `openingWatch.targetDate`, `phase`, `openingInterval` (UTC et Paris), `firstAvailableAt`, `confirmations`, `completedAt` et `result`. L’intervalle inclut le temps de réponse réseau. **Une seule ouverture observée donne une heure approximative pour cette date, pas encore une règle quotidienne garantie.**
 
@@ -134,7 +136,7 @@ Si la date est déjà disponible au premier contrôle, le script effectue les ci
 
 Les fichiers `observations/<club>/<jour UTC>/<horodatage>.json.gz` contiennent le suivi, les offres et prix en centimes, les erreurs et les changements. Ils sont exclus de Git. Conservation glissante de 30 jours, en conservant toujours le dernier état du club, y compris après la fin de son suivi. `ANYBOTTY_OBSERVATIONS_DIR` permet de choisir un autre dossier local. Les identifiants de service ne sont pas assimilés à des courts physiques.
 
-Les anciens relevés larges restent consultables dans l’historique. Au premier passage de cette version, chaque club commence le nouveau suivi ciblé. Pour lancer une nouvelle campagne indépendante, choisir un nouveau `ANYBOTTY_OBSERVATIONS_DIR` dans le service ; les résultats précédents restent dans l’ancien dossier.
+Les anciens relevés larges restent consultables dans l’historique. Les suivis en cours sont conservés lors des mises à jour et des redémarrages. Le passage à la date suivante est automatique après les cinq confirmations. Pour lancer une série indépendante, choisir un nouveau `ANYBOTTY_OBSERVATIONS_DIR` dans le service ; les résultats précédents restent dans l’ancien dossier.
 
 ### Activation sur le VPS
 
@@ -160,6 +162,12 @@ systemctl --user stop anybotty-observe.service
 ```
 
 Hermes peut lancer `node scripts/observe.js --report` depuis le dépôt et lire les mêmes résultats. Le timer système réalise la collecte sans solliciter un modèle toutes les cinq minutes.
+
+## Comparer quatre à cinq jours
+
+Laisser tourner le timer permet de recueillir plusieurs ouvertures par club, sans relancer manuellement le script. Comparer les intervalles en heure de Paris, les jours de semaine, les délais et les erreurs. Quatre ou cinq ouvertures concordantes donnent un premier indice de régularité ; elles ne garantissent pas les week-ends, jours fériés ou changements de politique du club.
+
+Le nombre de jours de fonctionnement ne garantit pas autant de mesures : si une date ne s’ouvre pas, disparaît avant cinq confirmations, ou est déjà ouverte au début du suivi, le rapport le montre. Le script garde une cible tant que son cycle n’est pas terminé. La date suivante commence au passage suivant la cinquième confirmation : si elle est déjà ouverte, son heure d’apparition reste inconnue.
 
 ## Interpréter les ouvertures
 

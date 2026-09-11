@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { createWatch, selectWatch, advanceWatch, watchIsDue } from '../lib/opening-watch.js'
+import { createWatch, selectWatch, prepareCampaign, rememberCompletedWatch, advanceWatch, watchIsDue } from '../lib/opening-watch.js'
 import { failureRecord } from '../lib/availability.js'
 
 const club = { id: 'sportfield-bercy', observation: { horizonDays: 14 } }
@@ -87,4 +87,37 @@ test('an explicit Trinquet target overrides its lower-bound horizon and resets o
   const available = advanceWatch(replacement, snap('2026-09-11T13:00:00Z', true, '2026-11-11'))
   assert.equal(available.openingInterval, null)
   assert.equal(available.phase, 'verifying')
+})
+
+
+test('five daily campaigns advance by one date and preserve distinct opening results across restarts', () => {
+  let record
+  for (let day = 12; day <= 16; day++) {
+    const campaign = prepareCampaign(club, record, `2026-09-${day === 12 ? 11 : day}T05:50:00Z`)
+    const target = campaign.openingWatch.targetDate
+    let watch = advanceWatch(campaign.openingWatch, snap(`2026-09-${day}T05:55:00Z`, false, target))
+    watch = advanceWatch(watch, snap(`2026-09-${day}T06:00:00Z`, true, target))
+    for (const minute of ['05', '10', '15', '20', '25']) watch = advanceWatch(watch, snap(`2026-09-${day}T06:${minute}:00Z`, true, target))
+    record = JSON.parse(JSON.stringify({ openingWatch: watch, completedWatches: rememberCompletedWatch(campaign.completedWatches, watch) }))
+    assert.equal(record.completedWatches.length, day - 11)
+  }
+  assert.deepEqual(record.completedWatches.map(w => w.targetDate), ['2026-09-26', '2026-09-27', '2026-09-28', '2026-09-29', '2026-09-30'])
+  assert.ok(record.completedWatches.every(w => w.openingInterval && w.confirmations.length === 5))
+  const next = prepareCampaign(club, record, '2026-09-16T06:30:00Z')
+  assert.equal(next.openingWatch.targetDate, '2026-10-01')
+  assert.equal(next.openingWatch.lastValidAbsentAt, null)
+  assert.equal(next.completedWatches.length, 5)
+  assert.equal(prepareCampaign(club, next, '2026-09-16T06:35:00Z').openingWatch.targetDate, '2026-10-01')
+})
+
+test('unfinished targets and explicitly fixed targets do not roll to another date', () => {
+  const waiting = initial()
+  assert.equal(prepareCampaign(club, { openingWatch: waiting }, '2026-09-12T12:00Z').openingWatch, waiting)
+  const done = { ...waiting, phase: 'complete', completedAt: '2026-09-12T06:25:00Z', confirmations: [] }
+  const explicitClub = { ...club, monitoring: { targetDate: done.targetDate } }
+  const prepared = prepareCampaign(explicitClub, { openingWatch: done })
+  assert.equal(prepared.openingWatch, done)
+  assert.equal(prepared.completedWatches.length, 1)
+  const failed = failureRecord(club, prepared, new Error('network'), new Date('2026-09-12T07:00Z'))
+  assert.deepEqual(failed.completedWatches, prepared.completedWatches)
 })

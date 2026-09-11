@@ -13,7 +13,7 @@ Les huit suivis actifs avancent en parallèle, chacun avec son état et ses conf
 - Sans créneau : attendre le passage suivant, cinq minutes plus tard.
 - Première disponibilité après une absence valide : enregistrer l’intervalle d’apparition, borné par les horodatages des deux observations.
 - Aux cinq passages suivants : vérifier la présence de créneaux pour cette date, environ 25 minutes au total. Conserver le nombre de créneaux et le nombre de créneaux initiaux encore disponibles.
-- Après cinq confirmations : terminer le suivi de ce club, conserver le résultat et continuer les autres.
+- Après cinq confirmations : archiver le résultat dans `completedWatches`, puis démarrer au passage suivant le suivi de la date suivante pour ce club. Les autres clubs avancent indépendamment. Une cible explicite `monitoring.targetDate` reste fixe et ne se renouvelle pas automatiquement.
 - Si les disponibilités disparaissent : conserver l’essai interrompu puis repartir en attente.
 - Une erreur ne compte pas comme une absence ni comme une confirmation. Le prochain relevé valide peut donner un intervalle plus large ou prolonger les contrôles.
 
@@ -26,3 +26,5 @@ L’heure estimée concerne la date surveillée. Une ouverture peut être progre
 Les dates du catalogue sont des horizons initialement observés, pas des limites confirmées. Si une cible est déjà ouverte au démarrage (pour un club surveillé), le rapport le signale sans inventer une heure de publication.
 
 Trinquet Village reste dans le catalogue mais est exclu de la collecte via `monitoring.enabled: false`. Son ancien suivi et ses observations sont conservés, sans nouvelles requêtes.
+
+Le rapport conserve les 30 dernières campagnes terminées et compte les ouvertures réellement mesurées dans `measuredOpeningDays`. Quatre à cinq observations concordantes soutiennent une hypothèse de régularité sans prouver une règle sans exceptions. Un jour sans ouverture ni cinq confirmations laisse le suivi sur sa cible ; les dates déjà ouvertes au démarrage ne constituent pas des mesures d’heure d’ouverture.
