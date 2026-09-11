@@ -262,9 +262,9 @@ Le succès exige une **nouvelle réservation confirmée dans le compte Anybuddy*
 | `existing_reservation` | Une réservation existe déjà à cette heure ; pas de nouveau paiement, consulter son statut | 0 |
 | `payment_failed` | Refus ou annulation Stripe ; aucun nouvel essai automatique | 1 |
 | `payment_action_required` | Action supplémentaire demandée par Stripe, réservation non confirmée | 1 |
-| `payment_unverified` | Paiement potentiellement soumis, réservation non confirmée ; relecture seulement | 1 |
+| `payment_unverified` | Paiement potentiellement soumis, réservation non confirmée ; réconciliation avant toute décision | 1 |
 
-En mode visible, le script attend jusqu’à trois minutes après le clic pour une éventuelle validation bancaire manuelle et la confirmation. En mode masqué, `requires_action` ne ferme plus immédiatement le navigateur : le SDK dispose du délai de vérification de 60 secondes pour poursuivre son authentification. Si aucune réservation n’est confirmée à l’échéance, le script termine avec `payment_action_required` et ferme le navigateur. Ce statut ne prouve pas qu’une notification a été envoyée sur le téléphone. Les tâches programmées restent également soumises à leur timeout global. Ne pas relancer un paiement pour résoudre cette situation ; vérifier d’abord l’état du compte. Le bot ne contourne pas la validation bancaire. La reprise interactive d’une session de paiement après fermeture du navigateur n’est pas implémentée ; `booking:reconcile` relit seulement le compte et conserve le dernier état Stripe observé, sans relancer l’authentification.
+En mode visible, le script attend jusqu’à trois minutes après le clic pour une éventuelle validation bancaire manuelle et la confirmation. En mode masqué, `requires_action` ne ferme plus immédiatement le navigateur : le SDK dispose du délai de vérification de 60 secondes pour poursuivre son authentification. Si aucune réservation n’est confirmée à l’échéance, le script termine avec `payment_action_required` et ferme le navigateur. Ce statut ne prouve pas qu’une notification a été envoyée sur le téléphone. Les tâches programmées restent également soumises à leur timeout global. Ne pas relancer automatiquement un paiement pour résoudre cette situation ; vérifier d’abord l’état du compte. Le bot ne contourne pas la validation bancaire. La reprise interactive d’une session de paiement après fermeture du navigateur n’est pas implémentée ; `booking:reconcile` relit seulement le compte et conserve le dernier état Stripe observé, sans relancer l’authentification.
 
 Avant le clic, une trace sans carte est écrite dans `.auth/payments/`. La clé regroupe le compte, la date et l’heure, indépendamment des clubs ou durées de repli. Un lancement ultérieur pour la même intention relit son état sans soumettre un second paiement, même après une interruption. Ne pas effacer ces traces pour forcer un nouvel essai ; une réservation annulée ensuite ne réactive pas automatiquement son paiement.
 
@@ -272,6 +272,16 @@ Avant le clic, une trace sans carte est écrite dans `.auth/payments/`. La clé 
 # Vérification seule après interruption, avec la demande originale
 npm run booking:reconcile -- --config /chemin/demande.json --headless
 ```
+
+Une réinitialisation manuelle est disponible lorsqu’un utilisateur décide explicitement de retenter malgré l’issue incertaine. Elle ne doit jamais être ajoutée à un cron ou lancée automatiquement :
+
+```sh
+node scripts/booking-search.js --config /chemin/demande.json --headless --reset-payment --accept-duplicate-risk
+```
+
+Le script relit les réservations, refuse si une réservation active/en attente existe à cette heure ou si le paiement est connu comme confirmé/en traitement, puis archive l’ancien journal et la décision dans `.auth/payments/archive/`. Le même verrou que les réservations empêche une réinitialisation pendant une recherche. Un échec de lecture du compte laisse le journal en place. **Cette commande lève uniquement le blocage local : elle ne paie rien et n’annule pas l’ancienne transaction.** Celle-ci peut encore aboutir. Le compte rendu `payment_reset` est conservé dans `.auth/booking-search/latest-reset.json`, séparément du dernier résultat de réservation. Un nouvel appel distinct à `booking:pay` reste nécessaire pour payer, sur autorisation de l’utilisateur. Si ce nouvel essai est incertain, aucune autre réinitialisation automatique n’a lieu.
+
+Depuis Hermes, une instruction explicite comme « J’accepte le risque de doublon, archive la tentative pour ce créneau et réessaie une fois » permet cette procédure. Il n’est pas nécessaire de créer un nouveau skill : `padel-booking` gère cette décision.
 
 Si le panier reste en chargement avant Stripe, le script attend jusqu’à 30 secondes puis retente une seule fois sa préparation sur une nouvelle page, sans exclure le terrain. Deux échecs donnent `incomplete` avec `reason: "cart_not_ready"` ; ils ne signifient pas que le créneau est complet. Les refus bancaires et résultats incertains interrompent la recherche avant tout plan B. Les captures d’écran sont désactivées dès l’entrée dans le parcours de paiement et les erreurs de saisie n’affichent jamais les valeurs de carte. Le parcours réel UCPA du 19 septembre 2026, 07 h–08 h, 38 €, a été payé puis annulé pour validation ; cela ne garantit pas l’acceptation bancaire d’un prochain paiement.
 

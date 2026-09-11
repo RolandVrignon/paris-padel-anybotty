@@ -1,11 +1,12 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { EventEmitter } from 'node:events'
-import { mkdtempSync, rmSync, statSync } from 'node:fs'
+import { mkdtempSync, rmSync, statSync, readdirSync, readFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
-import { paymentStore, payBookingOffer, inspectFinalPayment, clickFinalPayment, reconcilePayment, verifyPaymentSummary } from '../lib/booking-payment.js'
+import { paymentStore, payBookingOffer, inspectFinalPayment, clickFinalPayment, reconcilePayment, resetPaymentForRetry, verifyPaymentSummary } from '../lib/booking-payment.js'
 import { installPaymentGuard } from '../lib/checkout.js'
 
 const request = { date: '2026-09-19', startTime: '07:00', maxPricePerHourEUR: 80, durationsMinutes: [60], courtEnvironment: ['any'] }
@@ -27,6 +28,55 @@ const storeFor = t => {
   t.after(() => rmSync(root, { recursive: true, force: true }))
   return { root, store: paymentStore(root, 'fixture@example.test', request) }
 }
+
+test('explicit manual reset preserves the exact journal and decision, without claiming cancellation', async t => {
+  const { store, root } = storeFor(t)
+  store.save({ status: 'payment_action_required', stripeStatus: 'requires_action', offer, baselineIds: [] })
+  const previous = store.read()
+  const options = { store, request, readReservations: async () => [], acceptDuplicateRisk: true }
+  const result = await resetPaymentForRetry(options)
+  assert.equal(result.status, 'payment_reset')
+  assert.equal(result.paymentSubmitted, false)
+  assert.equal(result.previousPaymentCancelled, false)
+  assert.equal(store.read(), null)
+  const directory = join(root, 'archive', readdirSync(join(root, 'archive'))[0])
+  const archive = join(directory, `${result.archiveId}-journal.json`)
+  assert.deepEqual(JSON.parse(readFileSync(archive, 'utf8')), previous)
+  assert.equal(statSync(archive).mode & 0o777, 0o600)
+  assert.equal(JSON.parse(readFileSync(join(directory, `${result.archiveId}-decision.json`), 'utf8')).duplicateRiskAccepted, true)
+  assert.equal((await resetPaymentForRetry(options)).status, 'no_payment_to_reset')
+  store.save({ status: 'payment_started', offer, baselineIds: [] })
+  assert.deepEqual(JSON.parse(readFileSync(archive, 'utf8')), previous)
+})
+
+test('reset refuses missing consent, existing bookings, account errors and changed journals', async t => {
+  const { store } = storeFor(t)
+  store.save({ status: 'payment_unverified', offer, baselineIds: [] })
+  const previous = store.read()
+  const options = { store, request, readReservations: async () => [], acceptDuplicateRisk: true }
+  await assert.rejects(resetPaymentForRetry({ ...options, acceptDuplicateRisk: false }), /explicit acceptance/)
+  for (const row of [reservation, { ...reservation, club: 'Other club', reservationConfirmed: false, category: 'pending' }]) {
+    await assert.rejects(resetPaymentForRetry({ ...options, readReservations: async () => [row] }), /already exists/)
+  }
+  await assert.rejects(resetPaymentForRetry({ ...options, readReservations: async () => { throw new Error('offline') } }), /offline/)
+  assert.deepEqual(store.read(), previous)
+  for (const stripeStatus of ['processing', 'succeeded', 'requires_capture']) {
+    store.save({ ...previous, stripeStatus })
+    await assert.rejects(resetPaymentForRetry(options), /confirmed or processing/)
+    assert.equal(store.read().stripeStatus, stripeStatus)
+  }
+  store.save(previous)
+  await assert.rejects(resetPaymentForRetry({ ...options, readReservations: async () => { store.save({ ...previous, status: 'booked' }); return [] } }), /changed before reset/)
+  assert.equal(store.read().status, 'booked')
+})
+
+test('CLI rejects reset combined with payment or without explicit consent and request', () => {
+  for (const args of [['--pay', '--reset-payment', '--accept-duplicate-risk'], ['--reset-payment'], ['--accept-duplicate-risk'], ['--reset-payment', '--accept-duplicate-risk']]) {
+    const result = spawnSync(process.execPath, ['scripts/booking-search.js', ...args], { cwd: new URL('..', import.meta.url), encoding: 'utf8' })
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /Use only one|Reset requires/)
+  }
+})
 
 test('default guard is reused, allows one armed intent, blocks wallets/setup/second confirms', async () => {
   const context = fakeContext()

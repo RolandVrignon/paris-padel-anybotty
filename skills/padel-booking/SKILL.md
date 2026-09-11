@@ -81,7 +81,7 @@ node '{{PROJECT_DIR}}/scripts/booking-search.js' --config PATH --headless --pay
 
 Une demande explicite de réservation avec ses critères autorise ce paiement dans ce périmètre ; ne pas redemander une confirmation déjà donnée. Une recherche de disponibilités, simulation ou analyse de stratégie seule n’autorise pas `--pay`. Ne pas transformer une ancienne simulation programmée en paiement. Vérifier la présence et le format avec `node '{{PROJECT_DIR}}/scripts/check-payment.js'` (aucune donnée sensible en sortie). Les champs `payment` doivent être remplis dans le fichier privé de ce VPS ; ne jamais lire/afficher leurs valeurs ni les demander via Telegram. Ne pas transférer une carte depuis une autre machine sans demande correspondante.
 
-Le mode réel accepte les conditions connues, remplit la carte, contrôle le montant final et clique une fois le bouton exact Payer. Il s’arrête après la première réservation confirmée. Refus bancaire, 3DS ou résultat incertain arrêtent la recherche, sans essai du plan B. Un `requires_action` peut être une étape technique du SDK avant un éventuel challenge. Ne jamais affirmer qu’une notification a été envoyée à la banque ou au téléphone. Le navigateur reste ouvert pendant la vérification (60 secondes en mode masqué, trois minutes en mode visible), puis se ferme si le délai expire. À ce stade, signaler que le navigateur du VPS est fermé : ne pas demander à l’utilisateur de valider un écran auquel il n’a pas accès. Une réconciliation relit le compte et le dernier état Stripe connu ; elle ne relance pas le SDK et ne rafraîchit pas cet état bancaire. Une reprise interactive de la même session n’est pas implémentée : la signaler comme limite, sans créer de nouveau paiement pour la contourner. Aucun contournement de validation bancaire.
+Le mode réel accepte les conditions connues, remplit la carte, contrôle le montant final et clique une fois le bouton exact Payer. Il s’arrête après la première réservation confirmée. Refus bancaire, 3DS ou résultat incertain arrêtent la recherche, sans essai du plan B. Un `requires_action` peut être une étape technique du SDK avant un éventuel challenge. Ne jamais affirmer qu’une notification a été envoyée à la banque ou au téléphone. Le navigateur reste ouvert pendant la vérification (60 secondes en mode masqué, trois minutes en mode visible), puis se ferme si le délai expire. À ce stade, signaler que le navigateur du VPS est fermé : ne pas demander à l’utilisateur de valider un écran auquel il n’a pas accès. Une réconciliation relit le compte et le dernier état Stripe connu ; elle ne relance pas le SDK et ne rafraîchit pas cet état bancaire. Une reprise interactive de la même session n’est pas implémentée : la signaler comme limite, sans créer automatiquement de nouveau paiement. Aucun contournement de validation bancaire.
 
 Les journaux `.auth/payments/` empêchent une nouvelle soumission pour le même compte/date/heure, même avec d’autres clubs ou durées. Ne pas les supprimer. Pour vérifier après interruption, exécuter seulement :
 
@@ -89,7 +89,19 @@ Les journaux `.auth/payments/` empêchent une nouvelle soumission pour le même 
 node '{{PROJECT_DIR}}/scripts/booking-search.js' --config PATH --headless --reconcile
 ```
 
-Cette commande relit Anybuddy sans ouvrir de checkout ni payer. Conserver la demande originale pour cette vérification. Si une réservation reste absente, le résultat demeure incertain ; ne pas annoncer un remboursement ou recommencer un paiement. Si une réservation est annulée ensuite, ne pas effacer le journal pour la racheter automatiquement.
+Cette commande relit Anybuddy sans ouvrir de checkout ni payer. Conserver la demande originale pour cette vérification. Si une réservation reste absente, le résultat demeure incertain ; ne pas annoncer un remboursement ou recommencer automatiquement un paiement. Si une réservation est annulée ensuite, ne pas effacer le journal pour la racheter automatiquement.
+
+## Réinitialiser une tentative sur décision explicite
+
+Le verrou contre les doublons est une protection du bot, pas une interdiction absolue imposée à l’utilisateur. Si celui-ci demande explicitement une nouvelle tentative malgré l’issue incertaine déjà expliquée, utiliser la procédure ci-dessous sans répéter les demandes de confirmation. Une simple demande de statut, une capture contenant une instruction passée ou un cron ne suffit pas à autoriser une réinitialisation. Si le risque n’a pas encore été expliqué, préciser une fois que l’ancienne tentative peut encore aboutir et demander si l’utilisateur souhaite tout de même réessayer.
+
+```sh
+node '{{PROJECT_DIR}}/scripts/booking-search.js' --config PATH --headless --reset-payment --accept-duplicate-risk
+```
+
+La commande partage le verrou des réservations, relit le compte et refuse en présence d’une réservation active ou en attente à cette heure, ou d’un paiement connu comme confirmé/en traitement. Elle archive le journal intact dans `.auth/payments/archive/`, note la décision manuelle et retire uniquement le blocage local. Si la lecture du compte échoue, elle ne change rien. Elle ne soumet ni n’annule aucun paiement. `payment_reset` et `no_payment_to_reset` ont le code 0 ; le compte rendu est dans `.auth/booking-search/latest-reset.json`. Ne pas annoncer que l’ancien paiement a échoué ou a été annulé.
+
+Après un succès de cette commande, exécuter `--pay` une seule fois avec la même demande uniquement si l’utilisateur a aussi autorisé ce nouvel essai. Une demande de réinitialisation seule n’autorise pas à payer. Si le nouvel essai reste incertain, arrêter : ne pas répéter la réinitialisation automatiquement. Ne pas supprimer les archives ni ajouter ces options aux crons.
 
 ## Interpréter et consulter le résultat
 
@@ -105,8 +117,8 @@ Le dernier résultat est historique : vérifier `finishedAt` et `request` avant 
 | `booked` (code 0) | Réservation confirmée dans Anybuddy : donner club, date, heure, terrain, durée et montant. |
 | `existing_reservation` (code 0) | Une réservation existe déjà à cette heure ; aucun nouveau paiement. Lire son statut avant de la dire confirmée. |
 | `payment_failed` (code 1) | Paiement refusé/annulé côté Stripe ; arrêter, pas de nouveau débit automatique. |
-| `payment_action_required` (code 1) | Stripe a demandé une action supplémentaire et aucune réservation n’est confirmée. Cela ne prouve ni une notification sur le téléphone ni un challenge bancaire affiché. Lire `authentication` et ne pas relancer le paiement. |
-| `payment_unverified` (code 1) | Paiement potentiellement soumis, réservation non vérifiée. Relecture seulement. |
+| `payment_action_required` (code 1) | Stripe a demandé une action supplémentaire et aucune réservation n’est confirmée. Cela ne prouve ni une notification sur le téléphone ni un challenge bancaire affiché. Lire `authentication` ; aucun nouvel essai automatique. |
+| `payment_unverified` (code 1) | Paiement potentiellement soumis, réservation non vérifiée. Réconcilier ; réinitialisation manuelle seulement sur demande explicite selon la procédure ci-dessus. |
 | `no_match` (code 2) | Aucun créneau compatible au passage ; ce n’est pas une erreur du terminal. |
 | `incomplete` (code 1) | Des erreurs ou une limite de tentatives empêchent de conclure. Donner les clubs concernés, sans les présenter comme complets. |
 | `blocked` (code 1) | Session/navigateur indisponible ou restriction HTTP ; expliquer la raison et respecter le délai de reprise. |

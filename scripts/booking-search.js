@@ -8,7 +8,7 @@ import { checkSession } from '../lib/anybuddy-session.js'
 import { fetchAvailability } from '../lib/availability.js'
 import { previewBookingOffer } from '../lib/booking-preview.js'
 import { searchBooking } from '../lib/booking-search.js'
-import { payBookingOffer, paymentStore, reconcilePayment, sameMatchTime } from '../lib/booking-payment.js'
+import { payBookingOffer, paymentStore, reconcilePayment, resetPaymentForRetry, sameMatchTime } from '../lib/booking-payment.js'
 import { validateCardConfig } from '../lib/stripe-card.js'
 import { discoverMatchesAction, readMatchesPage } from '../lib/anybuddy-actions.js'
 import { listReservations } from '../lib/account-reservations.js'
@@ -24,14 +24,19 @@ try {
   let headless = false
   let pay = false
   let reconcile = false
+  let reset = false
+  let acceptDuplicateRisk = false
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--pay' && !pay) pay = true
     else if (args[i] === '--reconcile' && !reconcile) reconcile = true
+    else if (args[i] === '--reset-payment' && !reset) reset = true
+    else if (args[i] === '--accept-duplicate-risk' && !acceptDuplicateRisk) acceptDuplicateRisk = true
     else if (args[i] === '--headless' && !headless) headless = true
     else if (args[i] === '--config' && path === undefined && args[i + 1] && !args[i + 1].startsWith('--')) path = args[++i]
-    else throw new Error('Usage: booking-search.js [--config PATH] [--headless] [--pay | --reconcile]')
+    else throw new Error('Usage: booking-search.js [--config PATH] [--headless] [--pay | --reconcile | --reset-payment --accept-duplicate-risk]')
   }
-  if (pay && reconcile) throw new Error('Use either --pay or --reconcile')
+  if ([pay, reconcile, reset].filter(Boolean).length > 1) throw new Error('Use only one of --pay, --reconcile or --reset-payment')
+  if (reset !== acceptDuplicateRisk || (reset && !path)) throw new Error('Reset requires --config PATH --reset-payment --accept-duplicate-risk; never combine it with payment')
   const clubs = JSON.parse(readFileSync(new URL('../data/clubs.json', import.meta.url), 'utf8'))
   const input = loadRequestConfig({ path })
   const request = validateRequest(input, clubs)
@@ -73,7 +78,8 @@ try {
     return listReservations(after => readMatchesPage(activeContext, action, after))
   }
   let result
-  if ((pay || reconcile) && store.read()) {
+  if (reset) result = await resetPaymentForRetry({ store, request, readReservations, acceptDuplicateRisk })
+  else if ((pay || reconcile) && store.read()) {
     const journal = store.read()
     result = await reconcilePayment(journal, readReservations)
     store.save({ ...journal, ...result })
@@ -108,15 +114,15 @@ try {
     },
     onEvent: event => console.error(JSON.stringify(event)),
   })
-  const report = { ...result, request, finishedAt: new Date().toISOString(), mode: pay ? 'pay' : reconcile ? 'reconcile' : 'preview', note: pay || reconcile ? 'Only a confirmed Anybuddy reservation proves success. Never retry an uncertain payment.' : 'No conditions accepted or payment submitted. An unpaid server cart may remain.' }
+  const report = { ...result, request, finishedAt: new Date().toISOString(), mode: pay ? 'pay' : reconcile ? 'reconcile' : reset ? 'reset' : 'preview', note: reset ? 'Local retry block cleared only. Previous payment is not cancelled or proven failed; no new payment submitted.' : pay || reconcile ? 'Only a confirmed Anybuddy reservation proves success. No automatic retry of an uncertain payment.' : 'No conditions accepted or payment submitted. An unpaid server cart may remain.' }
   // A read-only reconciliation must not erase the failed booking it diagnoses.
   writeFileSync(resolve(directory, `run-${randomUUID()}.json`), `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 })
-  const latest = reconcile ? 'latest-reconciliation.json' : 'latest.json'
+  const latest = reconcile ? 'latest-reconciliation.json' : reset ? 'latest-reset.json' : 'latest.json'
   const temporary = resolve(directory, `${latest}.tmp`)
   writeFileSync(temporary, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 })
   renameSync(temporary, resolve(directory, latest))
   console.log(JSON.stringify(report, null, 2))
-  process.exitCode = ['checkout_ready', 'booked', 'existing_reservation'].includes(result.status) ? 0 : result.status === 'no_match' ? 2 : 1
+  process.exitCode = ['checkout_ready', 'booked', 'existing_reservation', 'payment_reset', 'no_payment_to_reset'].includes(result.status) ? 0 : result.status === 'no_match' ? 2 : 1
 } catch (error) {
   console.error(error.message.includes('Call log:') || error.message.includes('browser.newContext') ? 'Browser/session error; check auth:check and retry visibly.' : error.message)
   process.exitCode = 1
