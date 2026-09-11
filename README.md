@@ -1,26 +1,26 @@
-# Paris Padel - anybotty
+# Paris Padel — anybotty
 
-Préparer des réservations de padel sur **Anybuddy**, avec l’objectif d’obtenir des horaires très demandés dès leur ouverture. « anybotty » est un clin d’œil à Anybuddy ; ce projet est indépendant de la plateforme.
+Préparer un créneau de padel sur **Anybuddy** et observer quand les clubs publient leurs disponibilités, pour viser les horaires les plus demandés dès leur ouverture.
 
-## État du projet
+Le projet est indépendant d’Anybuddy. Il dérive de [Paris Tennis](https://github.com/RolandVrignon/par-ici-tennis), dont la base est conservée dans [`reference/paris-tennis/`](reference/paris-tennis/) et documentée dans [ORIGIN.md](ORIGIN.md).
 
-Le dépôt est initialisé à partir de [Paris Tennis](https://github.com/RolandVrignon/par-ici-tennis). La copie des fichiers versionnés est conservée dans [`reference/paris-tennis/`](reference/paris-tennis/) ; l’origine exacte et la licence figurent dans [ORIGIN.md](ORIGIN.md).
+## Ce qui fonctionne aujourd’hui
 
-La base actuelle contient :
+| Fonction | État |
+| --- | --- |
+| Catalogue de neuf clubs et planning prévisionnel | Disponible |
+| Surveillance des ouvertures sur huit clubs, toutes les cinq minutes | Disponible via le timer systemd |
+| Connexion Anybuddy et réutilisation de session | Disponible avec Playwright |
+| Choix de durée, intérieur/extérieur et terrain dans la modale | Disponible |
+| Simulation jusqu’au récapitulatif ou au formulaire Stripe | Disponible |
+| Réservation automatique dès l’ouverture et paiement final | À implémenter |
+| Liste et annulation des réservations Anybuddy | À implémenter |
 
-- le catalogue des neuf centres et les dernières disponibilités relevées manuellement ;
-- deux configurations séparées : compte/options fixes et demande de réservation ;
-- une connexion Playwright avec sauvegarde et vérification de session ;
-- une simulation du checkout, avec acceptation des conditions et arrêt au formulaire Stripe ;
-- un planning **prévisionnel** calculé à partir des horizons observés ;
-- un collecteur des disponibilités publiques, prévu toutes les cinq minutes ;
-- un historique compressé, un rapport et des intervalles de première apparition.
+**`npm start` affiche l’état du projet ; il ne réserve rien et ne lance pas la surveillance.** Les commandes de simulation ciblent un seul club et un seul horaire. La recherche automatique entre plusieurs clubs reste à implémenter.
 
-**Le collecteur détecte les changements et la simulation peut atteindre le formulaire Stripe. La confirmation de réservation, le paiement effectif et l’intégration de réservation Hermes padel ne sont pas implémentés.** `npm ci` ne programme rien : la surveillance continue est activée séparément avec le timer systemd ci-dessous. Le code et les workflows de réservation Paris Tennis restent dans le dossier de référence.
+## Démarrage rapide
 
-## Installation
-
-Node.js 22.22.2 ou 24 et npm sont utilisés pour cette base.
+Utiliser Node.js 22.22.2 ou 24 et **npm**.
 
 ```sh
 git clone https://github.com/RolandVrignon/paris-padel-anybotty.git
@@ -29,13 +29,25 @@ npm ci
 npm run config:init
 ```
 
-`npm ci` installe les dépendances héritées et Chromium. Aucun identifiant de compte n’a été copié depuis Paris Tennis. `config.fixed.json`, `config.request.json`, l’ancien `config.json`, `.auth/`, les journaux et les observations locales sont ignorés par Git.
+L’installation télécharge Chromium. `config:init` crée les deux fichiers locaux sans écraser ceux qui existent :
 
-## Configuration fixe : compte et navigateur
+| Fichier | Contenu |
+| --- | --- |
+| `config.fixed.json` | Identifiants Anybuddy et options du navigateur |
+| `config.request.json` | Date, heure, clubs et préférences de réservation |
 
-`npm run config:init` crée les deux fichiers locaux avec des permissions `0600`, sans écraser les fichiers existants. Si un ancien `config.json` existe, ses données sont réparties entre les deux fichiers et le fichier source est conservé.
+Pour commencer sans compte, consulter le catalogue et générer un planning à partir de l’exemple :
 
-Compléter **`config.fixed.json`** :
+```sh
+npm run clubs:list
+npm run booking:plan -- --config config.request.json.sample
+```
+
+Pour tester le parcours de réservation, compléter les configurations ci-dessous, puis [se connecter](#connexion-anybuddy) et [lancer une simulation](#simuler-une-réservation).
+
+## Configurer le compte
+
+Dans `config.fixed.json` :
 
 ```json
 {
@@ -50,202 +62,194 @@ Compléter **`config.fixed.json`** :
 }
 ```
 
-Ce fichier contient les identifiants Anybuddy et les options du navigateur. Les clés de demande n’y sont pas acceptées. `browser.headed` ouvre Chromium de façon visible ; `timeoutMs` accepte de 1 000 à 300 000 millisecondes.
+`browser.headed` règle la visibilité du navigateur pour la connexion. `browser.timeoutMs` accepte de 1 000 à 300 000 millisecondes. La simulation ouvre toujours un navigateur visible par défaut ; son option `--headless` permet de le masquer.
 
-## Configuration variable : réservation souhaitée
+**Ne jamais commiter les identifiants ni la session.** Les configurations locales, `.auth/` et `observations/` sont ignorées par Git. `config:init` crée les configurations avec des permissions `0600`. Aucun identifiant Paris Tennis n’est repris automatiquement.
 
-Compléter **`config.request.json`**. Exemple : lundi 21 septembre 2026 à 20 h, avec 60 minutes en priorité, puis 90 minutes. Remplacer la date par la date souhaitée.
+## Configurer les préférences
+
+Dans `config.request.json`, par exemple pour le 21 septembre 2026 à 20 h :
 
 ```json
 {
   "date": "21/09/2026",
   "startTime": "20:00",
   "durationsMinutes": [60, 90],
-  "courtEnvironment": ["any"],
-  "clubs": ["paris-padel", "ucpa-paris", "padelistes-bercy", "4padel-paris-20"],
+  "courtEnvironment": ["indoor", "outdoor"],
+  "clubs": ["paris-padel", "ucpa-paris", "sportfield-bercy", "4padel-paris-20"],
   "maxTotalPriceEUR": null
 }
 ```
 
-- `date` : date du match au format `DD/MM/YYYY`, en `Europe/Paris`.
-- `startTime` : heure de début exacte, au format `HH:mm`.
-- `durationsMinutes` : liste ordonnée de durées autorisées parmi `60`, `90`, `120`, sans doublons. `[60, 90, 120]` privilégie 60 min, puis 90, puis 120. `[60, 90]` exclut 120 min. `[120, 90, 60]` privilégie les séances longues. Une durée absente de la liste ne sera jamais choisie.
-- `courtEnvironment` : contrainte ou préférence intérieur/extérieur, selon le tableau ci-dessous.
-- `clubs` : identifiants issus du catalogue, dans l’ordre de préférence.
-- `maxTotalPriceEUR` : futur plafond total par réservation. `null` signifie non renseigné ; aucune autorisation de paiement n’en découle.
+Adapter la date à la demande. Les dates de configuration utilisent **`DD/MM/YYYY`**, les heures **`HH:mm`**, dans le fuseau **Europe/Paris**. Les identifiants de clubs figurent dans le [catalogue](#clubs-et-horizons-observés).
+
+### Durées : l’ordre définit la préférence
+
+| `durationsMinutes` | Choix autorisés, dans l’ordre |
+| --- | --- |
+| `[60, 90, 120]` | 60 min, puis 90 min, puis 120 min |
+| `[60, 90]` | 60 min, puis 90 min ; 120 min exclu |
+| `[90, 60]` | 90 min, puis 60 min ; 120 min exclu |
+| `[120]` | 120 min uniquement |
+
+Seules les valeurs numériques `60`, `90` et `120` sont acceptées. Une durée absente de la liste est exclue ; une liste vide ou contenant des doublons est refusée.
+
+### Intérieur / extérieur : même principe
 
 | `courtEnvironment` | Choix du terrain |
 | --- | --- |
-| `["indoor", "outdoor"]` | Intérieur en priorité ; extérieur si aucun intérieur compatible n’est disponible |
-| `["outdoor", "indoor"]` | Extérieur en priorité ; intérieur si aucun extérieur compatible n’est disponible |
+| `["indoor", "outdoor"]` | Intérieur préféré, extérieur accepté en second choix |
+| `["outdoor", "indoor"]` | Extérieur préféré, intérieur accepté en second choix |
 | `["indoor"]` | Intérieur uniquement |
 | `["outdoor"]` | Extérieur uniquement |
-| `["any"]` | Premier terrain compatible, sans préférence (valeur par défaut) |
+| `["any"]` | Peu importe : premier terrain compatible |
 
-La liste ne doit contenir ni doublons ni valeurs inconnues. `["any"]` doit être utilisé seul. Les anciennes valeurs textuelles restent acceptées et sont converties en listes ; utilisez désormais ce format dans les configurations. En ligne de commande : `--court-environment indoor,outdoor`, `outdoor,indoor`, `indoor`, `outdoor` ou `any`.
+`["any"]` est la valeur par défaut et doit être utilisé seul. Les doublons et valeurs inconnues sont refusés. Les anciennes valeurs textuelles (`any`, `indoor`, `outdoor`, `indoor_preferred`, `outdoor_preferred`) restent compatibles et sont converties en listes.
 
-Par exemple, `"courtEnvironment": ["indoor", "outdoor"]` permet les deux types tout en privilégiant l’intérieur. L’ordre de sélection est **durée, puis préférence intérieur/extérieur, puis ordre affiché des terrains**. Les critères stricts (intérieur/extérieur uniquement, terrain nommé) restent obligatoires. Ainsi, `[60, 90]` avec `["indoor", "outdoor"]` choisit 60 min dehors avant 90 min dedans ; avec `["indoor"]`, il passe à 90 min si aucun intérieur n’est disponible à 60 min. Cette priorité s’applique aux offres du club et du créneau inspectés ; elle ne réordonne pas les clubs du planning. Un `--court` explicite reste une contrainte : la préférence de type s’applique parmi les offres de ce terrain.
+### Comment les préférences se combinent
 
-La demande ne peut pas contenir `account`, `browser` ou d’autres options fixes. `booking:plan` lit uniquement la demande ; il fonctionne même sans identifiants. La connexion lit uniquement le fichier fixe et ne dépend pas de la date de réservation.
+Dans le club et le créneau inspectés, le script applique **la durée, puis le type de terrain, puis l’ordre affiché des terrains compatibles**.
 
-Chemins personnalisés : `ANYBOTTY_FIXED_CONFIG_PATH` et `ANYBOTTY_REQUEST_CONFIG_PATH`. Un chemin explicite absent est une erreur ; aucun autre fichier n’est utilisé silencieusement à sa place. Les fichiers séparés prennent priorité sur l’ancien `config.json`.
+Avec `[60, 90]` et `["indoor", "outdoor"]`, il préfère **60 minutes dehors à 90 minutes dedans**. Avec `[60, 90]` et `["indoor"]`, il essaie 90 minutes dedans si aucun intérieur n’est proposé à 60 minutes. Les exclusions restent obligatoires, même pour une durée préférée.
 
-## Connexion Anybuddy avec Playwright
+`clubs` définit l’ordre de préférence utilisé par le planning ; la simulation ne parcourt pas automatiquement cette liste. `maxTotalPriceEUR` est réservé à un futur plafond : **il n’est pas appliqué au checkout actuel**. Le script vérifie seulement qu’un montant positif est affiché.
+
+### Fichiers et compatibilité
+
+Les paramètres de compte restent dans le fichier fixe et les souhaits dans le fichier de demande. `booking:plan` fonctionne sans identifiants ; la connexion fonctionne sans demande de réservation.
+
+Les variables `ANYBOTTY_FIXED_CONFIG_PATH` et `ANYBOTTY_REQUEST_CONFIG_PATH` permettent de choisir d’autres chemins. Un chemin explicite absent provoque une erreur. Les fichiers séparés ont priorité sur l’ancien `config.json` ; `config:init` peut répartir son contenu sans supprimer l’original.
+
+## Connexion Anybuddy
+
+Après avoir renseigné `config.fixed.json` :
 
 ```sh
-# Connexion par email et mot de passe, navigateur visible
 npm run auth:login-headed
-# Respecter browser.headed du fichier fixe
-npm run auth:login
-# Connexion sans interface, si le compte le permet
-npm run auth:login -- --headless
-# Vérifier la session sauvegardée dans un nouveau navigateur
 npm run auth:check -- --headless
-# Connexion effectuée manuellement dans Chromium
-npm run auth:login-manual
 ```
 
-Le script utilise le formulaire officiel `/fr/login`, remplit l’email et le mot de passe puis clique sur « Se connecter ». Une connexion n’est déclarée réussie que lorsque `/api/me` confirme une identité correspondant à l’email configuré. Les identifiants refusés, une identité différente ou une session expirée sont signalés sans publier les valeurs sensibles.
+La connexion utilise le formulaire Anybuddy. Elle n’est validée que lorsque le compte retourné correspond à l’email configuré. La session est sauvegardée dans `.auth/session.json`, avec ses cookies, son stockage local et IndexedDB, pour les prochaines commandes.
 
-Après confirmation, `.auth/session.json` conserve les cookies, le stockage local et IndexedDB nécessaires à la session, avec des permissions `0600` dans un dossier `0700`. Ce fichier est sensible et ignoré par Git. Il permet aux prochaines commandes Playwright de restaurer la session. `auth:check` ne reconnecte pas automatiquement un compte dont la session a expiré : relancer `auth:login`.
+| Besoin | Commande |
+| --- | --- |
+| Respecter `browser.headed` | `npm run auth:login` |
+| Se connecter sans interface | `npm run auth:login -- --headless` |
+| Terminer la connexion à la main | `npm run auth:login-manual` |
+| Vérifier la session existante | `npm run auth:check -- --headless` |
 
-Le mode manuel permet de terminer une connexion interactive dans Chromium ; augmenter `browser.timeoutMs` si nécessaire, jusqu’à cinq minutes. Aucun solveur CAPTCHA n’est utilisé pour la connexion Anybuddy. Ces commandes s’arrêtent après vérification de l’authentification et n’effectuent aucune réservation.
+En mode manuel, augmenter `browser.timeoutMs` si nécessaire, jusqu’à cinq minutes. Aucun solveur CAPTCHA n’est intégré à la connexion Anybuddy. Une session expirée nécessite une nouvelle connexion ; `auth:check` ne la renouvelle pas automatiquement.
 
-Les identifiants Paris Tennis ne sont jamais repris automatiquement. Une installation sur le VPS possède ses propres fichiers locaux ; les identifiants et la session du Mac ne sont pas envoyés par un `git push`. Le collecteur public de disponibilités continue de fonctionner sans ces fichiers.
+## Simuler une réservation
 
-## Simulation jusqu’au formulaire Stripe
+La commande exige **le club, la date au format `YYYY-MM-DD` et l’heure**. Elle reprend seulement les préférences de durée et de type depuis le fichier de demande. Les exemples ci-dessous utilisent des dates de septembre 2026 : les adapter aux disponibilités actuelles.
 
-Après `npm run auth:login-headed`, tester un créneau explicite :
-
-```bash
-# Utiliser les durées ordonnées de config.request.json, sans accepter les conditions
-npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30
-
-# Remplacer ponctuellement la liste autorisée
-npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30 --durations 60,90,120
-
-# Imposer une seule durée pour cet essai
-npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30 --duration 60
-
-# Accepter les conditions connues puis ouvrir le formulaire Stripe
-npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30 --duration 60 --to-stripe
-
-# Facultatif : imposer un terrain précis au lieu du premier disponible
-npm run checkout:preview -- --club ucpa-paris --date 2026-09-12 --time 07:00 --duration 60 --court "Terrain 7 Padel HC" --to-stripe
-```
-
-Le navigateur est visible par défaut ; `--headless` le masque. Ces dates sont des exemples de la vérification du 11 septembre 2026 : adapter aux disponibilités actuelles. Cette commande utilise la session locale et le fichier fixe. Elle reprend `courtEnvironment` et `durationsMinutes` depuis `config.request.json` (ou le chemin `ANYBOTTY_REQUEST_CONFIG_PATH` / la configuration héritée). Sans fichier de demande, elle utilise `["any"]` et `[60, 90]` ; 120 min n’est jamais ajouté automatiquement. L’option `--court-environment indoor,outdoor` remplace cette préférence pour un essai ponctuel. La date, l’heure et le club restent fournis en arguments. `--durations 60,90,120` remplace la liste ordonnée ; `--duration 120` impose une seule durée. Ces deux options sont mutuellement exclusives ; la commande ne modifie pas le fichier de demande. Pour tous les clubs, si une modale de choix apparaît, le script parcourt les durées autorisées dans leur ordre, cherche les types de terrain dans l’ordre de préférence configuré, puis choisit le premier terrain compatible. Il passe à la durée suivante si aucune offre ne respecte les contraintes strictes. Il valide aussi une modale avec un seul terrain préselectionné. Sans modale, il poursuit directement vers le récapitulatif. `--court` reste une option pour imposer un terrain précis ; aucun nom de terrain n’est nécessaire par défaut. Le navigateur utilise la locale française ; si la bannière initiale de cookies apparaît, la commande refuse les cookies facultatifs. Une date ou un terrain différent du récapitulatif provoque un arrêt. La durée du récapitulatif doit être autorisée et correspondre à celle effectivement sélectionnée, y compris avant l’ouverture de Stripe. Un accès direct à une offre de 120 min est donc refusé avec `[60, 90]`.
-
-Exemple pour préférer un intérieur, en acceptant un extérieur en second choix :
-
-```bash
-npm run checkout:preview -- --club 4padel-saint-ouen --date 2026-09-12 --time 09:00 --duration 90 --court-environment indoor,outdoor
-```
-
-Le filtre se base sur le libellé Anybuddy **du terrain**, pas sur la description générale du club. Le récapitulatif est revérifié même en cas d’accès direct sans modale, puis avant l’acceptation des conditions si `--to-stripe` est utilisé. Les modes stricts `["indoor"]` et `["outdoor"]` refusent l’autre type. Les modes `["indoor", "outdoor"]` et `["outdoor", "indoor"]` acceptent le second type si le premier n’est pas proposé parmi les offres compatibles. Sans modale, ils acceptent l’unique offre si son type est connu. Un type absent ou ambigu est refusé dans ces quatre modes ; `["any"]` conserve le comportement antérieur, même si le type n’est pas renseigné. Après sélection dans une modale, le type du récapitulatif doit correspondre à celui retenu, même en mode préférence. Le planning reprend ce critère sans prétendre avoir vérifié les offres ; le collecteur d’ouverture continue d’observer tous les terrains.
-
-**Deux boutons portent le nom « Payer ».** Sur les parcours observés, le premier, dans « Confirmer et Payer », prépare le paiement et ouvre **Stripe intégré dans la fenêtre Anybuddy**. Le second apparaît avec « Entrez vos informations de paiement » et sert au paiement effectif. La simulation s’arrête avant ce second clic, ne remplit aucune donnée bancaire et ferme le navigateur. Elle ne relance jamais un clic de paiement après une erreur.
-
-`--to-stripe` autorise l’acceptation des CGV et la préparation de la session de paiement. Même sans cette option, l’ouverture du récapitulatif peut créer un panier serveur. Ce n’est donc pas un dry-run en lecture seule ; un panier ou une session de paiement non payé peut persister. Aucun paiement n’est soumis par cette commande, et elle ne prétend pas prouver l’absence de toute réservation en attente côté plateforme.
-
-Le [relevé des neuf clubs](docs/checkout.md) et [les profils utilisés par le code](data/checkout-requirements.json) conservent les cases et particularités constatées. Une condition inconnue, une CGV manquante ou un autre club bloque le parcours. Les préférences marketing du compte restent inchangées. En cas d’échec, une capture et un diagnostic sont enregistrés localement dans `.auth/checkout-failure.*`, ignorés par Git. Le code dispose aussi d’un blocage des requêtes de confirmation Stripe connues ; le garde-fou principal reste l’arrêt avant l’étape de paiement final.
-
-## Catalogue initial
-
-Les données ci-dessous ont été revérifiées via les disponibilités publiques Anybuddy le **11 septembre 2026**, considéré comme J+0, sur une plage allant jusqu’au 11 novembre. Elles décrivent les dernières disponibilités vues, pas des règles d’ouverture confirmées. Les résultats sont conservés dans [le relevé de vérification](data/horizon-audit-2026-09-11.json).
-
-| Identifiant | Centre | Dernière disponibilité observée | Horizon observé |
-| --- | --- | --- | --- |
-| `paris-padel` | Paris Padel | 19 septembre | J+8 |
-| `ucpa-paris` | UCPA Sport Station Hostel Paris | 19 septembre | J+8 |
-| `sportfield-bercy` | Sportfield Paris 12 - Bercy | 25 septembre | J+14 |
-| `4padel-paris-20` | 4PADEL Paris 20 | 14 septembre | J+3 |
-| `aquaboulevard` | Forest Hill Aquaboulevard De Paris | 17 septembre | J+6 |
-| `4padel-saint-ouen` | 4Padel Saint-Ouen | 12 septembre | J+1 |
-| `trinquet-village` | Trinquet Village | 11 novembre (limite de la recherche atteinte) | **au moins J+61** |
-| `padelistes-bercy` | Padelistes Bercy - Paris 12 | 19 septembre | J+8 |
-| `padel-15` | Padel 15 | 16 septembre | J+5 |
-
-Le 10 novembre correspond à **J+60**, mais le 11 novembre affiche déjà des créneaux pour Trinquet Village : 26 heures de départ sur le site lors de cette vérification. Sa limite réelle reste inconnue ; `horizonIsLowerBound: true` empêche de lire J+61 comme une limite confirmée. Le champ est un indicateur de lecture du catalogue, pas une règle de réservation automatique.
-
-Les liens des centres, les dates d’observation et le statut de vérification sont dans [`data/clubs.json`](data/clubs.json). Toutes les heures d’ouverture sont actuellement `null` et toutes les règles `verified: false`.
-
-## Commandes disponibles
+### S’arrêter au récapitulatif
 
 ```sh
-npm start
-npm run clubs:list
-npm run booking:plan
-# Utiliser directement l’exemple, sans configuration locale
-npm run booking:plan -- --config config.request.json.sample
-npm run eslint
-npm test
-npm run test:reference
-npm run observe:once
-npm run observe:report
+npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30
 ```
 
-`npm start` affiche l’état du projet. `clubs:list` lit le catalogue local, sans contacter Anybuddy. `booking:plan` produit du JSON avec deux groupes :
+Le script vérifie les disponibilités, restaure la session et choisit l’horaire. Si une modale de terrains apparaît, il sélectionne la première offre compatible avec les préférences, puis valide. Il gère aussi un seul terrain préselectionné ou un accès direct au récapitulatif. Il contrôle le club, la date, l’heure, la durée, le terrain choisi et le montant, puis ferme le navigateur sans accepter les conditions.
 
-- `checkNow` : centres dont l’ouverture théorique est déjà passée ou tombe aujourd’hui ; leur disponibilité réelle reste à consulter ;
-- `upcoming` : centres dont l’ouverture théorique est à venir, classés par date puis préférence.
+### Aller jusqu’au formulaire Stripe
 
-Ce planning ne déclenche aucune tâche et n’est pas une mesure d’ouverture. Pour le 21 septembre, les J+8 conduisent théoriquement au 13 septembre, les J+6 au 15, les J+5 au 16, les J+3 au 18 et les J+1 au 20.
+```sh
+npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:30 --to-stripe
+```
+
+Cette option accepte les conditions connues du club et clique sur le premier bouton **Payer**, celui de l’étape « Confirmer et Payer ». Le script attend le formulaire Stripe intégré, puis ferme le navigateur. **Il ne saisit aucune carte et ne clique jamais sur le bouton de paiement final.**
+
+L’ouverture du récapitulatif peut déjà créer un panier serveur. Même sans `--to-stripe`, cette simulation n’est donc pas un dry-run en lecture seule ; un panier ou une session de paiement impayée peut persister.
+
+### Options ponctuelles
+
+| Option | Effet |
+| --- | --- |
+| `--durations 60,90,120` | Remplace la liste ordonnée de durées |
+| `--duration 90` | Impose une seule durée ; incompatible avec `--durations` |
+| `--court-environment indoor,outdoor` | Préfère l’intérieur ; accepte aussi `outdoor,indoor`, `indoor`, `outdoor` ou `any` |
+| `--court "Terrain 1"` | Impose ce nom exact de terrain |
+| `--headless` | Masque le navigateur |
+| `--to-stripe` | Accepte les conditions et ouvre Stripe, sans paiement final |
+
+Ces options ne modifient pas la configuration. Sans fichier de demande, les préférences par défaut sont `[60, 90]` et `["any"]`.
+
+Le type est lu sur les caractéristiques du **terrain**, pas dans la description générale du club. Un type absent ou ambigu bloque tous les modes sauf `["any"]`. Sans modale, les préférences à deux types acceptent l’offre directe si son type est connu. Après sélection dans une modale, le type et la durée du récapitulatif doivent correspondre au choix effectué.
+
+Les neuf clubs ont été inspectés jusqu’à Stripe le 11 septembre 2026. Une condition inconnue ou manquante bloque la préparation du paiement ; les préférences marketing restent inchangées. Les détails, cases et particularités sont dans le [relevé des checkouts](docs/checkout.md) et les [profils de clubs](data/checkout-requirements.json).
+
+## Clubs et horizons observés
+
+Ce tableau est un **relevé du 11 septembre 2026**, considéré comme J+0. Il ne représente ni les disponibilités actuelles ni des règles d’ouverture garanties. Sources locales : [catalogue](data/clubs.json) et [audit des horizons](data/horizon-audit-2026-09-11.json).
+
+| Identifiant | Centre | Dernière date observée | Horizon observé |
+| --- | --- | --- | --- |
+| `paris-padel` | Paris Padel | 19/09/2026 | J+8 |
+| `ucpa-paris` | UCPA Sport Station Hostel Paris | 19/09/2026 | J+8 |
+| `sportfield-bercy` | Sportfield Paris 12 - Bercy | 25/09/2026 | J+14 |
+| `4padel-paris-20` | 4PADEL Paris 20 | 14/09/2026 | J+3 |
+| `aquaboulevard` | Forest Hill Aquaboulevard De Paris | 17/09/2026 | J+6 |
+| `4padel-saint-ouen` | 4Padel Saint-Ouen | 12/09/2026 | J+1 |
+| `trinquet-village` | Trinquet Village | 11/11/2026 | Au moins J+61 ; limite inconnue |
+| `padelistes-bercy` | Padelistes Bercy - Paris 12 | 19/09/2026 | J+8 |
+| `padel-15` | Padel 15 | 16/09/2026 | J+5 |
+
+Trinquet Village reste utilisable pour le planning et la simulation, mais est **exclu de la surveillance** (`monitoring.enabled: false`) : les disponibilités atteignaient la fin de la plage recherchée. J+61 est une borne minimale, pas un horizon confirmé.
+
+### Préparer le planning
+
+```sh
+npm run booking:plan
+```
+
+Le résultat JSON distingue `checkNow` (ouverture théorique déjà passée ou prévue aujourd’hui) et `upcoming` (ouverture estimée à venir, classée par date puis préférence de club). Pour un match le 21 septembre, un horizon J+8 suggère une ouverture le 13 septembre.
+
+Ce planning ne consulte pas les offres et ne programme aucune réservation. Les heures d’ouverture du catalogue restent non renseignées ; consulter les observations pour rechercher une cadence réelle.
 
 ## Surveillance toutes les cinq minutes
 
+La surveillance utilise les disponibilités publiques Anybuddy, **sans compte, navigateur ni clé API**. Elle fonctionne indépendamment des préférences de réservation.
+
 ```sh
-# Un passage sur les huit clubs surveillés
+# Un passage immédiat, sans programmer les suivants
 npm run observe:once
-# Dernier état de chaque club et ouvertures candidates observées
+
+# Lire les derniers résultats enregistrés, sans nouvelle collecte
 npm run observe:report
 ```
 
-Le collecteur lit la même route publique que le calendrier web : `https://www.anybuddyapp.com/api/v1/availabilities`, avec le club, le sport `padel` et une plage de dates. Aucun compte, token, modèle Hugging Face ou navigateur n’est nécessaire. Cette interface peut évoluer ; une réponse inattendue est enregistrée comme erreur, jamais comme absence de créneau.
+Chaque passage interroge les huit clubs actifs en parallèle, sur une fenêtre d’au moins **J à J+35 inclus**, étendue si nécessaire jusqu’à l’horizon observé + 14 jours. Toutes les durées et tous les terrains sont conservés.
 
-Chaque passage interroge les **huit clubs actifs en parallèle**, une requête par club, sur une fenêtre de **J à J+35 inclus** au minimum. Si l’horizon observé d’un club dépasse 21 jours, la fenêtre s’étend jusqu’à cet horizon + 14 jours. Toutes les durées sont conservées, indépendamment de `config.json`.
+### Mesurer une ouverture
 
-**Trinquet Village est exclu** (`monitoring.enabled: false`). Il reste dans le catalogue et ses anciens relevés sont conservés.
+Chaque date a son propre suivi :
 
-### Plusieurs dates suivies simultanément
+| État | Signification |
+| --- | --- |
+| `waiting` | Aucun créneau visible ; conserver le dernier contrôle valide |
+| `verifying` | Des créneaux apparaissent ; attendre cinq contrôles supplémentaires espacés d’environ cinq minutes |
+| `complete` | Les cinq confirmations sont obtenues ; conserver le résultat et continuer à observer le calendrier |
 
-Chaque date de la fenêtre possède son propre état dans `calendar.watches` :
+Par exemple, si une date est absente à 07:55 et présente à 08:00, son ouverture est située **entre ces deux contrôles**, sans prétendre connaître la seconde exacte. Les cinq confirmations suivantes vérifient qu’elle reste disponible pendant environ 25 minutes ; elles n’exigent pas que tous les créneaux initiaux soient encore libres.
 
-1. **`waiting`** : aucun créneau visible ; enregistrer le dernier contrôle valide sans disponibilité.
-2. **`verifying`** : première apparition ; enregistrer l’intervalle d’ouverture puis réaliser cinq contrôles supplémentaires espacés d’environ cinq minutes. Un lancement manuel quelques secondes avant un passage du timer ne compte pas comme un contrôle de cinq minutes.
-3. **`complete`** : cinq confirmations obtenues ; archiver le résultat de cette date. La collecte du calendrier continue, y compris pour voir les horaires ajoutés ensuite sur les dates déjà ouvertes.
+Une date déjà disponible au premier relevé ne permet pas de dater son ouverture. Une disparition avant la fin des confirmations relance l’attente. Une erreur ne compte jamais comme absence ou confirmation. La fenêtre avance chaque jour, et les dates sont suivies indépendamment.
 
-Une date fermée ou complète ne bloque **aucune autre date**. Si sept dates deviennent visibles au même passage, leurs sept contrôles démarrent ensemble. La fenêtre avance chaque jour, et les nouvelles dates commencent avec une référence initiale : on ne leur invente pas d’heure d’ouverture.
+### Comparer les cadences
 
-Les anciennes cibles (par exemple le 26 septembre pour Sportfield) et leurs preuves sont reprises automatiquement lors de cette mise à jour. `openingWatch` reste un repère de lecture compatible avec l’ancien rapport ; les mesures complètes sont dans `calendar` et `completedWatches`.
+Le rapport distingue les nouvelles dates publiées ensemble (`calendar.batches`) des horaires ajoutés à une date déjà ouverte (`calendar.additionalSlots`). Il permet d’étudier les ouvertures quotidiennes, les publications en fin de semaine pour la suivante, celles en début de semaine pour la semaine en cours et les ajouts progressifs.
 
-Une confirmation signifie que la date possède encore des créneaux. Leur nombre et le nombre de créneaux initiaux encore présents sont conservés. Si tous disparaissent avant les cinq confirmations, le suivi de cette date repart en attente et le lot correspondant est marqué non confirmé. Une date déjà disponible au premier relevé peut être confirmée, mais son heure d’ouverture reste inconnue.
+Quatre à cinq publications indépendantes donnent un premier indice pour une cadence quotidienne. Pour une cadence hebdomadaire, observer plutôt deux à trois semaines. Sept dates apparues ensemble constituent une seule publication observée. Le [protocole d’observation](docs/opening-observation.md) détaille les preuves, limites et champs du rapport ; aucune règle certaine n’est déduite automatiquement.
 
-### Détecter les publications par jour, semaine ou horaire
+### Historique et reprise
 
-`calendar.batches` regroupe les dates devenues visibles au même relevé. Pour chaque groupe, le rapport donne :
+Les instantanés compressés sont conservés 30 jours dans `observations/<club>/<jour UTC>/<horodatage>.json.gz`, avec les offres, prix en centimes, erreurs et événements. Les résumés conservent jusqu’à 200 campagnes, groupes et ajouts d’horaires sur cette période. `ANYBOTTY_OBSERVATIONS_DIR` permet de changer de dossier.
 
-- le jour et l’heure de publication observés, en Europe/Paris ;
-- les dates concernées et si elles sont consécutives ;
-- les semaines des dates concernées, avec des semaines commençant le lundi ;
-- `targetWeekOffsets` : `0` pour la semaine de publication, `1` pour la suivante, `2` pour celle d’après ;
-- les intervalles de première apparition et les confirmations par date.
+Les redémarrages conservent le suivi. Une seule collecte s’exécute à la fois. En cas d’échec, l’attente augmente et `Retry-After` est respecté ; les réponses 401, 403 ou 429 suspendent les passages suivants. Les erreurs peuvent élargir l’intervalle d’ouverture mesuré.
 
-Cela permet de comparer une publication quotidienne, une ouverture en fin de semaine pour la semaine suivante, une ouverture le lundi pour la semaine en cours ou des groupes de dates irréguliers. Les dates vues au même relevé ne sont pas nécessairement publiées à la même seconde : la résolution reste celle de la collecte.
+## Installer la surveillance sur un VPS
 
-`calendar.additionalSlots` conserve séparément les horaires ou durées ajoutés sur une date déjà disponible, avec leur délai avant le match (`leadTimeHours`). Ils peuvent révéler une ouverture progressive, mais aussi une annulation ou une modification des disponibilités ; aucune cause n’est affirmée automatiquement.
-
-Le rapport compte les **jours et semaines de publication distincts** (`independentPublicationDays`, `independentPublicationWeeks`) après les cinq confirmations. Sept dates publiées ensemble comptent comme **une seule publication observée**, pas sept répétitions indépendantes.
-
-### Historique et erreurs
-
-`observations/<club>/<jour UTC>/<horodatage>.json.gz` conserve les instantanés, offres, prix en centimes, états, erreurs et événements pendant 30 jours. Ces fichiers sont ignorés par Git. Les résumés conservent jusqu’à 200 campagnes, groupes et ajouts d’horaires des 30 derniers jours ; les instantanés bruts permettent de retrouver les détails au-delà de cette limite de résumé. `ANYBOTTY_OBSERVATIONS_DIR` choisit un autre dossier local.
-
-Les erreurs ne comptent jamais comme absence ou confirmation et peuvent élargir les intervalles. L’attente croît en cas d’échec, `Retry-After` est respecté et une réponse 401, 403 ou 429 suspend les passages suivants. Les requêtes déjà parties en parallèle peuvent terminer. Les anciennes observations sont conservées lors des mises à jour et redémarrages.
-
-### Activation sur le VPS
-
-Les unités fournies ciblent `/home/<utilisateur>/paris-padel-anybotty` et `/usr/local/bin/node` ; adapter ces chemins si nécessaire. Après clonage et installation des dépendances sur le VPS :
+Après clonage et `npm ci`, vérifier les chemins dans [`deploy/anybotty-observe.service`](deploy/anybotty-observe.service) : le dépôt est attendu dans `~/paris-padel-anybotty` et Node dans `/usr/local/bin/node`. Adapter si nécessaire.
 
 ```sh
 mkdir -p ~/.config/systemd/user
@@ -253,28 +257,53 @@ cp deploy/anybotty-observe.service deploy/anybotty-observe.timer ~/.config/syste
 systemctl --user daemon-reload
 systemctl --user enable --now anybotty-observe.timer
 systemctl --user start anybotty-observe.service
-systemctl --user list-timers anybotty-observe.timer
-journalctl --user -u anybotty-observe.service -n 30 --no-pager
 ```
 
-Le timer passe à `:00`, `:05`, `:10`, etc., et reprend après redémarrage. Le compte doit avoir le maintien des services utilisateur activé (`loginctl show-user "$USER" -p Linger`, attendu `yes`). Une seule exécution est autorisée à la fois. Chaque requête expire après 20 secondes, le service après quatre minutes.
+Le timer lance une collecte à `:00`, `:05`, `:10`, etc. Chaque requête expire après 20 secondes et le service après quatre minutes. Pour maintenir les services utilisateur hors connexion et après redémarrage, vérifier `Linger=yes` :
 
 ```sh
-# Suspendre la surveillance
+loginctl show-user "$USER" -p Linger
+# Si nécessaire, avec les droits d’administration :
+sudo loginctl enable-linger "$USER"
+```
+
+Contrôler le fonctionnement :
+
+```sh
+systemctl --user list-timers anybotty-observe.timer
+journalctl --user -u anybotty-observe.service -n 30 --no-pager
+npm run observe:report
+```
+
+Pour suspendre le timer et arrêter un éventuel passage en cours :
+
+```sh
 systemctl --user disable --now anybotty-observe.timer
-# Arrêter également un éventuel passage en cours
 systemctl --user stop anybotty-observe.service
 ```
 
-Hermes peut lancer `node scripts/observe.js --report` depuis le dépôt et lire les mêmes résultats. Le timer système réalise la collecte sans solliciter un modèle toutes les cinq minutes.
+**Hermes** peut exécuter `node scripts/observe.js --report` depuis le dépôt pour lire le rapport JSON. Le timer assure la collecte sans solliciter un modèle toutes les cinq minutes. L’intégration Hermes pour réserver reste à implémenter. Un `git push` ne déploie pas le VPS et n’y transfère ni identifiants ni session.
 
-## Établir une règle par club
+## Dépannage et validation
 
-Quatre à cinq **publications quotidiennes** concordantes donnent un premier indice de régularité. Pour une hypothèse **hebdomadaire**, observer plutôt **deux à trois semaines**, afin de comparer plusieurs cycles. Les dates déjà ouvertes au démarrage et les groupes non confirmés ne prouvent pas une heure de publication.
+| Symptôme | Action |
+| --- | --- |
+| Session absente ou expirée | Relancer `npm run auth:login-headed`, puis `auth:check` |
+| Connexion interactive nécessaire | Utiliser `npm run auth:login-manual` |
+| Créneau introuvable ou terrain incompatible | Vérifier date, heure, durées et types autorisés ; essayer en navigateur visible |
+| Échec pendant le checkout | Consulter `.auth/checkout-failure.png` et `.auth/checkout-failure.json` ; ne pas relancer aveuglément le bouton Payer |
+| Aucun nouveau relevé | Vérifier le timer, son journal et les éventuels délais de reprise dans le rapport |
 
-Comparer les jours et heures de publication, les semaines des matchs, les intervalles, les ajouts d’horaires et les erreurs. Vérifier aussi les différences entre semaine et week-end, courts et durées. Une absence peut signifier une date complète, fermée ou non publiée. La fenêtre interrogée est bornée : les disponibilités au-delà de sa fin restent inconnues.
+Les diagnostics de checkout peuvent contenir des informations de compte ; ils restent locaux et ignorés par Git.
 
-Le [protocole d’observation](docs/opening-observation.md) détaille ces hypothèses. Aucune heure de réservation définitive n’est déduite d’un seul groupe de dates. La réservation automatique reste à implémenter.
+```sh
+npm run eslint
+npm test
+# Vérifier séparément la base Paris Tennis conservée en référence
+npm run test:reference
+```
+
+Les tests locaux couvrent notamment la configuration, les préférences, les modales, les contrôles avant Stripe et le suivi des ouvertures. Ils ne remplacent pas une vérification du site lorsqu’Anybuddy change son interface.
 
 ## Licence
 
