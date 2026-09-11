@@ -1,0 +1,14 @@
+{
+  "observedOn": "2026-09-11",
+  "clubId": "ucpa-paris",
+  "frameOrigin": "https://js.stripe.com",
+  "scope": "A frame descending from [data-testid=booking-sheet], containing a unique visible input[autocomplete=cc-number]",
+  "fields": [
+    { "tag": "input", "id": "payment-numberInput", "name": "number", "autocomplete": "cc-number", "ariaLabel": "Numéro de carte" },
+    { "tag": "input", "id": "payment-expiryInput", "name": "expiry", "autocomplete": "cc-exp", "ariaLabel": "Date d'expiration" },
+    { "tag": "input", "id": "payment-cvcInput", "name": "cvc", "autocomplete": "cc-csc", "ariaLabel": "Code de sécurité" },
+    { "tag": "select", "id": "payment-countryInput", "name": "country", "autocomplete": "billing country", "ariaLabel": "Pays" }
+  ],
+  "absentFields": ["cardholderName", "billingPostalCode"],
+  "notes": "No input values, tokens, full frame URLs or authenticated HTML are retained. IDs document the observation; selectors use autocomplete attributes. Card entry does not confirm payment. Other clubs/forms may differ."
+}

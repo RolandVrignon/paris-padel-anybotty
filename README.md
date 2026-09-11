@@ -105,7 +105,7 @@ Pour préparer le remplissage du formulaire Stripe, une section optionnelle `pay
 }
 ```
 
-Toutes les valeurs restent des chaînes entre guillemets : mois sur deux chiffres (`MM`), année sur quatre chiffres (`YYYY`), CVC sur trois ou quatre chiffres, pays sur deux lettres. Renseigner ces données uniquement dans le fichier local privé ; le fichier `.sample` conserve les champs vides. Ne pas envoyer la carte dans Telegram ou la conversation. Cette section prépare la configuration : les commandes actuelles ne remplissent pas encore la carte et ne confirment aucun paiement.
+Toutes les valeurs restent des chaînes entre guillemets : mois sur deux chiffres (`MM`), année sur quatre chiffres (`YYYY`), CVC sur trois ou quatre chiffres, pays sur deux lettres. Renseigner ces données uniquement dans le fichier local privé ; le fichier `.sample` conserve les champs vides. Ne pas envoyer la carte dans Telegram ou la conversation. Le remplissage est disponible uniquement avec l’option explicite `--to-stripe --fill-card` de `checkout:preview`. Aucun paiement final n’est confirmé ; les recherches et tâches programmées ne remplissent pas automatiquement la carte.
 
 ## Configurer les préférences
 
@@ -255,6 +255,29 @@ npm run checkout:preview -- --club sportfield-bercy --date 2026-09-17 --time 22:
 Cette option accepte les conditions connues du club et clique sur le premier bouton **Payer**, celui de l’étape « Confirmer et Payer ». Le script attend le formulaire Stripe intégré, puis ferme le navigateur. **Il ne saisit aucune carte et ne clique jamais sur le bouton de paiement final.**
 
 L’ouverture du récapitulatif peut déjà créer un panier serveur. Même sans `--to-stripe`, cette simulation n’est donc pas un dry-run en lecture seule ; un panier ou une session de paiement impayée peut persister.
+
+### Remplir la carte sans confirmer le paiement
+
+Après avoir renseigné `payment` dans le fichier privé `config.fixed.json`, l’option explicite `--fill-card` remplit les champs Stripe puis ferme le navigateur, sans cliquer le bouton de paiement final :
+
+```sh
+npm run checkout:preview -- --club ucpa-paris --date 2026-09-19 --time 07:00 --duration 60 --to-stripe --fill-card
+```
+
+Remplacer la date par celle souhaitée. `--fill-card` exige `--to-stripe` ; les commandes de recherche et les crons ne l’activent pas. L’ouverture du formulaire crée une session de paiement ou un panier impayé côté serveur, pas une réservation confirmée.
+
+Les [attributs HTML relevés sur le formulaire UCPA](data/stripe-card-fields.json) sont conservés sans valeurs de carte :
+
+| Champ | Balise et ID observé | Attribut utilisé par le script |
+| --- | --- | --- |
+| Numéro | `input#payment-numberInput` | `autocomplete="cc-number"` |
+| Expiration | `input#payment-expiryInput` | `autocomplete="cc-exp"` |
+| CVC | `input#payment-cvcInput` | `autocomplete="cc-csc"` |
+| Pays | `select#payment-countryInput` | `autocomplete="billing country"` |
+
+Le script attend un formulaire visible provenant de `https://js.stripe.com`, à l’intérieur du checkout Anybuddy. Il distingue ce formulaire des iframes techniques et ne sélectionne aucun champ par position. Si Stripe propose plusieurs moyens de paiement, il peut ouvrir l’onglet « Carte bancaire ». Plusieurs formulaires de carte visibles provoquent un refus.
+
+Nom du titulaire et code postal sont renseignés seulement si leurs champs sont présents ; ils n’étaient pas demandés sur le formulaire UCPA observé. Le résultat donne uniquement les noms des champs remplis ou absents. Aucune capture, valeur de champ ou erreur Playwright contenant les données de carte n’est enregistrée après le début de la saisie. La protection réseau contre la confirmation Stripe reste active ; l’absence de clic final reste la première garantie.
 
 ### Options ponctuelles
 
