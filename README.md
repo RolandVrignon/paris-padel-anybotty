@@ -6,6 +6,26 @@ Le projet est indépendant d’Anybuddy. Il dérive de [Paris Tennis](https://gi
 
 Pour utiliser le bot directement, consulter [Hermes et Telegram](#piloter-depuis-hermes--telegram) et les [exemples en langage naturel](#parler-au-bot-en-langage-naturel).
 
+## Sommaire
+
+- [Ce qui fonctionne aujourd’hui](#ce-qui-fonctionne-aujourdhui)
+- [Démarrage rapide](#démarrage-rapide)
+- [Configurer le compte](#configurer-le-compte)
+- [Configurer les préférences](#configurer-les-préférences)
+- [Connexion Anybuddy](#connexion-anybuddy)
+- [Chercher parmi les clubs préférés](#chercher-parmi-les-clubs-préférés)
+- [Simuler une réservation](#simuler-une-réservation)
+- [Clubs et horizons observés](#clubs-et-horizons-observés)
+- [Surveillance toutes les cinq minutes](#surveillance-toutes-les-cinq-minutes)
+- [Installer la surveillance sur un VPS](#installer-la-surveillance-sur-un-vps)
+- [Dépannage et validation](#dépannage-et-validation)
+- [Piloter depuis Hermes / Telegram](#piloter-depuis-hermes--telegram)
+  - [Parler au bot en langage naturel](#parler-au-bot-en-langage-naturel)
+  - [Exemple de demande complète](#exemple-de-demande-complète)
+  - [Déroulement d’une tentative programmée](#déroulement-dune-tentative-programmée)
+  - [Réservations du compte et annulation](#réservations-du-compte-et-annulation)
+- [Licence](#licence)
+
 ## Ce qui fonctionne aujourd’hui
 
 | Fonction | État |
