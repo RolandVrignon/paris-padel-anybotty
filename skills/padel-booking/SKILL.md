@@ -89,6 +89,6 @@ Le dernier résultat est historique : vérifier `finishedAt` et `request` avant 
 | `blocked` (code 1) | Session/navigateur indisponible ou restriction HTTP ; expliquer la raison et respecter le délai de reprise. |
 | `not_run` | Aucune recherche enregistrée sur ce VPS. |
 
-La recherche peut laisser un panier impayé ; un `checkout_ready` n’est jamais une réservation acquise. La liste/annulation des réservations Anybuddy, le paiement final et la réservation automatique à l’ouverture ne sont pas implémentés. Les commandes Paris Tennis ne fonctionnent pas pour Anybuddy.
+La recherche peut laisser un panier impayé ; un `checkout_ready` n’est jamais une réservation acquise. Pour lister ou annuler les réservations existantes du compte, utiliser `padel-reservations`. Pour programmer une simulation à l’ouverture, utiliser `padel-scheduling`. Le paiement final reste non implémenté. Les commandes Paris Tennis ne fonctionnent pas pour Anybuddy.
 
 Pour un planning prévisionnel : `node '{{PROJECT_DIR}}/scripts/anybotty.js' plan`. Pour les heures d’ouverture observées : utiliser `padel-monitoring`. Ne pas créer une réservation programmée ou prétendre qu’une recherche se relancera automatiquement : cette commande réalise un seul passage.

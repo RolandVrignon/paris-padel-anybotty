@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const base = join(process.env.HERMES_HOME || join(homedir(), '.hermes'), 'skills')
 const installed = []
-for (const name of ['padel-booking', 'padel-clubs', 'padel-monitoring', 'padel-strategy', 'padel-scheduling']) {
+for (const name of ['padel-booking', 'padel-clubs', 'padel-monitoring', 'padel-strategy', 'padel-scheduling', 'padel-reservations']) {
   const template = readFileSync(join(root, 'skills', name, 'SKILL.md'), 'utf8')
   if (!template.includes('{{PROJECT_DIR}}')) throw new Error(`Missing project placeholder in ${name}`)
   // These templates quote their project paths in shell examples.

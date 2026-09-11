@@ -15,7 +15,8 @@ Le projet est indépendant d’Anybuddy. Il dérive de [Paris Tennis](https://gi
 | Recherche dans l’ordre des clubs, avec plafond horaire | Disponible ; arrêt au premier récapitulatif conforme |
 | Simulation d’un créneau jusqu’au formulaire Stripe | Disponible |
 | Réservation automatique dès l’ouverture et paiement final | À implémenter |
-| Liste et annulation des réservations Anybuddy | À implémenter |
+| Liste et détails des réservations Anybuddy | Disponible, lecture validée sur le compte réel |
+| Annulation Anybuddy avec vérification du statut | Implémentée ; confirmation testée sur données simulées |
 
 **`npm start` affiche l’état du projet ; il ne réserve rien et ne lance pas la surveillance.** `booking:search` essaie les clubs configurés pour une date et une heure ; `checkout:preview` teste un club explicite. Ces deux commandes restent sans paiement final.
 
@@ -363,7 +364,7 @@ Les tests locaux couvrent notamment la configuration, les préférences, les mod
 
 ## Piloter depuis Hermes / Telegram
 
-Installer les cinq skills dans le profil Hermes utilisé par le bot :
+Installer les six skills dans le profil Hermes utilisé par le bot :
 
 ```sh
 npm run hermes:install
@@ -379,6 +380,7 @@ L’installateur remplace les chemins du dépôt, préserve les autres skills et
 | `padel-monitoring` | Lire les ouvertures observées, contrôler le timer et suspendre/reprendre la surveillance sur demande |
 | `padel-strategy` | Arbitrer entre attendre un club prioritaire et essayer un club de repli déjà disponible |
 | `padel-scheduling` | Programmer une simulation à l’ouverture, consulter et annuler les tâches Hermes |
+| `padel-reservations` | Lister les réservations du compte, consulter les conditions et annuler une réservation identifiée |
 
 Exemples à envoyer au bot :
 
@@ -391,7 +393,7 @@ Exemples à envoyer au bot :
 - « Quelles heures d’ouverture as-tu observées cette semaine ? »
 - « Suspends la surveillance padel. »
 
-Les recherches restent des **simulations jusqu’au récapitulatif**. Hermes ne peut pas encore payer, lister/annuler les réservations du compte Anybuddy ou confirmer une réservation à l’ouverture. Une demande enregistrée n’est pas une réservation programmée.
+Les recherches restent des **simulations jusqu’au récapitulatif**. Hermes peut gérer les réservations existantes via `padel-reservations`, mais ne peut pas encore payer ou confirmer une nouvelle réservation à l’ouverture. Une demande enregistrée n’est pas une réservation programmée.
 
 ### Attendre un club prioritaire avant de se replier
 
@@ -434,6 +436,36 @@ Les tâches et leurs résultats restent dans `.auth/scheduled-bookings/`, ignor�
 
 Le résultat revient dans le chat d’origine via Hermes : **récapitulatif atteint, pas réservation confirmée**. Aucun paiement final, retry implicite ni passage automatique au plan B. Il faut réévaluer la stratégie après l’échec du club préféré.
 
+### Réservations du compte et annulation
+
+Le skill `padel-reservations` répond par exemple à « Liste mes réservations », « Montre mon historique » ou « Annule ma réservation de jeudi à 20 h chez Sportfield ». Il lit le compte connecté, y compris les clubs hors catalogue et les autres sports. Les paniers des simulations ne sont pas assimilés à des réservations confirmées.
+
+```sh
+node scripts/reservations.js list
+node scripts/reservations.js list --scope all
+node scripts/reservations.js list --scope past
+node scripts/reservations.js list --scope cancelled
+node scripts/reservations.js list --scope pending
+node scripts/reservations.js show --id ID
+```
+
+Par défaut, la liste contient les réservations à venir et en attente ; les compteurs couvrent aussi l'historique. Le résultat distingue `upcoming`, `pending`, `past` et `cancelled`, avec club, terrain, heure Europe/Paris, durée, prix affichés et conditions. L'état du compte est vérifié à chaque opération. Une erreur ou une pagination incomplète ne donne jamais une liste vide présentée comme fiable.
+
+L'annulation utilise l'ID du match retourné par cette liste, avec deux étapes :
+
+```sh
+# Lecture des conditions, sans confirmation finale
+node scripts/reservations.js cancel --id ID
+# Annulation réelle, uniquement sur demande explicite
+node scripts/reservations.js cancel --id ID --confirm --expected-version VERSION_DU_PREVIEW
+```
+
+Le premier appel retourne les conditions et une version liée à la réservation. Le second les relit, refuse si elles ont changé, vérifie la fiche affichée et clique la confirmation. Hermes traite toute ambiguïté sur la réservation ou perte financière non encore acceptée avant l'action. Un statut `not_cancellable` reste un refus ; le script ne contourne pas la politique du site.
+
+Seul un statut annulé obtenu par une nouvelle lecture produit `cancelled` avec `verified: true`. `cancellation_unverified` demande une vérification, sans répéter automatiquement le clic. Le journal privé `.auth/reservations/` empêche une nouvelle soumission après un résultat incertain. Une annulation confirmée ne prouve pas qu'un remboursement est déjà reçu. Annuler une réservation ne supprime pas un cron, et inversement.
+
+La lecture a été validée sur le compte réel ; le parcours de confirmation est testé dans un navigateur sur des données simulées. Aucune réservation existante n'a été annulée pour cette validation. Le transport de lecture suit l'action serveur du site Anybuddy, découverte dans ses fichiers JavaScript actuels ; ce n'est pas une API publique stable. Un changement de structure provoque une erreur explicite.
+
 ### Interface JSON pour Hermes
 
 ```sh
@@ -448,7 +480,7 @@ node scripts/padel.js result
 
 Pour modifier la demande, `request show` fournit une `version`. Écrire la demande complète dans un fichier privé, puis appeler `request set --input PATH --expected-version VERSION`. Le helper valide les critères, sauvegarde la précédente demande dans `.auth/request-backups/`, écrit atomiquement et refuse les conflits entre conversations. Les credentials ne sont jamais acceptés dans cette demande. Les recherches ponctuelles peuvent utiliser `booking-search.js --config PATH` sans modifier les préférences enregistrées.
 
-Les identifiants et `.auth/session.json` doivent être configurés sur le VPS séparément de Git. Ne jamais transmettre le mot de passe au bot Telegram. Les skills sont découverts par les outils `skills_list` et `skill_view` d’Hermes ; après installation sur un gateway déjà démarré, envoyer `/reload-skills` dans Telegram pour actualiser ses commandes sans interrompre les conversations. Invoquer ensuite `/padel-booking`, `/padel-clubs`, `/padel-monitoring`, `/padel-strategy` ou `/padel-scheduling` (les variantes Telegram avec underscores sont aussi reconnues).
+Les identifiants et `.auth/session.json` doivent être configurés sur le VPS séparément de Git. Ne jamais transmettre le mot de passe au bot Telegram. Les skills sont découverts par les outils `skills_list` et `skill_view` d’Hermes ; après installation sur un gateway déjà démarré, envoyer `/reload-skills` dans Telegram pour actualiser ses commandes sans interrompre les conversations. Invoquer ensuite `/padel-booking`, `/padel-clubs`, `/padel-monitoring`, `/padel-strategy`, `/padel-scheduling` ou `/padel-reservations` (les variantes Telegram avec underscores sont aussi reconnues).
 
 ## Licence
 

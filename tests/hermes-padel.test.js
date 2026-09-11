@@ -73,9 +73,9 @@ test('Hermes installer renders all skills, preserves unrelated skills and is rep
   for (let i = 0; i < 2; i++) {
     const result = spawnSync(process.execPath, ['scripts/install-hermes-skills.js'], { env, encoding: 'utf8' })
     assert.equal(result.status, 0, result.stderr)
-    assert.equal(JSON.parse(result.stdout).installed.length, 5)
+    assert.equal(JSON.parse(result.stdout).installed.length, 6)
   }
-  for (const name of ['padel-booking', 'padel-clubs', 'padel-monitoring', 'padel-strategy', 'padel-scheduling']) {
+  for (const name of ['padel-booking', 'padel-clubs', 'padel-monitoring', 'padel-strategy', 'padel-scheduling', 'padel-reservations']) {
     const directory = join(root, 'skills', name)
     const text = readFileSync(join(directory, 'SKILL.md'), 'utf8')
     assert.ok(!text.includes('{{PROJECT_DIR}}'))

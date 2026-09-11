@@ -58,7 +58,7 @@ Parcourir les clubs **dans l’ordre de la demande** :
 4. Si l’utilisateur a choisi la disponibilité immédiate, autoriser la recherche parmi les clubs disponibles dans leur ordre ; signaler les clubs prioritaires non encore ouverts qui sont écartés pour cette tentative.
 5. Après la fenêtre d’ouverture attendue, reconsulter les faits. Une estimation non réalisée devient incertaine ; ne pas repousser indéfiniment l’attente ni déclarer automatiquement le club complet. Après un échec confirmé au club préféré, vérifier à nouveau le plan B avant de le proposer.
 
-Ne jamais prendre un club de repli comme assurance avec l’intention de l’annuler ensuite sans instruction explicite : annulation et paiement final Anybuddy ne sont pas implémentés.
+Ne jamais prendre un club de repli comme assurance avec l’intention de l’annuler ensuite sans instruction explicite : une annulation relève de `padel-reservations` et le paiement final reste non implémenté.
 
 ## Réponse et transmission à l’exécution
 
