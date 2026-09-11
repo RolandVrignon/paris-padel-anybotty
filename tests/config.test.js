@@ -74,3 +74,19 @@ test('court environment comes from request configuration with a validated CLI ov
   }
   assert.throws(() => resolveCourtEnvironment(undefined, { root, env: { ANYBOTTY_REQUEST_CONFIG_PATH: join(root, 'missing.json') } }), /Cannot read/)
 })
+
+test('optional payment settings preserve string values and cannot enter a variable request', t => {
+  const { root, write } = fixture(t)
+  const payment = { cardholderName: '', cardNumber: '', expiryMonth: '01', expiryYear: '', cvc: '001', billingCountry: 'FR', billingPostalCode: '01000' }
+  write('config.fixed.json', { account, payment })
+  assert.deepEqual(loadFixedConfig({ root, env: {} }).payment, payment)
+  write('config.request.json', { date: '21/09/2026', payment })
+  assert.throws(() => loadRequestConfig({ root, env: {} }), /Unsupported/)
+  const split = splitLegacy({ account, payment, date: '21/09/2026' })
+  assert.deepEqual(split.fixed.payment, payment)
+  assert.ok(!Object.hasOwn(split.request, 'payment'))
+  for (const invalid of [null, [], { cardNumber: 123456789 }, { cardNumber: { private: 'never print' } }, { unexpected: 'never print' }]) {
+    write('config.fixed.json', { account, payment: invalid })
+    assert.throws(() => loadFixedConfig({ root, env: {} }), error => !error.message.includes('123456789') && !error.message.includes('never print'))
+  }
+})

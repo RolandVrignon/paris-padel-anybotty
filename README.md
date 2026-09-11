@@ -91,6 +91,22 @@ Dans `config.fixed.json` :
 
 **Ne jamais commiter les identifiants ni la session.** Les configurations locales, `.auth/` et `observations/` sont ignorées par Git. `config:init` crée les configurations avec des permissions `0600`. Aucun identifiant Paris Tennis n’est repris automatiquement.
 
+Pour préparer le remplissage du formulaire Stripe, une section optionnelle `payment` est disponible dans `config.fixed.json` :
+
+```json
+"payment": {
+  "cardholderName": "",
+  "cardNumber": "",
+  "expiryMonth": "",
+  "expiryYear": "",
+  "cvc": "",
+  "billingCountry": "FR",
+  "billingPostalCode": ""
+}
+```
+
+Toutes les valeurs restent des chaînes entre guillemets : mois sur deux chiffres (`MM`), année sur quatre chiffres (`YYYY`), CVC sur trois ou quatre chiffres, pays sur deux lettres. Renseigner ces données uniquement dans le fichier local privé ; le fichier `.sample` conserve les champs vides. Ne pas envoyer la carte dans Telegram ou la conversation. Cette section prépare la configuration : les commandes actuelles ne remplissent pas encore la carte et ne confirment aucun paiement.
+
 ## Configurer les préférences
 
 Dans `config.request.json`, par exemple pour le 21 septembre 2026 à 20 h :
