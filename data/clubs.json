@@ -139,8 +139,8 @@
       "verified": false
     },
     "monitoring": {
-      "targetDate": "2026-11-11",
-      "reason": "Explicit user target: November 10 is J+60; November 11 already has public availability, so its opening time cannot be inferred."
+      "enabled": false,
+      "reason": "Excluded from opening observation at user request; availability is already open far ahead."
     }
   },
   {

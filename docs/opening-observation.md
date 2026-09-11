@@ -6,7 +6,7 @@ Le suivi opérationnel est décrit dans le [README](../README.md#surveillance-to
 
 Chaque club démarre avec la date du jour en Europe/Paris et l’horizon du catalogue. Sa cible vaut date de départ + horizon + 1 jour. Le 11 septembre 2026, Sportfield Bercy à J+14 cible donc le samedi 26 septembre. La cible est persistée et reste fixe après minuit et les redémarrages.
 
-Les neuf suivis avancent en parallèle, chacun avec son état et ses confirmations. Une requête publique de disponibilités couvre uniquement la date cible et toutes les durées proposées.
+Les huit suivis actifs avancent en parallèle, chacun avec son état et ses confirmations. Une requête publique de disponibilités couvre uniquement la date cible et toutes les durées proposées.
 
 ## Détection et cinq contrôles supplémentaires
 
@@ -23,4 +23,6 @@ Une date déjà disponible au premier relevé fait l’objet des cinq contrôles
 
 L’heure estimée concerne la date surveillée. Une ouverture peut être progressive, et un créneau peut réapparaître après une annulation. Une seule campagne et cinq confirmations ne prouvent donc pas une règle universelle du club. Pour établir une règle quotidienne, répéter les campagnes sur plusieurs dates puis comparer les résultats.
 
-Les dates du catalogue sont des horizons initialement observés, pas des limites confirmées. Si une cible est déjà ouverte au démarrage (par exemple Trinquet Village), le rapport le signale sans inventer une heure de publication.
+Les dates du catalogue sont des horizons initialement observés, pas des limites confirmées. Si une cible est déjà ouverte au démarrage (pour un club surveillé), le rapport le signale sans inventer une heure de publication.
+
+Trinquet Village reste dans le catalogue mais est exclu de la collecte via `monitoring.enabled: false`. Son ancien suivi et ses observations sont conservés, sans nouvelles requêtes.

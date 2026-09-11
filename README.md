@@ -95,7 +95,7 @@ Ce planning ne déclenche aucune tâche et n’est pas une mesure d’ouverture.
 ## Surveillance toutes les cinq minutes
 
 ```sh
-# Un passage sur les neuf clubs
+# Un passage sur les huit clubs surveillés
 npm run observe:once
 # Dernier état de chaque club et ouvertures candidates observées
 npm run observe:report
@@ -111,11 +111,12 @@ Exemples avec un démarrage le **11 septembre 2026** :
 | --- | --- | --- |
 | Paris Padel, UCPA, Padelistes Bercy | J+8 | 20 septembre |
 | Sportfield Bercy | J+14 | 26 septembre |
-| Trinquet Village | Au moins J+61 | **11 novembre (cible explicite)** |
 | 4PADEL Paris 20 | J+3 | 15 septembre |
 | Aquaboulevard | J+6 | 18 septembre |
 | 4Padel Saint-Ouen | J+1 | 13 septembre |
 | Padel 15 | J+5 | 17 septembre |
+
+**Trinquet Village est exclu de la surveillance** (`monitoring.enabled: false`), car il propose déjà des disponibilités très en avance. Il reste dans le catalogue ; son historique est conservé. Le collecteur, son rapport et les attentes après erreur prennent uniquement en compte les huit clubs actifs.
 
 Les clubs actifs sont interrogés **en parallèle**, une requête par club et par passage, uniquement pour leur date cible. Toutes les durées proposées sont conservées, indépendamment de `config.json`.
 
@@ -129,7 +130,7 @@ Les erreurs réseau ne comptent jamais comme confirmation ou disparition. Elles 
 
 Le rapport `observe:report` expose `openingWatch.targetDate`, `phase`, `openingInterval` (UTC et Paris), `firstAvailableAt`, `confirmations`, `completedAt` et `result`. L’intervalle inclut le temps de réponse réseau. **Une seule ouverture observée donne une heure approximative pour cette date, pas encore une règle quotidienne garantie.**
 
-Si la date est déjà disponible au premier contrôle, le script effectue les cinq vérifications mais laisse `openingInterval` à `null` et conclut `already_available_at_first_check`. Il ne transforme pas l’heure de son démarrage en heure d’ouverture. Ce cas est notamment possible pour Trinquet Village, dont la cible explicite du 11 novembre était déjà disponible lors de la vérification.
+Si la date est déjà disponible au premier contrôle, le script effectue les cinq vérifications mais laisse `openingInterval` à `null` et conclut `already_available_at_first_check`. Il ne transforme pas l’heure de son démarrage en heure d’ouverture.
 
 Les fichiers `observations/<club>/<jour UTC>/<horodatage>.json.gz` contiennent le suivi, les offres et prix en centimes, les erreurs et les changements. Ils sont exclus de Git. Conservation glissante de 30 jours, en conservant toujours le dernier état du club, y compris après la fin de son suivi. `ANYBOTTY_OBSERVATIONS_DIR` permet de choisir un autre dossier local. Les identifiants de service ne sont pas assimilés à des courts physiques.
 

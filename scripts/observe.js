@@ -11,7 +11,7 @@ const root = fileURLToPath(new URL('..', import.meta.url))
 const args = process.argv.slice(2)
 if (args.length > 1 || (args.length && args[0] !== '--report')) throw new Error('Usage: node scripts/observe.js [--report]')
 const directory = resolve(process.env.ANYBOTTY_OBSERVATIONS_DIR || resolve(root, 'observations'))
-const clubs = JSON.parse(readFileSync(resolve(root, 'data/clubs.json'), 'utf8'))
+const clubs = JSON.parse(readFileSync(resolve(root, 'data/clubs.json'), 'utf8')).filter(club => club.monitoring?.enabled !== false)
 const summary = record => ({ clubId: record.clubId, name: record.name, status: record.status, attemptedAt: record.attemptedAt, attemptedAtParis: record.attemptedAtParis, lastSuccessAt: record.snapshot?.finishedAt ?? null, lastAvailableDate: record.snapshot?.slots.at(-1)?.startDateTime.slice(0, 10) ?? null, slotCount: record.snapshot?.slots.length ?? null, window: record.snapshot?.window ?? null, reachesWindowEnd: Boolean(record.snapshot?.slots.some(slot => slot.startDateTime.startsWith(record.snapshot.window.to))), nextRetryAt: record.nextRetryAt, error: record.error, recentOpenings: record.recentOpenings || [], openingWatch: record.openingWatch ?? null })
 if (args[0] === '--report') {
   console.log(JSON.stringify(clubs.map(club => summary(latestRecord(directory, club.id) || { ...club, clubId: club.id, status: 'not_observed' })), null, 2))
