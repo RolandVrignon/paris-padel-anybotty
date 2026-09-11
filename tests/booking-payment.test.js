@@ -123,3 +123,29 @@ test('final DOM click targets exact price button, never Revolut; changed total/i
     assert.equal(await page.evaluate(() => globalThis.paid), 1)
   } finally { await browser.close() }
 })
+
+test('headless requires_action keeps the browser flow alive until confirmation without a second payment', async t => {
+  const { store } = storeFor(t)
+  const context = fakeContext()
+  let clicked = 0
+  let afterClickReads = 0
+  const events = []
+  const result = await payBookingOffer({ context: () => context, url: () => 'https://www.anybuddyapp.com/fr/club/ucpa-paris/padel' }, offer, request, {
+    store, payment: {}, headed: false, timeoutMs: 500, pollMs: 1,
+    verifySummary: async () => {}, prepare: async () => {}, fill: async () => {}, inspect: async () => ({}),
+    readReservations: async () => clicked && ++afterClickReads >= 3 ? [reservation] : [],
+    onEvent: event => events.push(event),
+    click: async () => {
+      clicked++
+      await context.send(url, 'POST', { status: 'requires_action', amount: 3800, currency: 'eur', next_action: { type: 'use_stripe_sdk', use_stripe_sdk: { type: 'three_d_secure_2_fingerprint', secret: 'never-log-this' }, secret: 'never-log-this' } })
+    },
+  })
+  assert.equal(result.status, 'booked')
+  assert.equal(clicked, 1)
+  assert.ok(afterClickReads >= 3)
+  assert.equal(events[0].authentication.nextActionType, 'use_stripe_sdk')
+  assert.equal(events[0].authentication.sdkActionType, 'three_d_secure_2_fingerprint')
+  assert.equal(events[0].authentication.notificationSent, null)
+  assert.ok(!JSON.stringify(events).includes('never-log-this'))
+  assert.ok(!JSON.stringify(store.read()).includes('never-log-this'))
+})

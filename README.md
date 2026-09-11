@@ -261,10 +261,10 @@ Le succès exige une **nouvelle réservation confirmée dans le compte Anybuddy*
 | `booked` | Réservation confirmée dans Anybuddy ; arrêt du moteur | 0 |
 | `existing_reservation` | Une réservation existe déjà à cette heure ; pas de nouveau paiement, consulter son statut | 0 |
 | `payment_failed` | Refus ou annulation Stripe ; aucun nouvel essai automatique | 1 |
-| `payment_action_required` | Validation bancaire requise | 1 |
+| `payment_action_required` | Action supplémentaire demandée par Stripe, réservation non confirmée | 1 |
 | `payment_unverified` | Paiement potentiellement soumis, réservation non confirmée ; relecture seulement | 1 |
 
-En mode visible, le script attend jusqu’à trois minutes après le clic pour une éventuelle validation bancaire manuelle et la confirmation. En mode masqué, une demande 3DS arrête le parcours avec `payment_action_required`. Ne pas relancer un paiement pour résoudre cette situation ; vérifier d’abord l’état du compte. Le bot ne contourne pas la validation bancaire.
+En mode visible, le script attend jusqu’à trois minutes après le clic pour une éventuelle validation bancaire manuelle et la confirmation. En mode masqué, `requires_action` ne ferme plus immédiatement le navigateur : le SDK dispose du délai de vérification de 60 secondes pour poursuivre son authentification. Si aucune réservation n’est confirmée à l’échéance, le script termine avec `payment_action_required` et ferme le navigateur. Ce statut ne prouve pas qu’une notification a été envoyée sur le téléphone. Les tâches programmées restent également soumises à leur timeout global. Ne pas relancer un paiement pour résoudre cette situation ; vérifier d’abord l’état du compte. Le bot ne contourne pas la validation bancaire. La reprise interactive d’une session de paiement après fermeture du navigateur n’est pas implémentée ; `booking:reconcile` relit seulement le compte et conserve le dernier état Stripe observé, sans relancer l’authentification.
 
 Avant le clic, une trace sans carte est écrite dans `.auth/payments/`. La clé regroupe le compte, la date et l’heure, indépendamment des clubs ou durées de repli. Un lancement ultérieur pour la même intention relit son état sans soumettre un second paiement, même après une interruption. Ne pas effacer ces traces pour forcer un nouvel essai ; une réservation annulée ensuite ne réactive pas automatiquement son paiement.
 
