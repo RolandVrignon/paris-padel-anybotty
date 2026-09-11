@@ -132,3 +132,9 @@ npm run checkout:audit -- --club ucpa-paris
 ```
 
 Le script choisit un créneau disponible à partir du lendemain, accepte les conditions connues et ouvre Stripe. Il ne remplit aucune carte, n’arme jamais l’autorisation réseau de paiement et ferme chaque page après inspection. Comme tout accès au checkout, il peut laisser des paniers impayés. Son résultat privé est `.auth/payment-routes-audit/latest.json` ; les erreurs restent `unverified`, jamais assimilées à un parcours direct. Il partage le verrou de recherche pour éviter un audit simultané avec une réservation dans ce dépôt.
+
+## Panier lent ou bloqué avant Stripe
+
+Le retour Hermes du 11/09/2026 pour UCPA, 17/09 à 07:00, montrait un récapitulatif ouvert avec le prix absent et « Mise à jour du panier… ». La reproduction sur le VPS a ensuite atteint le récapitulatif à 38 € ; la cause serveur du chargement intermittent n’a pas été établie.
+
+Le moteur distingue désormais `CART_NOT_READY` d’une offre indisponible : attente du montant et du bouton Payer pendant 30 secondes, puis une seule nouvelle préparation sur une page neuve avec la même offre autorisée. Le terrain n’est pas exclu pour ce problème de chargement. Après deux échecs, le résultat reste `incomplete`, sans soumission de paiement. Aucune relance de confirmation Stripe n’est ajoutée. Les diagnostics incluent étape, code d’erreur et date, sans contenu sensible. Les résultats de réconciliation sont séparés de ceux des recherches pour conserver l’échec initial.

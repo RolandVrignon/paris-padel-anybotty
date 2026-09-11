@@ -120,3 +120,29 @@ test('real search stops at a successful or uncertain payment before trying anoth
     assert.equal(attempts, 1)
   }
 })
+
+test('a cart timeout retries the same offer once without excluding a valid court', async () => {
+  let attempts = 0
+  const result = await searchBooking(input, clubs, { now, fetchAvailability: available, attempt: async (club, request, options) => {
+    assert.deepEqual(options.excludedOffers, [])
+    options.onSelected({ court: null, durationMinutes: 60 })
+    if (++attempts === 1) throw Object.assign(new Error('Cart loading'), { code: 'CART_NOT_READY' })
+    return success
+  } })
+  assert.equal(result.status, 'checkout_ready')
+  assert.equal(attempts, 2)
+  assert.deepEqual(result.events[0], { clubId: input.clubs[0], status: 'cart_not_ready', retrying: true })
+})
+
+test('a persistently loading cart is incomplete after two attempts, not no availability', async () => {
+  let attempts = 0
+  const result = await searchBooking(input, clubs, { now, mode: 'pay', fetchAvailability: available, attempt: async () => {
+    attempts++
+    throw Object.assign(new Error('Cart loading'), { code: 'CART_NOT_READY' })
+  } })
+  assert.equal(attempts, 2)
+  assert.equal(result.status, 'incomplete')
+  assert.equal(result.reason, 'cart_not_ready')
+  assert.equal(result.paymentSubmitted, false)
+  assert.ok(!result.events.some(event => event.status === 'no_matching_offer'))
+})

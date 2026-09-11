@@ -224,7 +224,7 @@ La recherche ne patiente pas jusqu’à une ouverture future et ne programme pas
 
 ### Résultat et journal
 
-Le JSON final est écrit sur la sortie standard et dans `.auth/booking-search/latest.json`. Les événements par club sont écrits sur la sortie d’erreur : absence de créneau, dépassement du budget, erreur de simulation ou offre retenue. En cas d’erreur de navigateur, les derniers diagnostics sont conservés dans `.auth/booking-search/failure.*`. Ces fichiers restent locaux et ignorés par Git.
+Le JSON final est écrit sur la sortie standard et dans `.auth/booking-search/latest.json`. Chaque exécution conserve aussi son fichier `run-*.json`. Une réconciliation écrit `latest-reconciliation.json` et ne remplace pas le résultat de recherche qu’elle vérifie. Les événements par club sont écrits sur la sortie d’erreur : absence de créneau, dépassement du budget, erreur de simulation ou offre retenue. En cas d’erreur de navigateur, les derniers diagnostics sont conservés dans `.auth/booking-search/failure.*`. Ces fichiers restent locaux et ignorés par Git.
 
 | Statut | Signification | Code de sortie |
 | --- | --- | --- |
@@ -273,7 +273,7 @@ Avant le clic, une trace sans carte est écrite dans `.auth/payments/`. La clé 
 npm run booking:reconcile -- --config /chemin/demande.json --headless
 ```
 
-Les refus bancaires et résultats incertains interrompent la recherche avant tout plan B. Les captures d’écran sont désactivées dès l’entrée dans le parcours de paiement et les erreurs de saisie n’affichent jamais les valeurs de carte. Le parcours réel UCPA du 19 septembre 2026, 07 h–08 h, 38 €, a été payé puis annulé pour validation ; cela ne garantit pas l’acceptation bancaire d’un prochain paiement.
+Si le panier reste en chargement avant Stripe, le script attend jusqu’à 30 secondes puis retente une seule fois sa préparation sur une nouvelle page, sans exclure le terrain. Deux échecs donnent `incomplete` avec `reason: "cart_not_ready"` ; ils ne signifient pas que le créneau est complet. Les refus bancaires et résultats incertains interrompent la recherche avant tout plan B. Les captures d’écran sont désactivées dès l’entrée dans le parcours de paiement et les erreurs de saisie n’affichent jamais les valeurs de carte. Le parcours réel UCPA du 19 septembre 2026, 07 h–08 h, 38 €, a été payé puis annulé pour validation ; cela ne garantit pas l’acceptation bancaire d’un prochain paiement.
 
 ## Simuler une réservation
 

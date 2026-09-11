@@ -14,6 +14,7 @@ import { discoverMatchesAction, readMatchesPage } from '../lib/anybuddy-actions.
 import { listReservations } from '../lib/account-reservations.js'
 import { installPaymentGuard } from '../lib/checkout.js'
 import { acquireLock } from '../lib/observation-store.js'
+import { randomUUID } from 'node:crypto'
 
 let browser
 let release
@@ -100,7 +101,7 @@ try {
       } catch (error) {
         if (!sensitive && !['NO_MATCHING_OFFER', 'PRICE_LIMIT'].includes(error.code)) {
           await page.screenshot({ path: resolve(directory, 'failure.png') }).catch(() => {})
-          writeFileSync(resolve(directory, 'failure.json'), JSON.stringify({ clubId: club.id, stage }), { mode: 0o600 })
+          writeFileSync(resolve(directory, 'failure.json'), JSON.stringify({ clubId: club.id, stage, errorCode: error.code === 'CART_NOT_READY' ? error.code : 'CHECKOUT_ERROR', errorType: error.name === 'TimeoutError' ? 'TimeoutError' : 'Error', occurredAt: new Date().toISOString() }), { mode: 0o600 })
         }
         throw error
       } finally { await page.close().catch(() => {}) }
@@ -108,9 +109,12 @@ try {
     onEvent: event => console.error(JSON.stringify(event)),
   })
   const report = { ...result, request, finishedAt: new Date().toISOString(), mode: pay ? 'pay' : reconcile ? 'reconcile' : 'preview', note: pay || reconcile ? 'Only a confirmed Anybuddy reservation proves success. Never retry an uncertain payment.' : 'No conditions accepted or payment submitted. An unpaid server cart may remain.' }
-  const temporary = resolve(directory, 'latest.json.tmp')
+  // A read-only reconciliation must not erase the failed booking it diagnoses.
+  writeFileSync(resolve(directory, `run-${randomUUID()}.json`), `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 })
+  const latest = reconcile ? 'latest-reconciliation.json' : 'latest.json'
+  const temporary = resolve(directory, `${latest}.tmp`)
   writeFileSync(temporary, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 })
-  renameSync(temporary, resolve(directory, 'latest.json'))
+  renameSync(temporary, resolve(directory, latest))
   console.log(JSON.stringify(report, null, 2))
   process.exitCode = ['checkout_ready', 'booked', 'existing_reservation'].includes(result.status) ? 0 : result.status === 'no_match' ? 2 : 1
 } catch (error) {

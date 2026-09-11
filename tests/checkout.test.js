@@ -145,3 +145,24 @@ test('checkout blocks excluded durations and changes from the chosen duration be
     assert.equal(await page.evaluate(() => globalThis.payClicks), 1)
   } finally { await browser.close() }
 })
+
+test('a cart stuck updating produces a typed pre-payment failure and a slow cart waits safely', async () => {
+  const browser = await chromium.launch()
+  try {
+    const page = await browser.newPage()
+    const skeleton = fixture().replace('Total à payer 70 €', 'Total à payer —').replace('Payer 70 €</button>', 'Mise à jour du panier…</button>')
+    await page.setContent(skeleton)
+    await assert.rejects(inspectCheckout(page, 'paris-padel', { cartTimeoutMs: 100 }), { code: 'CART_NOT_READY' })
+    assert.equal(await page.evaluate(() => globalThis.payClicks), 0)
+    const pending = inspectCheckout(page, 'paris-padel', { cartTimeoutMs: 2000 })
+    await page.evaluate(() => {
+      setTimeout(() => {
+        const total = [...globalThis.document.querySelectorAll('p')].find(p => p.textContent.startsWith('Total à payer'))
+        total.textContent = 'Total à payer 70 €'
+        globalThis.document.querySelector('#pay').textContent = 'Payer 70 €'
+      }, 200)
+    })
+    assert.ok((await pending).summary.includes('Total à payer 70 €'))
+    assert.equal(await page.evaluate(() => globalThis.payClicks), 0)
+  } finally { await browser.close() }
+})
