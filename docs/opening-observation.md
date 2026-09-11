@@ -31,4 +31,4 @@ Quatre à cinq publications indépendantes peuvent soutenir une hypothèse quoti
 
 Comparer les cycles avant de retenir une heure de réservation. Des exceptions restent possibles selon les jours, durées, terrains, jours fériés et modifications du club. Aucune règle quotidienne ou hebdomadaire n’est automatiquement déclarée certaine.
 
-L’historique brut est conservé 30 jours, avec les détails indiqués dans le [README](../README.md#surveillance-toutes-les-cinq-minutes).
+L’historique brut est conservé 30 jours, avec les détails indiqués dans le [guide complet](guide.md#surveillance-toutes-les-cinq-minutes).
