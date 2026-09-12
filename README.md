@@ -6,7 +6,7 @@
 
 **Le prochain match commence par un message.**
 
-Trouve un terrain sur Anybuddy, repère les ouvertures et programme ta tentative depuis Telegram.
+Trouve un terrain sur Anybuddy ou directement chez UCPA Paris 19, et repère les ouvertures sur trois sites.
 Choisis tes clubs, tes durées et ton budget. Anybotty suit tes préférences jusqu’à la réservation.
 
 **9 clubs au catalogue Anybuddy · 12 suivis sur 3 sites · 6 skills Hermes · Open source**
@@ -38,6 +38,7 @@ Avec Hermes, cette demande devient une stratégie, puis une tentative immédiate
 - [Tes préférences, dans le bon ordre](#preferences)
 - [Les clubs](#clubs)
 - [Démarrer](#demarrer)
+- [Réserver directement chez UCPA](#ucpa)
 - [Brancher Hermes et Telegram](#hermes)
 - [Choisir le bon mode](#modes)
 - [Ce qui est validé, ce qui reste à prévoir](#fiabilite)
@@ -117,7 +118,7 @@ Le collecteur réalise **12 suivis toutes les cinq minutes** : huit clubs sur An
 
 Une date absente à 07 h 55 et présente à 08 h donne une ouverture **entre 07 h 55 et 08 h**. Cinq contrôles supplémentaires vérifient la présence de disponibilités pendant environ 25 minutes. Le bot conserve les observations ; il ne transforme pas un seul relevé en règle certaine.
 
-Les observations restent séparées par club et par site. Les parcours de réservation actuels passent par Anybuddy ; les sites officiels sont pour le moment suivis en lecture seule. [Configurer le suivi officiel](docs/direct-monitoring.md).
+Les observations restent séparées par club et par site. La réservation fonctionne sur Anybuddy et, avec des commandes dédiées, sur le site officiel UCPA Paris 19. Le suivi des disponibilités reste en lecture seule ; la réservation officielle 4PADEL reste à intégrer. [Configurer le suivi officiel](docs/direct-monitoring.md).
 
 **Deux rôles distincts :** systemd observe ; le cron Hermes déclenche la tentative. La commande directe `booking:search` cherche immédiatement, sans attendre une ouverture future.
 
@@ -130,7 +131,7 @@ Deux fichiers, deux usages :
 
 | Fichier local | Ce que tu y mets |
 | --- | --- |
-| `config.fixed.json` | Ton compte Anybuddy, le navigateur et les données de paiement si tu actives la réservation réelle. |
+| `config.fixed.json` | Ton compte Anybuddy, les comptes des sites officiels sous `providers`, le navigateur et les données de paiement Anybuddy si tu actives la réservation réelle. |
 | `config.request.json` | Le match que tu veux : date, heure, clubs, durées, type de terrain et plafond horaire. |
 
 Exemple de demande — **remplace la date avant de lancer** :
@@ -208,7 +209,7 @@ npm run auth:check -- --headless
 npm run booking:search
 ```
 
-**Sites officiels :** les connexions 4PADEL et UCPA ont leurs propres sessions vérifiées côté serveur. Renseigne `providers.4padel.account` et `providers.ucpa.account` dans la configuration fixe, puis utilise `npm run auth:4padel` ou `npm run auth:ucpa`. Les commandes `auth:4padel:check` et `auth:ucpa:check` contrôlent les sessions enregistrées. [Guide d’authentification](docs/authentication.md). Les réservations directes restent à intégrer.
+**Sites officiels :** les connexions 4PADEL et UCPA ont leurs propres sessions vérifiées côté serveur. Renseigne `providers.4padel.account` et `providers.ucpa.account` dans la configuration fixe, puis utilise `npm run auth:4padel` ou `npm run auth:ucpa`. Les commandes `auth:4padel:check` et `auth:ucpa:check` contrôlent les sessions enregistrées. [Guide d’authentification](docs/authentication.md).
 
 Pour explorer sans connexion :
 
@@ -221,10 +222,41 @@ Le planning est théorique ; adapte la date de l’exemple. **`npm start` affich
 
 Les deux configurations, `.auth/` et les observations restent locales et sont ignorées par Git. Les fichiers privés créés par `config:init` ont les permissions `0600`. Renseigne les secrets sur la machine qui exécute le bot, jamais dans Telegram.
 
+<a id="ucpa"></a>
+## UCPA Paris 19 : du créneau à l’annulation
+
+**Réserve directement sur le site officiel, puis retrouve et gère ta partie depuis le terminal.** Le bot prend le premier terrain intérieur disponible à l’heure demandée, respecte l’ordre des durées et vérifie le prix du terrain entier par heure.
+
+Après `npm run auth:ucpa`, utilise ta demande dans `config.request.json` avec le club `ucpa-paris` :
+
+```sh
+# Aller au récapitulatif sans réserver
+npm run ucpa -- book --headed
+
+# Créer une réservation réelle avec la carte déjà enregistrée chez UCPA
+npm run ucpa -- book --confirm
+
+# Retrouver la partie et consulter son détail
+npm run ucpa -- list
+npm run ucpa -- show --id IDENTIFIANT
+
+# Lire les conditions, puis reprendre la version renvoyée pour annuler
+npm run ucpa -- cancel --id IDENTIFIANT
+npm run ucpa -- cancel --id IDENTIFIANT --confirm --expected-version VERSION
+```
+
+UCPA annonce un **prélèvement au début de la partie** : le clic « Réserver » engage réellement le capitaine, même sans débit immédiat. Le parcours intégré utilise une carte déjà enregistrée, sans abonnement ni réduction. L’annulation porte sur **la partie entière**, à plus de 48 heures du début, après vérification qu’elle est gratuite pour tous les joueurs.
+
+Une tentative incertaine se vérifie avec `npm run ucpa -- reconcile`, en conservant sa date et son heure. Le journal empêche une nouvelle soumission automatique du même créneau, y compris après annulation ; une nouvelle intention après annulation reste à intégrer.
+
+**Validé en réel :** réservation, apparition dans le compte et annulation sans frais. Les commandes UCPA sont disponibles localement ; leur branchement aux skills Hermes et au moteur de priorités entre clubs reste à faire.
+
+[Options, résultats et détails du parcours UCPA →](docs/ucpa-booking.md)
+
 <a id="hermes"></a>
 ## Un message le soir. Une tentative à l’ouverture.
 
-Le VPS exécute le navigateur et les tâches programmées. Hermes transforme tes demandes Telegram en appels aux scripts du dépôt.
+Le VPS exécute le navigateur et les tâches programmées. Hermes transforme tes demandes Telegram en appels aux scripts du dépôt. Les skills de réservation actuels utilisent Anybuddy ; les commandes officielles UCPA disposent de leur [parcours séparé](#ucpa).
 
 **Hermes et son intégration Telegram doivent déjà être installés.** Depuis la copie du dépôt sur le VPS :
 
@@ -258,6 +290,9 @@ Installer les skills ne crée aucun cron. Hermes doit enregistrer la tâche et v
 | Voir les clubs | `npm run clubs:list` | Consulte le catalogue. |
 | Lire les observations | `npm run observe:report` | Affiche les relevés enregistrés. |
 | Collecter une fois | `npm run observe:once` | Relève les trois sites, sans programmer la suite ni réserver. |
+| Simuler sur le site officiel UCPA | `npm run ucpa -- book --headed` | Atteint le récapitulatif ; aucune réservation soumise. |
+| **Réserver sur UCPA** | `npm run ucpa -- book --confirm` | **Crée une réservation réelle**, avec prélèvement annoncé le jour du match. |
+| Gérer ses parties UCPA | `npm run ucpa -- list` | Les actions `show` et `cancel` permettent le détail et l’annulation gratuite. [Guide](docs/ucpa-booking.md). |
 | Simuler tes préférences | `npm run booking:search` | Cherche un récapitulatif conforme, sans paiement. |
 | Vérifier la configuration carte | `npm run payment:check` | Contrôle les champs locaux sans les afficher ni contacter la banque. |
 | **Réserver et payer** | `npm run booking:pay -- --headless` | **Soumet un paiement réel** pour une offre conforme. |
@@ -271,12 +306,13 @@ Une simulation peut créer un panier impayé côté Anybuddy. Le mode `checkout:
 <a id="fiabilite"></a>
 ## Des résultats vérifiés, des limites visibles
 
-**Un `booked`, c’est une réservation retrouvée et confirmée dans ton compte Anybuddy.** Un récapitulatif atteint ou une réponse Stripe intermédiaire ne suffit pas.
+**Un `booked`, c’est une réservation retrouvée et confirmée dans le compte du site utilisé.** Un récapitulatif atteint ou une réponse de paiement intermédiaire ne suffit pas.
 
-- **Parcours réel validé à UCPA :** paiement puis annulation de la réservation de test, avec vérification du statut.
+- **Parcours réel validé à UCPA via Anybuddy :** paiement puis annulation de la réservation de test, avec vérification du statut.
+- **Parcours officiel UCPA validé :** réservation du 21 septembre à 7 h, apparition dans le compte, puis annulation sans frais confirmée. Le prix est contrôlé pour le terrain entier, et non pour la seule participation du capitaine. [Détails](docs/ucpa-booking.md).
 - **Neuf checkouts inspectés jusqu’à Stripe le 11 septembre 2026 :** sélection du terrain et différences entre formulaire carte direct et choix du moyen de paiement documentées. Cela ne vaut pas neuf paiements réels validés.
 - **Protection contre les doubles tentatives :** verrou local, vérification du compte et journal avant paiement. Un résultat incertain arrête les essais automatiques.
-- **Décision manuelle possible :** une réinitialisation explicite archive la tentative avant un nouvel essai autorisé. Elle ne prouve pas que l’ancienne transaction est annulée. [Procédure](docs/guide.md#réserver-et-payer).
+- **Décision manuelle possible sur Anybuddy :** une réinitialisation explicite archive la tentative avant un nouvel essai autorisé. Elle ne prouve pas que l’ancienne transaction est annulée. [Procédure](docs/guide.md#réserver-et-payer).
 - **Tests locaux :** configuration, préférences, prix, modales, paiements simulés, annulation, observation et programmation.
 
 Le 3-D Secure peut demander une validation humaine. Sa désactivation n’est pas une option du bot et la reprise interactive après fermeture du navigateur n’est pas encore implémentée. Les créneaux peuvent disparaître, les sessions expirer et le site changer : **l’horaire de déclenchement ne garantit pas l’obtention du terrain**.
@@ -293,6 +329,7 @@ Les collecteurs observent les disponibilités publiques et le calendrier authent
 | Installer, configurer, utiliser et dépanner | [Guide complet](docs/guide.md) |
 | Comprendre la mesure des ouvertures | [Protocole d’observation](docs/opening-observation.md) |
 | Comprendre les modales, conditions et formulaires | [Checkouts par club](docs/checkout.md) |
+| Tester le parcours du site officiel UCPA | [Réservations UCPA](docs/ucpa-booking.md) |
 | Adapter les comportements Hermes | [Les six skills](skills/) |
 | Consulter les données du catalogue | [Clubs](data/clubs.json) et [parcours carte](data/payment-routes.json) |
 

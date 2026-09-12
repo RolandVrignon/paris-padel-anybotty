@@ -67,4 +67,4 @@ try {
 }
 ```
 
-Le collecteur 4PADEL utilise cette brique commune. Le monitoring UCPA continue à observer le calendrier public ; il ne dépend pas des identifiants UCPA. La connexion UCPA prépare les futurs parcours du compte, mais **réservation, paiement et annulation sur les sites officiels restent à intégrer**. Les parcours existants de ces actions exécutent Anybuddy.
+Le collecteur 4PADEL utilise cette brique commune. Le monitoring UCPA continue à observer le calendrier public ; il ne dépend pas des identifiants UCPA. La connexion UCPA est réutilisée par `npm run ucpa -- book|list|show|cancel|reconcile`. La réservation avec carte enregistrée, le détail et l’annulation gratuite de la partie sont intégrés : voir le [parcours UCPA](ucpa-booking.md). `checkout:ucpa` reste un aperçu sans confirmation. La réservation officielle 4PADEL reste à intégrer. Les commandes Anybuddy existantes restent distinctes.
