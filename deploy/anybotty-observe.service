@@ -1,5 +1,5 @@
 [Unit]
-Description=Anybotty public padel availability observation
+Description=Anybotty Anybuddy and official padel calendar observation
 After=network-online.target
 Wants=network-online.target
 

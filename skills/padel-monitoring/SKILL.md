@@ -1,11 +1,11 @@
 ---
 name: padel-monitoring
-description: Consulter les heures de publication observées des créneaux Anybuddy, l’historique et l’état de la surveillance Anybotty sur le VPS. Diagnostiquer ou suspendre/reprendre le timer existant à la demande de l’utilisateur.
+description: Consulter les heures de publication observées des créneaux Anybuddy, UCPA et 4PADEL, l’historique et l’état de la surveillance Anybotty sur le VPS. Diagnostiquer ou suspendre/reprendre le timer existant à la demande de l’utilisateur.
 ---
 
 # Surveillance des ouvertures Anybotty
 
-Dépôt : `'{{PROJECT_DIR}}'`. Huit clubs sont suivis par le timer utilisateur `anybotty-observe.timer`, toutes les cinq minutes. Trinquet Village est exclu. Ce timer collecte les disponibilités publiques ; il ne réserve pas et n’a besoin ni de connexion Anybuddy ni de modèle.
+Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` collecte toutes les cinq minutes huit clubs Anybuddy et trois canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt et 4PADEL Saint-Ouen. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
 
 ## Lire les observations
 
@@ -22,6 +22,16 @@ Pour comprendre les champs avancés, lire `'{{PROJECT_DIR}}/docs/opening-observa
 Une date déjà disponible au premier relevé ne prouve pas son heure d’ouverture. Cinq confirmations vérifient la persistance de disponibilités pendant environ 25 minutes, pas cinq ouvertures indépendantes. Une erreur ne compte jamais comme absence ou confirmation.
 
 `calendar.batches` regroupe les dates apparues au même contrôle ; sept dates publiées ensemble représentent une publication. `calendar.additionalSlots` suit les ajouts sur une date déjà ouverte, qui peuvent aussi provenir d’annulations. Pour une hypothèse quotidienne, comparer quatre à cinq publications indépendantes ; pour une hebdomadaire, plutôt deux à trois semaines. Présenter les résultats comme hypothèses tant que les données ne suffisent pas.
+
+## Fournisseurs et horizons
+
+Lire `'{{PROJECT_DIR}}/docs/direct-monitoring.md'` pour les champs et la connexion. Conserver `provider` et `canonicalClubId` dans chaque comparaison : les historiques d’un même club sur deux sites ne sont pas interchangeables. `horizon.availableLeadDays` mesure la dernière disponibilité au moment du relevé ; si `availableLeadIsLowerBound` vaut true, la fin du scan est atteinte et aucun horizon fixe n’est établi. `declaredVisibilityDays` est une règle annoncée par 4PADEL, pas une heure d’ouverture mesurée.
+
+Les disponibilités de l’API 4PADEL peuvent dépasser les dates accessibles de son interface : utiliser les relevés du collecteur qui respectent les dates désactivées, pas un appel improvisé à l’inventaire. UCPA peut aussi exposer davantage d’inventaire que son calendrier ne permet de parcourir. `navigationThroughDate` mesure uniquement la limite atteinte avec les flèches hebdomadaires publiques ; ce n’est pas une preuve que tous les autres parcours de réservation bloquent au-delà.
+
+Une erreur 4PADEL ne suspend pas Anybuddy ni UCPA. Pour vérifier/rétablir la session après correction des identifiants, utiliser `node '{{PROJECT_DIR}}/scripts/login-fourpadel.js'`. Ne jamais afficher la configuration privée ou le contenu de `.auth/`.
+
+La réservation et la programmation existantes exécutent Anybuddy uniquement. Le suivi direct ne rend pas encore les parcours de réservation UCPA/4PADEL disponibles. Ne pas programmer le moteur Anybuddy sur la base d’un horaire d’ouverture propre à un site officiel.
 
 ## Opérations demandées par l’utilisateur
 

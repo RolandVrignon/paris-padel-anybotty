@@ -1,0 +1,43 @@
+[
+  {
+    "id": "ucpa-paris--ucpa",
+    "clubId": "ucpa-paris",
+    "name": "UCPA Sport Station Hostel Paris",
+    "provider": "ucpa",
+    "url": "https://www.ucpa.com/sport-station/paris-19/mon-terrain-padel",
+    "observation": {
+      "horizonDays": 0
+    },
+    "monitoring": {
+      "enabled": true
+    }
+  },
+  {
+    "id": "4padel-boulogne--4padel",
+    "clubId": "4padel-boulogne",
+    "name": "4PADEL Boulogne-Billancourt",
+    "provider": "4padel",
+    "centerId": 105,
+    "url": "https://www.4padel.fr/reservations/slots?center=105",
+    "observation": {
+      "horizonDays": 0
+    },
+    "monitoring": {
+      "enabled": true
+    }
+  },
+  {
+    "id": "4padel-saint-ouen--4padel",
+    "clubId": "4padel-saint-ouen",
+    "name": "4Padel Saint-Ouen",
+    "provider": "4padel",
+    "centerId": 117,
+    "url": "https://www.4padel.fr/reservations/slots?center=117",
+    "observation": {
+      "horizonDays": 0
+    },
+    "monitoring": {
+      "enabled": true
+    }
+  }
+]

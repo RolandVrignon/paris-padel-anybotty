@@ -43,7 +43,8 @@
     "booking:pay": "node scripts/booking-search.js --pay",
     "booking:reconcile": "node scripts/booking-search.js --reconcile",
     "payment:check": "node scripts/check-payment.js",
-    "checkout:audit": "node scripts/audit-payment-routes.js"
+    "checkout:audit": "node scripts/audit-payment-routes.js",
+    "auth:4padel": "node scripts/login-fourpadel.js"
   },
   "dependencies": {
     "@gradio/client": "^2.6.0",

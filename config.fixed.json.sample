@@ -15,5 +15,13 @@
     "cvc": "",
     "billingCountry": "FR",
     "billingPostalCode": ""
+  },
+  "providers": {
+    "4padel": {
+      "account": {
+        "email": "",
+        "password": ""
+      }
+    }
   }
 }

@@ -380,7 +380,7 @@ Ce planning ne consulte pas les offres et ne programme aucune réservation. Les 
 
 ## Surveillance toutes les cinq minutes
 
-La surveillance utilise les disponibilités publiques Anybuddy, **sans compte, navigateur ni clé API**. Elle fonctionne indépendamment des préférences de réservation.
+La surveillance couvre huit clubs Anybuddy et trois canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt et Saint-Ouen. Elle fonctionne indépendamment des préférences de réservation. Anybuddy reste public et sans compte ; 4PADEL utilise une session Playwright dédiée. Voir la [configuration et les limites des sites officiels](direct-monitoring.md).
 
 ```sh
 # Un passage immédiat, sans programmer les suivants
@@ -390,7 +390,7 @@ npm run observe:once
 npm run observe:report
 ```
 
-Chaque passage interroge les huit clubs actifs en parallèle, sur une fenêtre d’au moins **J à J+35 inclus**, étendue si nécessaire jusqu’à l’horizon observé + 14 jours. Toutes les durées et tous les terrains sont conservés.
+Pour Anybuddy, chaque passage interroge les huit clubs actifs en parallèle, sur une fenêtre d’au moins **J à J+35 inclus**, étendue si nécessaire jusqu’à l’horizon observé + 14 jours. Toutes les durées et tous les terrains renvoyés par ce calendrier sont conservés. Les relevés officiels suivent leur propre calendrier et restent séparés par fournisseur.
 
 ### Mesurer une ouverture
 
@@ -416,7 +416,7 @@ Quatre à cinq publications indépendantes donnent un premier indice pour une ca
 
 Les instantanés compressés sont conservés 30 jours dans `observations/<club>/<jour UTC>/<horodatage>.json.gz`, avec les offres, prix en centimes, erreurs et événements. Les résumés conservent jusqu’à 200 campagnes, groupes et ajouts d’horaires sur cette période. `ANYBOTTY_OBSERVATIONS_DIR` permet de changer de dossier.
 
-Les redémarrages conservent le suivi. Une seule collecte s’exécute à la fois. En cas d’échec, l’attente augmente et `Retry-After` est respecté ; les réponses 401, 403 ou 429 suspendent les passages suivants. Les erreurs peuvent élargir l’intervalle d’ouverture mesuré.
+Les redémarrages conservent le suivi. Une seule collecte s’exécute à la fois. En cas d’échec, l’attente augmente et `Retry-After` est respecté ; les réponses 401, 403 ou 429 suspendent les passages suivants pour le fournisseur concerné, sans arrêter les autres sites. Les erreurs peuvent élargir l’intervalle d’ouverture mesuré.
 
 ## Installer la surveillance sur un VPS
 

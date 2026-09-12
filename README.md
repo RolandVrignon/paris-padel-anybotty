@@ -9,7 +9,7 @@
 Trouve un terrain sur Anybuddy, repère les ouvertures et programme ta tentative depuis Telegram.
 Choisis tes clubs, tes durées et ton budget. Anybotty suit tes préférences jusqu’à la réservation.
 
-**9 clubs au catalogue · 8 clubs surveillés · 6 skills Hermes · Open source**
+**9 clubs au catalogue Anybuddy · 11 suivis sur 3 sites · 6 skills Hermes · Open source**
 
 [Démarrer](#demarrer) · [Voir les exemples Telegram](#telegram) · [Guide complet](docs/guide.md) · [Signaler un problème](https://github.com/RolandVrignon/paris-padel-anybotty/issues)
 
@@ -113,9 +113,11 @@ flowchart LR
     H --> I[Vérifier le résultat Anybuddy]
 ```
 
-Le collecteur surveille **huit clubs toutes les cinq minutes**, via un timer systemd, sans compte ni modèle IA à chaque passage. Il observe plusieurs dates pour repérer les ouvertures quotidiennes, les publications groupées et les ajouts d’horaires.
+Le collecteur réalise **11 suivis toutes les cinq minutes** : huit clubs sur Anybuddy, UCPA Paris 19 sur son site officiel, puis 4PADEL Boulogne-Billancourt et Saint-Ouen en direct. Le timer systemd fonctionne sans modèle IA ; seul 4PADEL nécessite un compte. Il observe plusieurs dates pour repérer les ouvertures quotidiennes, les publications groupées et les ajouts d’horaires.
 
 Une date absente à 07 h 55 et présente à 08 h donne une ouverture **entre 07 h 55 et 08 h**. Cinq contrôles supplémentaires vérifient la présence de disponibilités pendant environ 25 minutes. Le bot conserve les observations ; il ne transforme pas un seul relevé en règle certaine.
+
+Les observations restent séparées par club et par site. Les parcours de réservation actuels passent par Anybuddy ; les sites officiels sont pour le moment suivis en lecture seule. [Configurer le suivi officiel](docs/direct-monitoring.md).
 
 **Deux rôles distincts :** systemd observe ; le cron Hermes déclenche la tentative. La commande directe `booking:search` cherche immédiatement, sans attendre une ouverture future.
 
@@ -253,7 +255,7 @@ Installer les skills ne crée aucun cron. Hermes doit enregistrer la tâche et v
 | --- | --- | --- |
 | Voir les clubs | `npm run clubs:list` | Consulte le catalogue. |
 | Lire les observations | `npm run observe:report` | Affiche les relevés enregistrés. |
-| Collecter une fois | `npm run observe:once` | Lit les disponibilités publiques, sans programmer la suite. |
+| Collecter une fois | `npm run observe:once` | Relève les trois sites, sans programmer la suite ni réserver. |
 | Simuler tes préférences | `npm run booking:search` | Cherche un récapitulatif conforme, sans paiement. |
 | Vérifier la configuration carte | `npm run payment:check` | Contrôle les champs locaux sans les afficher ni contacter la banque. |
 | **Réserver et payer** | `npm run booking:pay -- --headless` | **Soumet un paiement réel** pour une offre conforme. |
@@ -282,7 +284,7 @@ Le 3-D Secure peut demander une validation humaine. Sa désactivation n’est pa
 
 **Node.js · Playwright · Chromium · systemd · Hermes · Telegram**
 
-Le collecteur public observe les disponibilités. Playwright exécute le parcours du compte et du checkout. Les scripts exposent des résultats JSON ; Hermes s’en sert pour expliquer, décider et programmer. La tentative programmée exécute une demande figée, sans appel à un modèle pour choisir ses paramètres à l’ouverture.
+Les collecteurs observent les disponibilités publiques et le calendrier authentifié 4PADEL. Playwright exécute le parcours du compte et du checkout. Les scripts exposent des résultats JSON ; Hermes s’en sert pour expliquer, décider et programmer. La tentative programmée exécute une demande figée, sans appel à un modèle pour choisir ses paramètres à l’ouverture.
 
 | Pour aller plus loin | Ressource |
 | --- | --- |

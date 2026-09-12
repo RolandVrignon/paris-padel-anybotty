@@ -90,3 +90,16 @@ test('optional payment settings preserve string values and cannot enter a variab
     assert.throws(() => loadFixedConfig({ root, env: {} }), error => !error.message.includes('123456789') && !error.message.includes('never print'))
   }
 })
+
+test('optional 4PADEL credentials stay in fixed settings and preserve Anybuddy settings', t => {
+  const { root, write } = fixture(t)
+  const providers = { '4padel': { account: { email: 'four@example.test', password: 'private' } } }
+  write('config.fixed.json', { account, providers })
+  const config = loadFixedConfig({ root, env: {} })
+  assert.deepEqual(config.account, account)
+  assert.deepEqual(config.providers, providers)
+  write('config.request.json', { providers })
+  assert.throws(() => loadRequestConfig({ root, env: {} }), /Unsupported/)
+  write('config.fixed.json', { providers: { unexpected: {} } })
+  assert.throws(() => loadFixedConfig({ root, env: {} }), /Unsupported/)
+})

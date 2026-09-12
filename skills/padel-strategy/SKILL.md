@@ -36,6 +36,8 @@ Adapter cet exemple à la date réelle. Une requête filtrée sur 20 h ne suffit
 
 Lire `padel-monitoring` pour interpréter les publications groupées, horaires ajoutés progressivement et confirmations. S’appuyer sur les relevés datés : une heure observée sur plusieurs publications indépendantes est plus solide qu’une simple soustraction de l’horizon.
 
+Les relevés officiels UCPA et 4PADEL ont leur propre `provider` et `canonicalClubId`. Ils peuvent éclairer la stratégie du club, mais leurs horizons et heures ne s’appliquent pas à Anybuddy. Le moteur de réservation et les crons de tentative actuels exécutent Anybuddy uniquement : ne pas présenter une réservation directe comme automatisée ni transmettre son heure d’ouverture à `booking-search.js`. Voir `'{{PROJECT_DIR}}/docs/direct-monitoring.md'`.
+
 ## Classer chaque club
 
 | Situation observée | Interprétation et conduite |
