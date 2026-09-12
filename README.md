@@ -208,6 +208,8 @@ npm run auth:check -- --headless
 npm run booking:search
 ```
 
+**Sites officiels :** les connexions 4PADEL et UCPA ont leurs propres sessions vérifiées côté serveur. Renseigne `providers.4padel.account` et `providers.ucpa.account` dans la configuration fixe, puis utilise `npm run auth:4padel` ou `npm run auth:ucpa`. Les commandes `auth:4padel:check` et `auth:ucpa:check` contrôlent les sessions enregistrées. [Guide d’authentification](docs/authentication.md). Les réservations directes restent à intégrer.
+
 Pour explorer sans connexion :
 
 ```sh

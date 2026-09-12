@@ -378,6 +378,10 @@ Le résultat JSON distingue `checkNow` (ouverture théorique déjà passée ou p
 
 Ce planning ne consulte pas les offres et ne programme aucune réservation. Les heures d’ouverture du catalogue restent non renseignées ; consulter les observations pour rechercher une cadence réelle.
 
+## Connexion aux sites officiels
+
+Les comptes UCPA et 4PADEL sont configurés sous `providers` dans le fichier fixe. Les commandes de connexion, contrôle de session, mode visible et mode manuel sont décrites dans le [guide d’authentification](authentication.md). Elles vérifient l’identité côté serveur et sont indépendantes du compte Anybuddy.
+
 ## Surveillance toutes les cinq minutes
 
 La surveillance couvre huit clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20. Elle fonctionne indépendamment des préférences de réservation. Anybuddy reste public et sans compte ; 4PADEL utilise une session Playwright dédiée. Voir la [configuration et les limites des sites officiels](direct-monitoring.md).

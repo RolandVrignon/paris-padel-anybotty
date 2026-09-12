@@ -38,7 +38,7 @@ npm run observe:once
 npm run observe:report
 ```
 
-La connexion utilise le formulaire officiel. La session privée est réutilisée dans `.auth/providers/`, avec des permissions restrictives. Une session périmée peut conduire à une nouvelle connexion avec les identifiants configurés. Un changement de compte recommence une base d’observation pour éviter de comparer des droits différents. Les erreurs ne contiennent ni mot de passe ni jeton.
+La connexion utilise le formulaire officiel puis vérifie l’identité côté serveur. `npm run auth:4padel:check` contrôle la session sans reconnecter ni sauvegarder. Les comptes et commandes UCPA/4PADEL sont détaillés dans le [guide d’authentification](authentication.md). La session privée est réutilisée dans `.auth/providers/`, avec des permissions restrictives. Une session périmée peut conduire à une nouvelle connexion avec les identifiants configurés. Un changement de compte recommence une base d’observation pour éviter de comparer des droits différents. Les erreurs ne contiennent ni mot de passe ni jeton.
 
 Les identifiants et sessions ne sont pas versionnés. Sur un VPS, renseigner la configuration privée de ce VPS ; pousser le code ne transfère pas les secrets. Aucun autre timer ni cron Hermes récurrent n’est nécessaire. Les cibles officielles s’activent ou se désactivent dans `data/direct-monitoring.json` avec `monitoring.enabled`.
 

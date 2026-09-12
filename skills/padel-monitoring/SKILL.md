@@ -29,7 +29,7 @@ Lire `'{{PROJECT_DIR}}/docs/direct-monitoring.md'` pour les champs et la connexi
 
 Les disponibilités de l’API 4PADEL peuvent dépasser les dates accessibles de son interface : utiliser les relevés du collecteur qui respectent les dates désactivées, pas un appel improvisé à l’inventaire. UCPA peut aussi exposer davantage d’inventaire que son calendrier ne permet de parcourir. `navigationThroughDate` mesure uniquement la limite atteinte avec les flèches hebdomadaires publiques ; ce n’est pas une preuve que tous les autres parcours de réservation bloquent au-delà.
 
-Une erreur 4PADEL ne suspend pas Anybuddy ni UCPA. Pour vérifier/rétablir la session après correction des identifiants, utiliser `node '{{PROJECT_DIR}}/scripts/login-fourpadel.js'`. Ne jamais afficher la configuration privée ou le contenu de `.auth/`.
+Une erreur 4PADEL ne suspend pas Anybuddy ni UCPA. Pour vérifier la session, utiliser `node '{{PROJECT_DIR}}/scripts/login-fourpadel.js' --check` ; pour la rétablir après correction des identifiants, retirer `--check`. La commande UCPA correspondante est `node '{{PROJECT_DIR}}/scripts/login-ucpa.js' --check`, mais cette connexion n’est pas requise pour le monitoring public UCPA. Lire `'{{PROJECT_DIR}}/docs/authentication.md'` pour les options et statuts JSON. Une session `authenticated` ne signifie pas qu’une réservation a été créée. Ne jamais afficher la configuration privée ou le contenu de `.auth/`.
 
 La réservation et la programmation existantes exécutent Anybuddy uniquement. Le suivi direct ne rend pas encore les parcours de réservation UCPA/4PADEL disponibles. Ne pas programmer le moteur Anybuddy sur la base d’un horaire d’ouverture propre à un site officiel.
 

@@ -103,3 +103,12 @@ test('optional 4PADEL credentials stay in fixed settings and preserve Anybuddy s
   write('config.fixed.json', { providers: { unexpected: {} } })
   assert.throws(() => loadFixedConfig({ root, env: {} }), /Unsupported/)
 })
+
+test('UCPA and 4PADEL fixed accounts coexist without falling back to Anybuddy credentials', t => {
+  const { root, write } = fixture(t)
+  const providers = { ucpa: { account: { email: 'ucpa@example.test', password: '' } }, '4padel': { account: { email: 'four@example.test', password: 'four' } } }
+  write('config.fixed.json', { account, providers })
+  assert.deepEqual(loadFixedConfig({ root, env: {} }).providers, providers)
+  write('config.request.json', { providers })
+  assert.throws(() => loadRequestConfig({ root, env: {} }), /Unsupported/)
+})
