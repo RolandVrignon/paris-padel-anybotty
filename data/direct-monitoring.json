@@ -20,7 +20,7 @@
     "centerId": 105,
     "url": "https://www.4padel.fr/reservations/slots?center=105",
     "observation": {
-      "horizonDays": 0
+      "horizonDays": 14
     },
     "monitoring": {
       "enabled": true
@@ -34,7 +34,21 @@
     "centerId": 117,
     "url": "https://www.4padel.fr/reservations/slots?center=117",
     "observation": {
-      "horizonDays": 0
+      "horizonDays": 30
+    },
+    "monitoring": {
+      "enabled": true
+    }
+  },
+  {
+    "id": "4padel-paris-20--4padel",
+    "clubId": "4padel-paris-20",
+    "name": "4PADEL Paris 20",
+    "provider": "4padel",
+    "centerId": 79,
+    "url": "https://www.4padel.fr/reservations/slots?center=79",
+    "observation": {
+      "horizonDays": 30
     },
     "monitoring": {
       "enabled": true

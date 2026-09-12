@@ -9,7 +9,7 @@
 Trouve un terrain sur Anybuddy, repère les ouvertures et programme ta tentative depuis Telegram.
 Choisis tes clubs, tes durées et ton budget. Anybotty suit tes préférences jusqu’à la réservation.
 
-**9 clubs au catalogue Anybuddy · 11 suivis sur 3 sites · 6 skills Hermes · Open source**
+**9 clubs au catalogue Anybuddy · 12 suivis sur 3 sites · 6 skills Hermes · Open source**
 
 [Démarrer](#demarrer) · [Voir les exemples Telegram](#telegram) · [Guide complet](docs/guide.md) · [Signaler un problème](https://github.com/RolandVrignon/paris-padel-anybotty/issues)
 
@@ -113,7 +113,7 @@ flowchart LR
     H --> I[Vérifier le résultat Anybuddy]
 ```
 
-Le collecteur réalise **11 suivis toutes les cinq minutes** : huit clubs sur Anybuddy, UCPA Paris 19 sur son site officiel, puis 4PADEL Boulogne-Billancourt et Saint-Ouen en direct. Le timer systemd fonctionne sans modèle IA ; seul 4PADEL nécessite un compte. Il observe plusieurs dates pour repérer les ouvertures quotidiennes, les publications groupées et les ajouts d’horaires.
+Le collecteur réalise **12 suivis toutes les cinq minutes** : huit clubs sur Anybuddy, UCPA Paris 19 sur son site officiel, puis 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20 en direct. Le timer systemd fonctionne sans modèle IA ; seul 4PADEL nécessite un compte. Il observe plusieurs dates pour repérer les ouvertures quotidiennes, les publications groupées et les ajouts d’horaires.
 
 Une date absente à 07 h 55 et présente à 08 h donne une ouverture **entre 07 h 55 et 08 h**. Cinq contrôles supplémentaires vérifient la présence de disponibilités pendant environ 25 minutes. Le bot conserve les observations ; il ne transforme pas un seul relevé en règle certaine.
 

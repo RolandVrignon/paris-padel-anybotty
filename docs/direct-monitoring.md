@@ -1,6 +1,6 @@
 # Suivre les sites officiels
 
-Le timer `anybotty-observe.timer` relève toutes les cinq minutes les huit clubs Anybuddy déjà suivis et trois canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt et 4PADEL Saint-Ouen. Aucun panier ni paiement n’est créé par le collecteur.
+Le timer `anybotty-observe.timer` relève toutes les cinq minutes les huit clubs Anybuddy déjà suivis et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Aucun panier ni paiement n’est créé par le collecteur.
 
 Un même club conserve des observations distinctes selon le site : une ouverture Anybuddy ne prouve pas une ouverture sur le site officiel, et inversement.
 
@@ -9,6 +9,9 @@ Un même club conserve des observations distinctes selon le site : une ouverture
 | UCPA Paris 19 | `ucpa-paris--ucpa` | Calendrier public |
 | 4PADEL Boulogne-Billancourt, centre 105 | `4padel-boulogne--4padel` | Compte 4PADEL |
 | 4PADEL Saint-Ouen, centre 117 | `4padel-saint-ouen--4padel` | Même compte 4PADEL |
+| 4PADEL Paris 20, centre 79 | `4padel-paris-20--4padel` | Même compte 4PADEL |
+
+Horizons du site officiel renseignés le 13 septembre 2026 : **Boulogne J+14, Saint-Ouen J+30, Paris 20 J+30**. Chaque passage relit la règle et les dates accessibles ; ces valeurs ne définissent pas encore l’heure d’ouverture. Leurs observations sont séparées des horizons Anybuddy.
 
 ## Connexion 4PADEL
 

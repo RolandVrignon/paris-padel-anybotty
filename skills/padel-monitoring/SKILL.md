@@ -5,7 +5,7 @@ description: Consulter les heures de publication observées des créneaux Anybud
 
 # Surveillance des ouvertures Anybotty
 
-Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` collecte toutes les cinq minutes huit clubs Anybuddy et trois canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt et 4PADEL Saint-Ouen. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
+Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` collecte toutes les cinq minutes huit clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
 
 ## Lire les observations
 

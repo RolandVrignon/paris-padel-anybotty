@@ -380,7 +380,7 @@ Ce planning ne consulte pas les offres et ne programme aucune réservation. Les 
 
 ## Surveillance toutes les cinq minutes
 
-La surveillance couvre huit clubs Anybuddy et trois canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt et Saint-Ouen. Elle fonctionne indépendamment des préférences de réservation. Anybuddy reste public et sans compte ; 4PADEL utilise une session Playwright dédiée. Voir la [configuration et les limites des sites officiels](direct-monitoring.md).
+La surveillance couvre huit clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20. Elle fonctionne indépendamment des préférences de réservation. Anybuddy reste public et sans compte ; 4PADEL utilise une session Playwright dédiée. Voir la [configuration et les limites des sites officiels](direct-monitoring.md).
 
 ```sh
 # Un passage immédiat, sans programmer les suivants
