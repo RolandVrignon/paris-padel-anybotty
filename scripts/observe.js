@@ -9,6 +9,7 @@ import { calendarWindow, calendarSummary } from '../lib/calendar-monitor.js'
 import { monitoringTargets, providerPauses, successfulObservation, horizonSummary } from '../lib/monitoring-targets.js'
 import { fetchUcpaAvailability } from '../lib/ucpa-monitoring.js'
 import { createFourPadelSession, fetchFourPadelAvailability } from '../lib/fourpadel-monitoring.js'
+import { openingReference } from '../lib/opening-reference.js'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const args = process.argv.slice(2)
@@ -17,7 +18,7 @@ const directory = resolve(process.env.ANYBOTTY_OBSERVATIONS_DIR || resolve(root,
 const clubs = monitoringTargets(root)
 const summary = record => ({ clubId: record.clubId, provider: record.provider, canonicalClubId: record.canonicalClubId, horizon: horizonSummary(record.snapshot), name: record.name, status: record.status, attemptedAt: record.attemptedAt, attemptedAtParis: record.attemptedAtParis, lastSuccessAt: record.snapshot?.finishedAt ?? null, lastAvailableDate: record.snapshot?.slots.at(-1)?.startDateTime.slice(0, 10) ?? null, slotCount: record.snapshot?.slots.length ?? null, window: record.snapshot?.window ?? null, reachesWindowEnd: Boolean(record.snapshot?.slots.some(slot => slot.startDateTime.startsWith(record.snapshot.window.to))), nextRetryAt: record.nextRetryAt, error: record.error, recentOpenings: record.recentOpenings || [], openingWatch: record.openingWatch ?? null, calendar: calendarSummary(record.calendar), completedWatches: record.completedWatches || [], measuredOpeningDays: (record.completedWatches || []).filter(watch => watch.openingInterval && watch.confirmations.length === 5).length })
 if (args[0] === '--report') {
-  console.log(JSON.stringify(clubs.map(club => summary({ ...club, clubId: club.id, status: 'not_observed', ...latestRecord(directory, club.id) })), null, 2))
+  console.log(JSON.stringify(clubs.map(club => ({ ...summary({ ...club, clubId: club.id, status: 'not_observed', ...latestRecord(directory, club.id) }), bookingOpeningReference: openingReference(club, id => latestRecord(directory, id)) })), null, 2))
 } else {
   const release = acquireLock(directory)
   if (!release) {
@@ -63,6 +64,10 @@ if (args[0] === '--report') {
       for (const outcome of outcomes) if (outcome.status === 'rejected') {
         console.error(outcome.reason)
         process.exitCode = 1
+      }
+      // Resolve references only after all concurrent observations have been saved.
+      for (const club of clubs.filter(club => club.monitoring?.openingReference)) {
+        console.log(JSON.stringify({ clubId: club.id, bookingOpeningReference: openingReference(club, id => latestRecord(directory, id)) }))
       }
     } finally {
       if (fourPadelSession) await fourPadelSession.then(session => session.close()).catch(() => {})

@@ -49,7 +49,10 @@
     "auth:ucpa": "node scripts/login-ucpa.js",
     "auth:ucpa:check": "node scripts/login-ucpa.js --check",
     "checkout:ucpa": "node scripts/ucpa-booking-preview.js",
-    "ucpa": "node scripts/ucpa.js"
+    "ucpa": "node scripts/ucpa.js",
+    "checkout:4padel": "node scripts/fourpadel-booking-preview.js",
+    "reservations:4padel": "node scripts/fourpadel-reservations.js",
+    "4padel": "node scripts/fourpadel.js"
   },
   "dependencies": {
     "@gradio/client": "^2.6.0",

@@ -34,10 +34,15 @@
     "centerId": 117,
     "url": "https://www.4padel.fr/reservations/slots?center=117",
     "observation": {
-      "horizonDays": 30
+      "horizonDays": 14,
+      "note": "Working hypothesis agreed with the user: reservations less than 15 days ahead (J+14), despite calendar visibility to J+30. Use Boulogne calendar openings as an unverified timing proxy; inclusive boundary and checkout authorization remain unverified."
     },
     "monitoring": {
-      "enabled": true
+      "enabled": true,
+      "openingReference": {
+        "targetId": "4padel-boulogne--4padel",
+        "status": "hypothesis"
+      }
     }
   },
   {
@@ -48,10 +53,15 @@
     "centerId": 79,
     "url": "https://www.4padel.fr/reservations/slots?center=79",
     "observation": {
-      "horizonDays": 30
+      "horizonDays": 14,
+      "note": "Working hypothesis agreed with the user: reservations less than 15 days ahead (J+14), despite calendar visibility to J+30. Use Boulogne calendar openings as an unverified timing proxy; inclusive boundary and checkout authorization remain unverified."
     },
     "monitoring": {
-      "enabled": true
+      "enabled": true,
+      "openingReference": {
+        "targetId": "4padel-boulogne--4padel",
+        "status": "hypothesis"
+      }
     }
   }
 ]

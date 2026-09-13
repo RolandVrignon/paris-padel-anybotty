@@ -6,7 +6,7 @@
 
 **Le prochain match commence par un message.**
 
-Trouve un terrain sur Anybuddy ou directement chez UCPA Paris 19, et repère les ouvertures sur trois sites.
+Trouve ton terrain sur Anybuddy, UCPA Paris 19 ou 4PADEL. Réserve, retrouve ta partie et annule si ton programme change.
 Choisis tes clubs, tes durées et ton budget. Anybotty suit tes préférences jusqu’à la réservation.
 
 **9 clubs au catalogue Anybuddy · 12 suivis sur 3 sites · 6 skills Hermes · Open source**
@@ -27,18 +27,20 @@ Anybotty s’attaque à ce qui se passe **avant** le match : vérifier les clubs
 
 Avec Hermes, cette demande devient une stratégie, puis une tentative immédiate ou programmée lorsque l’heure d’ouverture est connue. Tu gardes la main sur les préférences et les dépenses.
 
-**Le paiement et l’annulation sont intégrés.** Une validation bancaire peut toutefois demander ton intervention : une réservation pendant ton sommeil reste une tentative, jamais une garantie.
+**Trois parcours de réservation et d’annulation intégrés.** Anybuddy utilise la carte, UCPA la carte déjà enregistrée, et 4PADEL le portefeuille de crédits pour les quatre joueurs. Le degré d’autonomie dépend du parcours : [voir le comparatif](#autonomie).
 
 <a id="sommaire"></a>
 ## Le tour du terrain
 
 - [Ce qu’Anybotty fait pour toi](#fonctionnalites)
+- [Trois sites, trois parcours](#autonomie)
 - [Parle padel, pas JSON](#telegram)
 - [La stratégie avant le clic](#strategie)
 - [Tes préférences, dans le bon ordre](#preferences)
 - [Les clubs](#clubs)
 - [Démarrer](#demarrer)
 - [Réserver directement chez UCPA](#ucpa)
+- [Réserver sur 4PADEL avec les crédits](#fourpadel)
 - [Brancher Hermes et Telegram](#hermes)
 - [Choisir le bon mode](#modes)
 - [Ce qui est validé, ce qui reste à prévoir](#fiabilite)
@@ -55,14 +57,27 @@ Avec Hermes, cette demande devient une stratégie, puis une tentative immédiate
 | **Tenter à l’ouverture** | Hermes programme une tentative sur le VPS à partir d’une règle vérifiée ou d’un horaire que tu donnes. |
 | **Garder de la souplesse** | Accepte 60, 90 ou 120 minutes, intérieur ou extérieur, dans l’ordre que tu choisis. |
 | **Respecter ton budget** | Compare le prix du terrain à un plafond **par heure**, quelle que soit la durée. |
-| **Aller jusqu’au bout** | Gère le choix du terrain, les conditions connues, le formulaire carte et le paiement final autorisé. |
+| **Aller jusqu’au bout** | Gère le choix du terrain, les conditions connues et la confirmation autorisée, par carte ou crédits selon le site. |
 | **Changer de programme** | Liste les réservations, affiche leurs conditions et annule sur demande. |
 | **Savoir ce qui s’est passé** | Conserve les observations et les résultats ; distingue une offre trouvée d’une réservation confirmée. |
+
+<a id="autonomie"></a>
+## Trois sites, trois parcours
+
+**Réserver pendant que tu dors : c’est le but.** Les trois intégrations savent réserver, lister et annuler ; leurs conditions de paiement diffèrent.
+
+| Site | Réservation réelle | Autonomie et prérequis | Depuis Hermes |
+| --- | --- | --- | --- |
+| **Anybuddy** | Paiement par carte, puis vérification dans le compte. | Peut aboutir sans intervention ; un 3-D Secure demandé interrompt le parcours autonome. | Skills de réservation et de gestion intégrés. |
+| **UCPA Paris 19 officiel** | Réservation avec la carte déjà enregistrée ; prélèvement annoncé au début de la partie. | Parcours réel testé sans intervention bancaire, avec une session et une carte valides. | Commandes locales disponibles ; raccordement aux skills à faire. |
+| **4PADEL officiel** | Les **quatre parts** payées avec le portefeuille LA FID’. | Parcours réel testé sans carte ni 3-D Secure. Solde suffisant et club éligible nécessaires ; recharge manuelle. | Commandes locales disponibles ; raccordement aux skills à faire. |
+
+Les commandes officielles UCPA et 4PADEL ciblent chacune un club. Leur intégration au moteur commun de priorités entre clubs et sites reste à faire. Les tests réussis valident les parcours observés ; ils ne garantissent ni la disponibilité future d’un terrain ni l’absence de changement côté site.
 
 <a id="telegram"></a>
 ## Parle padel, pas JSON
 
-Une fois [Hermes connecté](#hermes), tu pilotes le projet depuis ton bot Telegram. Les exemples suivants sont des **demandes à lui envoyer**, pas des réservations déjà effectuées.
+Une fois [Hermes connecté](#hermes), tu pilotes les réservations **via Anybuddy** depuis ton bot Telegram, y compris pour les clubs UCPA et 4PADEL présents sur Anybuddy. Les exemples suivants sont des **demandes à lui envoyer**, pas des réservations déjà effectuées. Les parcours des sites officiels utilisent pour le moment leurs commandes dédiées.
 
 ### 🔎 Trouver
 
@@ -118,7 +133,9 @@ Le collecteur réalise **12 suivis toutes les cinq minutes** : huit clubs sur An
 
 Une date absente à 07 h 55 et présente à 08 h donne une ouverture **entre 07 h 55 et 08 h**. Cinq contrôles supplémentaires vérifient la présence de disponibilités pendant environ 25 minutes. Le bot conserve les observations ; il ne transforme pas un seul relevé en règle certaine.
 
-Les observations restent séparées par club et par site. La réservation fonctionne sur Anybuddy et, avec des commandes dédiées, sur le site officiel UCPA Paris 19. Le suivi des disponibilités reste en lecture seule ; la réservation officielle 4PADEL reste à intégrer. [Configurer le suivi officiel](docs/direct-monitoring.md).
+Les observations restent séparées par club et par site. La réservation fonctionne sur Anybuddy et, avec des commandes dédiées, sur les sites officiels UCPA Paris 19 et 4PADEL. Le collecteur reste en lecture seule : il ne crée aucune réservation et ne soumet aucun paiement. [Configurer le suivi officiel](docs/direct-monitoring.md).
+
+**Sur le site officiel 4PADEL :** Boulogne sert de référence horaire pour Paris 20 et Saint-Ouen, dont le calendrier affiche J+30 malgré une restriction de réservation. La règle commune **J+14 (« moins de 15 jours »)** est une hypothèse de travail pour ces deux centres. Le rapport expose les ouvertures de Boulogne et leurs confirmations, sans tentative de réservation périodique ni autorisation supposée acquise. [Détails du suivi](docs/direct-monitoring.md).
 
 **Deux rôles distincts :** systemd observe ; le cron Hermes déclenche la tentative. La commande directe `booking:search` cherche immédiatement, sans attendre une ouverture future.
 
@@ -168,7 +185,7 @@ Le prix concerne **le terrain entier**, pas chaque joueur. Le montant du checkou
 <a id="clubs"></a>
 ## Paris, un club après l’autre
 
-Neuf centres sont intégrés au catalogue. Les horizons ci-dessous sont des **observations du 11 septembre 2026**, pas des règles contractuelles ni des disponibilités en direct.
+Neuf centres sont intégrés au catalogue **Anybuddy**. Les horizons ci-dessous sont des **observations du 11 septembre 2026**, pas des règles contractuelles ni des disponibilités en direct.
 
 | Club | Identifiant | Horizon observé |
 | --- | --- | --- |
@@ -253,10 +270,48 @@ Une tentative incertaine se vérifie avec `npm run ucpa -- reconcile`, en conser
 
 [Options, résultats et détails du parcours UCPA →](docs/ucpa-booking.md)
 
+<a id="fourpadel"></a>
+## 4PADEL : les quatre parts, directement en crédits
+
+**Un portefeuille approvisionné, un créneau compatible, les quatre joueurs couverts.** Le bot règle le terrain entier avec les crédits LA FID’. Une seule part en crédits peut encore demander une carte en garantie et un 3-D Secure : le parcours autonome sélectionne donc systématiquement **quatre parts**.
+
+Renseigne `providers.4padel.account` dans `config.fixed.json`, recharge ton portefeuille sur le site officiel, puis :
+
+```sh
+npm run auth:4padel
+npm run 4padel -- wallet
+
+# Aperçu sans réservation : adapter la date et l’heure
+npm run 4padel -- book --club 4padel-paris-20 --date YYYY-MM-DD --time HH:mm
+
+# Même demande, réservation réelle : paiement intégral en crédits
+npm run 4padel -- book --club 4padel-paris-20 --date YYYY-MM-DD --time HH:mm --confirm
+
+# Retrouver la réservation et consulter son détail
+npm run 4padel -- list
+npm run 4padel -- show --id IDENTIFIANT
+
+# Lire les conditions, puis annuler avec la version renvoyée
+npm run 4padel -- cancel --id IDENTIFIANT
+npm run 4padel -- cancel --id IDENTIFIANT --confirm --expected-version VERSION
+```
+
+Les clubs pris en charge sont `4padel-paris-20`, `4padel-saint-ouen`, `4padel-boulogne` et `4padel-saint-louis-bale`. Le club doit être explicite ; sans date ou heure en argument, le script utilise `config.request.json`. Les durées, les préférences intérieur/extérieur et le plafond horaire s’appliquent au terrain entier.
+
+**Solde insuffisant : arrêt avant création de la demande.** Le bot actualise le portefeuille et ne bascule pas sur un paiement bancaire. Une tentative incertaine se relit avec `npm run 4padel -- reconcile --club CLUB --date YYYY-MM-DD --time HH:mm`, sans répéter le paiement.
+
+L’annulation respecte le délai du club et restitue un **avoir**, pas un remboursement bancaire. Vérifie le retour des crédits avec `npm run 4padel -- wallet` : l’annulation et la restitution sont deux résultats distincts.
+
+**Validé en réel à Saint-Louis – Bâle :** terrain à 36 €, quatre parts payées en crédits, réservation confirmée sans carte ni 3-D Secure, puis annulation et retour du solde de 83 € à 119 €. Ce test ne vaut pas validation d’un paiement dans chaque autre club.
+
+[Commandes, clubs, délais et fonctionnement du portefeuille →](docs/fourpadel-booking.md)
+
 <a id="hermes"></a>
 ## Un message le soir. Une tentative à l’ouverture.
 
-Le VPS exécute le navigateur et les tâches programmées. Hermes transforme tes demandes Telegram en appels aux scripts du dépôt. Les skills de réservation actuels utilisent Anybuddy ; les commandes officielles UCPA disposent de leur [parcours séparé](#ucpa).
+Le VPS exécute le navigateur et les tâches programmées. Hermes transforme tes demandes Telegram en appels aux scripts du dépôt. **Les skills de réservation et de gestion actuels utilisent Anybuddy.** Les sites officiels [UCPA](#ucpa) et [4PADEL](#fourpadel) disposent de commandes locales distinctes.
+
+Pour piloter ces deux parcours officiels depuis Telegram, il reste à raccorder leurs commandes aux skills et au choix du site, puis à déployer le code et préparer leurs sessions sur le VPS. Installer les six skills existants ne réalise pas ce raccordement.
 
 **Hermes et son intégration Telegram doivent déjà être installés.** Depuis la copie du dépôt sur le VPS :
 
@@ -290,16 +345,22 @@ Installer les skills ne crée aucun cron. Hermes doit enregistrer la tâche et v
 | Voir les clubs | `npm run clubs:list` | Consulte le catalogue. |
 | Lire les observations | `npm run observe:report` | Affiche les relevés enregistrés. |
 | Collecter une fois | `npm run observe:once` | Relève les trois sites, sans programmer la suite ni réserver. |
+| Réserver sur le site officiel 4PADEL | `npm run 4padel -- book --club CLUB --date YYYY-MM-DD --time HH:mm --confirm` | Paie les quatre parts en crédits LA FID’, sans repli sur la carte. Sans `--confirm` : aperçu. [Guide](docs/fourpadel-booking.md). |
+| Consulter le portefeuille 4PADEL | `npm run 4padel -- wallet` | Actualise le solde auprès du serveur. |
+| Vérifier une tentative 4PADEL | `npm run 4padel -- reconcile --club CLUB --date YYYY-MM-DD --time HH:mm` | Relit le résultat sans répéter le paiement. |
+| Annuler sur le site officiel 4PADEL | `npm run 4padel -- cancel --id ID` | Aperçu, puis `--confirm --expected-version HASH` ; délai vérifié et statut relu. [Guide](docs/fourpadel-booking.md). |
+| Simuler sur le site officiel 4PADEL | `npm run 4padel -- book --club 4padel-paris-20 --headed` | Vérifie le checkout et les parts, sans réserver. [Guide](docs/fourpadel-booking.md). |
+| Lister ses réservations 4PADEL | `npm run 4padel -- list` | Lit les réservations du capitaine, confirmées ou en attente. |
 | Simuler sur le site officiel UCPA | `npm run ucpa -- book --headed` | Atteint le récapitulatif ; aucune réservation soumise. |
 | **Réserver sur UCPA** | `npm run ucpa -- book --confirm` | **Crée une réservation réelle**, avec prélèvement annoncé le jour du match. |
 | Gérer ses parties UCPA | `npm run ucpa -- list` | Les actions `show` et `cancel` permettent le détail et l’annulation gratuite. [Guide](docs/ucpa-booking.md). |
 | Simuler tes préférences | `npm run booking:search` | Cherche un récapitulatif conforme, sans paiement. |
 | Vérifier la configuration carte | `npm run payment:check` | Contrôle les champs locaux sans les afficher ni contacter la banque. |
-| **Réserver et payer** | `npm run booking:pay -- --headless` | **Soumet un paiement réel** pour une offre conforme. |
+| **Réserver et payer sur Anybuddy** | `npm run booking:pay -- --headless` | **Soumet un paiement réel** pour une offre conforme. |
 | Vérifier une tentative incertaine | `npm run booking:reconcile -- --headless` | Relit le compte, sans soumettre un nouveau paiement. |
 | Lister tes réservations | `node scripts/reservations.js list` | Consulte les réservations à venir et en attente. |
 
-Les commandes de recherche et de réconciliation utilisent `config.request.json`, ou un fichier explicite avec `--config PATH`. Pour vérifier une tentative passée, garde **la demande originale**.
+Les commandes de recherche et de réconciliation **Anybuddy** utilisent `config.request.json`, ou un fichier explicite avec `--config PATH`. Pour vérifier une tentative passée, garde **la demande originale**.
 
 Une simulation peut créer un panier impayé côté Anybuddy. Le mode `checkout:preview` permet aussi d’aller jusqu’à Stripe et de remplir la carte sans confirmer le paiement. Les options et le parcours d’annulation sont dans le [guide complet](docs/guide.md).
 
@@ -310,12 +371,13 @@ Une simulation peut créer un panier impayé côté Anybuddy. Le mode `checkout:
 
 - **Parcours réel validé à UCPA via Anybuddy :** paiement puis annulation de la réservation de test, avec vérification du statut.
 - **Parcours officiel UCPA validé :** réservation du 21 septembre à 7 h, apparition dans le compte, puis annulation sans frais confirmée. Le prix est contrôlé pour le terrain entier, et non pour la seule participation du capitaine. [Détails](docs/ucpa-booking.md).
+- **Parcours officiel 4PADEL validé :** le 13 septembre 2026, réservation à Saint-Louis – Bâle pour 36 € en crédits, quatre parts confirmées sans 3-D Secure ; annulation avec le script et restitution des 36 € vérifiées. [Détails](docs/fourpadel-booking.md).
 - **Neuf checkouts inspectés jusqu’à Stripe le 11 septembre 2026 :** sélection du terrain et différences entre formulaire carte direct et choix du moyen de paiement documentées. Cela ne vaut pas neuf paiements réels validés.
 - **Protection contre les doubles tentatives :** verrou local, vérification du compte et journal avant paiement. Un résultat incertain arrête les essais automatiques.
 - **Décision manuelle possible sur Anybuddy :** une réinitialisation explicite archive la tentative avant un nouvel essai autorisé. Elle ne prouve pas que l’ancienne transaction est annulée. [Procédure](docs/guide.md#réserver-et-payer).
 - **Tests locaux :** configuration, préférences, prix, modales, paiements simulés, annulation, observation et programmation.
 
-Le 3-D Secure peut demander une validation humaine. Sa désactivation n’est pas une option du bot et la reprise interactive après fermeture du navigateur n’est pas encore implémentée. Les créneaux peuvent disparaître, les sessions expirer et le site changer : **l’horaire de déclenchement ne garantit pas l’obtention du terrain**.
+Sur le parcours carte Anybuddy, le 3-D Secure peut demander une validation humaine ; la reprise interactive après fermeture du navigateur n’est pas encore implémentée. Le parcours 4PADEL intégré utilise uniquement les crédits pour les quatre parts : il ne désactive ni ne contourne une authentification bancaire. Les créneaux peuvent disparaître, les sessions expirer et le site changer : **l’horaire de déclenchement ne garantit pas l’obtention du terrain**.
 
 <a id="documentation"></a>
 ## Sous le capot
@@ -329,6 +391,7 @@ Les collecteurs observent les disponibilités publiques et le calendrier authent
 | Installer, configurer, utiliser et dépanner | [Guide complet](docs/guide.md) |
 | Comprendre la mesure des ouvertures | [Protocole d’observation](docs/opening-observation.md) |
 | Comprendre les modales, conditions et formulaires | [Checkouts par club](docs/checkout.md) |
+| Réserver et annuler sur 4PADEL avec les crédits | [Parcours 4PADEL et avoirs](docs/fourpadel-booking.md) |
 | Tester le parcours du site officiel UCPA | [Réservations UCPA](docs/ucpa-booking.md) |
 | Adapter les comportements Hermes | [Les six skills](skills/) |
 | Consulter les données du catalogue | [Clubs](data/clubs.json) et [parcours carte](data/payment-routes.json) |

@@ -11,7 +11,22 @@ Un même club conserve des observations distinctes selon le site : une ouverture
 | 4PADEL Saint-Ouen, centre 117 | `4padel-saint-ouen--4padel` | Même compte 4PADEL |
 | 4PADEL Paris 20, centre 79 | `4padel-paris-20--4padel` | Même compte 4PADEL |
 
-Horizons du site officiel renseignés le 13 septembre 2026 : **Boulogne J+14, Saint-Ouen J+30, Paris 20 J+30**. Chaque passage relit la règle et les dates accessibles ; ces valeurs ne définissent pas encore l’heure d’ouverture. Leurs observations sont séparées des horizons Anybuddy.
+## Référence d’ouverture 4PADEL
+
+**Boulogne est le calendrier de référence pour Saint-Ouen et Paris 20.** La règle de travail retenue avec l’utilisateur est « moins de 15 jours », soit **J+14** pour les trois centres. La frontière exacte reste une hypothèse pour Saint-Ouen et Paris 20 : le refus du checkout mentionne un délai de 15 jours, alors que leur calendrier expose J+30.
+
+Le collecteur continue ses lectures de calendrier toutes les cinq minutes. Il ne tente aucune réservation et ne soumet aucun paiement pour tester cette limite. Quand un nouveau jour avec des créneaux apparaît à Boulogne, son intervalle d’apparition et les cinq contrôles suivants deviennent une référence indicative pour la même date dans les deux autres centres.
+
+Les deux cibles définissent `monitoring.openingReference.targetId: "4padel-boulogne--4padel"` dans `data/direct-monitoring.json`. Le rapport `npm run observe:report` et la sortie de chaque collecte exposent `bookingOpeningReference` :
+
+- `status: "hypothesis"` et `assumedHorizonDays: 14` : règle supposée, même après plusieurs jours concordants à Boulogne.
+- `measurements` : dates, bornes horaires et confirmations issues uniquement des nouvelles journées observées à Boulogne. Une première collecte sans observation d’absence ne produit pas d’heure d’ouverture.
+- `sourceStatus` : référence fraîche, absente, ou indisponible/périmée au-delà de dix minutes. Les mesures historiques restent visibles en cas de problème.
+- `bookingAuthorizationVerified: false` : aucune validation du droit de réserver dans le club cible.
+
+Les mesures proviennent des journaux existants de Boulogne, conservés par le collecteur ; elles restent consultables après redémarrage. Les calendriers propres à Paris 20 et Saint-Ouen restent observés séparément : leurs publications à J+30 décrivent la visibilité, pas une ouverture de réservation. Les horizons Anybuddy, UCPA et le suivi de Boulogne ne sont pas modifiés.
+
+Cette référence n’installe aucun cron de réservation et ne transforme pas l’hypothèse en règle vérifiée pour Hermes. L’heure observée à Boulogne sert à préparer une tentative future autorisée, dont le résultat devra être vérifié dans le club choisi.
 
 ## Connexion 4PADEL
 
@@ -61,10 +76,10 @@ Chez 4PADEL, l’API peut retourner des terrains au-delà des dates accessibles 
 
 Chez UCPA, Playwright parcourt le calendrier public avec sa flèche « semaine suivante », jusqu’à sa désactivation. Il relève les semaines réellement affichées et suit aussi les deux semaines suivant cette limite pour détecter son déplacement. `availabilityScope: public_next_week_navigation` précise cette portée : la limite de navigation n’est pas une règle de réservation garantie, et les éventuels autres parcours du sélecteur de date ou droits de compte ne sont pas validés. L’API UCPA seule peut exposer des terrains beaucoup plus lointains ; ils ne sont pas comptés comme accessibles par ce parcours.
 
-Une règle J+14 ou J+30 ne prouve pas une ouverture à minuit. Le suivi enregistre, dans le parcours observé, le passage de « date inaccessible ou sans disponibilité » à « au moins un créneau proposé », puis cherche cinq confirmations supplémentaires espacées de cinq minutes. Une première collecte établit seulement une base. Les groupes de dates apparues ensemble permettent aussi de rechercher des publications hebdomadaires.
+Une règle J+14 ne prouve pas une ouverture à minuit. Le suivi enregistre, dans le parcours observé, le passage de « date inaccessible ou sans disponibilité » à « au moins un créneau proposé », puis cherche cinq confirmations supplémentaires espacées de cinq minutes. Une première collecte établit seulement une base. Les groupes de dates apparues ensemble permettent aussi de rechercher des publications hebdomadaires.
 
 Les historiques Anybuddy existants conservent leurs identifiants. Les échecs HTTP 401, 403 ou 429 mettent en attente le fournisseur concerné ; les autres fournisseurs continuent. Une erreur conserve le dernier relevé valide, sans compter comme absence ou confirmation. Les instantanés privés sont conservés 30 jours.
 
 ## Périmètre de réservation
 
-Les parcours de réservation, paiement, annulation et programmation existants exécutent **Anybuddy**. Cette extension ajoute l’observation des sites officiels. Elle ne rend pas encore exécutables des réservations UCPA ou 4PADEL directes. Hermes doit conserver le fournisseur dans son analyse et ne pas appliquer une ouverture 4PADEL au moteur de réservation Anybuddy. Boulogne-Billancourt est ajouté au suivi officiel ; il n’est pas ajouté artificiellement au catalogue de réservation Anybuddy.
+Le moteur multi-clubs et les skills de réservation et de programmation exécutent **Anybuddy**. UCPA dispose de [commandes directes de réservation et de gestion](ucpa-booking.md). 4PADEL dispose également de [commandes de réservation en crédits et de gestion](fourpadel-booking.md). Les collecteurs officiels observent uniquement les calendriers ; ils ne déclenchent pas ces commandes. Hermes doit conserver le fournisseur dans son analyse et ne pas appliquer une ouverture 4PADEL au moteur de réservation Anybuddy. Boulogne-Billancourt est ajouté au suivi officiel ; il n’est pas ajouté artificiellement au catalogue de réservation Anybuddy.
