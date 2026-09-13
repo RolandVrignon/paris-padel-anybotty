@@ -130,3 +130,10 @@ test('compact publication evidence survives beyond raw snapshot retention for mo
   const record = successfulObservation(target, old, { startedAt: now, finishedAt: now, window: { from: '2026-09-13', to: '2026-09-20' }, slots: [] })
   assert.equal(record.calendar.batches.length, 3)
 })
+
+test('a slow calendar response does not delay the next discovery tick by a full cycle', () => {
+  const previous = evidence([])
+  previous.snapshot = { startedAt: '2026-09-13T05:55:00Z', finishedAt: '2026-09-13T05:55:45Z' }
+  assert.equal(monitoringPlan(target, previous, new Date('2026-09-13T06:00:00Z')).mode, 'targeted')
+  assert.equal(monitoringPlan(target, previous, new Date('2026-09-13T05:56:00Z')).reason, 'minimum_interval')
+})
