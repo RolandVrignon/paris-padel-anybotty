@@ -130,3 +130,27 @@ test('4PADEL collector never queries or counts raw inventory for a disabled UI d
   assert.deepEqual(snapshot.blockedDates, ['2026-09-28'])
   assert.equal(snapshot.slots.length, 1)
 })
+
+test('targeted UCPA coverage retains the native boundary even before the requested date', () => {
+  const result = assembleUcpaSnapshot({}, { from: '2026-09-21', to: '2026-09-27' }, [normalizeUcpaWeek(week('2026-09-14'))], '2026-09-13T00:00:00Z', { targeted: true })
+  assert.deepEqual(result.window, { from: '2026-09-21', to: '2026-09-27' })
+  assert.equal(result.navigationThroughDate, '2026-09-20')
+  assert.deepEqual(result.slots, [])
+})
+
+test('targeted 4PADEL maps UI dates from today and makes no inventory request for blocked candidates', async () => {
+  const calendar = { url: () => 'https://api2-front.lefive.fr/bookingrules/allFields', ok: () => true, request: () => ({ headers: () => ({ authorization: 'test-token' }) }) }
+  const visibility = { url: () => 'https://api2-front.lefive.fr/bookingrules/me/visibility', ok: () => true, json: async () => ({ blockBookingAfterDaysDefault: 14, blockBookingAfterDaysGlobal: 14 }) }
+  const page = {
+    context: () => ({ newCDPSession: async () => ({ send: async () => {} }) }),
+    setDefaultTimeout() {}, waitForResponse: async predicate => predicate(calendar) ? calendar : visibility,
+    goto: async () => {}, close: async () => {},
+    locator: () => ({ first: () => ({ waitFor: async () => {} }), evaluateAll: async () => cells }),
+  }
+  const snapshot = await fetchFourPadelAvailability({ centerId: 105, url: 'https://www.4padel.fr/reservations/slots?center=105' }, { from: '2026-09-28', to: '2026-09-28' }, {
+    calendarFrom: '2026-09-27', session: { accountScope: 'test', context: { newPage: async () => page } },
+    fetchImpl: async () => { assert.fail('No extra API reads for disabled dates') },
+  })
+  assert.deepEqual(snapshot.blockedDates, ['2026-09-28'])
+  assert.deepEqual(snapshot.slots, [])
+})

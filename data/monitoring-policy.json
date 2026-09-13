@@ -1,0 +1,12 @@
+{
+  "defaults": {
+    "fullScanMinutes": 60,
+    "discoveryMinutes": 5,
+    "candidateDays": 7,
+    "minPublications": 3,
+    "maxEvidenceIntervalMinutes": 15,
+    "beforeMinutes": 30,
+    "afterMinutes": 60
+  },
+  "targets": {}
+}

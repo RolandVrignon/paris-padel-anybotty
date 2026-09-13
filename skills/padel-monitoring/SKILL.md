@@ -5,7 +5,7 @@ description: Consulter les heures de publication observées des créneaux Anybud
 
 # Surveillance des ouvertures Anybotty
 
-Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` collecte toutes les cinq minutes huit clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
+Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` évalue toutes les cinq minutes les besoins de collecte de huit clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
 
 ## Lire les observations
 
@@ -64,3 +64,13 @@ systemctl --user list-timers anybotty-observe.timer --no-pager
 Ces opérations conservent les relevés. Ne pas effacer l’historique, modifier les autres services Hermes, les demandes Paris Tennis ou les identifiants. Les instantanés sont privés dans `observations/`, conservés 30 jours. Une désactivation du timer ne supprime aucune réservation.
 
 Pour décider entre attendre une ouverture et essayer un club de repli, utiliser `padel-strategy`. Pour chercher ensuite un créneau sur le périmètre retenu, utiliser `padel-booking` ; le moteur ne transforme pas encore les observations en réservation automatique à une heure donnée.
+
+## Monitoring adaptatif
+
+Lire `'{{PROJECT_DIR}}/docs/adaptive-monitoring.md'`. `node scripts/observe.js --plan` explique les prochaines consultations sans contacter les sites. Les règles sont dans `data/monitoring-policy.json` : valeurs par défaut et surcharges par identifiant club/site. Le collecteur apprend une cadence après au moins trois publications indépendantes confirmées et suffisamment précises. `nextScan.pattern.status: candidate` reste une hypothèse ; ne pas la présenter comme une garantie de réservation.
+
+Les contrôles complets sont horaires. La découverte et la plage entourant une ouverture estimée utilisent des contrôles ciblés toutes les cinq minutes. Une ouverture manquée relance la découverte. Les publications en cours de confirmation continuent leurs cinq vérifications. Une fenêtre ciblée vide ne signifie pas que le club entier est complet : consulter `lastFullScan.horizon` et son horodatage.
+
+En cas de restriction HTTP ou d’authentification répétée en échec, le fournisseur est suspendu au moins six heures. Respecter `nextRetryAt`. Une alerte est envoyée via `hermes send` si `ANYBOTTY_ALERT_TARGET` est configuré sur le service ; lire `monitoringAlert.delivery` avant d’affirmer son envoi. Ne pas ajouter un cron de notification doublon. Le collecteur 4PADEL ne reconnecte pas avec le mot de passe : rétablir la session par la commande d’authentification si nécessaire.
+
+Les preuves résumées de publications sont conservées 400 jours pour permettre l’apprentissage mensuel ; les instantanés bruts restent limités à 30 jours.

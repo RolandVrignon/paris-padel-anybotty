@@ -142,7 +142,7 @@ flowchart LR
     H --> I[Vérifier le résultat Anybuddy]
 ```
 
-Le collecteur réalise **12 suivis toutes les cinq minutes** : huit clubs sur Anybuddy, UCPA Paris 19 sur son site officiel, puis 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20 en direct. Le timer systemd fonctionne sans modèle IA ; seul 4PADEL nécessite un compte. Il observe plusieurs dates pour repérer les ouvertures quotidiennes, les publications groupées et les ajouts d’horaires.
+Le collecteur adapte **12 suivis indépendants par club et par site** : huit clubs sur Anybuddy, UCPA Paris 19 sur son site officiel, puis 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20 en direct. Il apprend les publications quotidiennes, hebdomadaires, mensuelles ou par lots de plusieurs jours. Après au moins trois publications cohérentes, les contrôles toutes les cinq minutes se concentrent autour de la prochaine ouverture estimée. Un relevé complet horaire permet de repérer les changements ; une ouverture manquée remet la cible en découverte. Le timer systemd fonctionne sans modèle IA. [Réglages et fonctionnement du suivi adaptatif](docs/adaptive-monitoring.md).
 
 Une date absente à 07 h 55 et présente à 08 h donne une ouverture **entre 07 h 55 et 08 h**. Cinq contrôles supplémentaires vérifient la présence de disponibilités pendant environ 25 minutes. Le bot conserve les observations ; il ne transforme pas un seul relevé en règle certaine.
 

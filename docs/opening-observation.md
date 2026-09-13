@@ -1,6 +1,6 @@
 # Comparer les modes de publication Anybuddy
 
-Le collecteur surveille huit clubs toutes les cinq minutes, en parallèle. Trinquet Village reste exclu. Il lit au minimum les dates de J à J+35 et couvre au moins deux semaines au-delà de l’horizon observé du club.
+Le collecteur surveille huit clubs Anybuddy et quatre canaux officiels avec une stratégie adaptative par cible. Trinquet Village reste exclu. Les scans complets horaires couvrent au minimum J à J+35 et deux semaines au-delà de l’horizon observé ; les passages intermédiaires ciblent les prochaines dates et les publications à confirmer. Voir le [suivi adaptatif](adaptive-monitoring.md) pour l’apprentissage des cadences et des horaires.
 
 ## Hypothèses à comparer
 
@@ -31,4 +31,4 @@ Quatre à cinq publications indépendantes peuvent soutenir une hypothèse quoti
 
 Comparer les cycles avant de retenir une heure de réservation. Des exceptions restent possibles selon les jours, durées, terrains, jours fériés et modifications du club. Aucune règle quotidienne ou hebdomadaire n’est automatiquement déclarée certaine.
 
-L’historique brut est conservé 30 jours, avec les détails indiqués dans le [guide complet](guide.md#surveillance-toutes-les-cinq-minutes).
+Les groupes de publications résumés sont conservés 400 jours pour apprendre aussi les cadences mensuelles. L’historique brut est conservé 30 jours, avec les détails indiqués dans le [guide complet](guide.md#surveillance-toutes-les-cinq-minutes).

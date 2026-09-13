@@ -1,6 +1,6 @@
 # Suivre les sites officiels
 
-Le timer `anybotty-observe.timer` relève toutes les cinq minutes les huit clubs Anybuddy déjà suivis et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Aucun panier ni paiement n’est créé par le collecteur.
+Le timer `anybotty-observe.timer` se réveille toutes les cinq minutes et adapte les consultations pour les huit clubs Anybuddy déjà suivis et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Aucun panier ni paiement n’est créé par le collecteur.
 
 Un même club conserve des observations distinctes selon le site : une ouverture Anybuddy ne prouve pas une ouverture sur le site officiel, et inversement.
 
@@ -15,7 +15,7 @@ Un même club conserve des observations distinctes selon le site : une ouverture
 
 **Boulogne est le calendrier de référence pour Saint-Ouen et Paris 20.** La règle de travail retenue avec l’utilisateur est « moins de 15 jours », soit **J+14** pour les trois centres. La frontière exacte reste une hypothèse pour Saint-Ouen et Paris 20 : le refus du checkout mentionne un délai de 15 jours, alors que leur calendrier expose J+30.
 
-Le collecteur continue ses lectures de calendrier toutes les cinq minutes. Il ne tente aucune réservation et ne soumet aucun paiement pour tester cette limite. Quand un nouveau jour avec des créneaux apparaît à Boulogne, son intervalle d’apparition et les cinq contrôles suivants deviennent une référence indicative pour la même date dans les deux autres centres.
+Boulogne suit la stratégie adaptative ; les calendriers de Saint-Ouen et Paris 20 sont relus chaque heure, avec des contrôles supplémentaires pour confirmer une apparition. Il ne tente aucune réservation et ne soumet aucun paiement pour tester cette limite. Quand un nouveau jour avec des créneaux apparaît à Boulogne, son intervalle d’apparition et les cinq contrôles suivants deviennent une référence indicative pour la même date dans les deux autres centres.
 
 Les deux cibles définissent `monitoring.openingReference.targetId: "4padel-boulogne--4padel"` dans `data/direct-monitoring.json`. Le rapport `npm run observe:report` et la sortie de chaque collecte exposent `bookingOpeningReference` :
 
@@ -53,7 +53,7 @@ npm run observe:once
 npm run observe:report
 ```
 
-La connexion utilise le formulaire officiel puis vérifie l’identité côté serveur. `npm run auth:4padel:check` contrôle la session sans reconnecter ni sauvegarder. Les comptes et commandes UCPA/4PADEL sont détaillés dans le [guide d’authentification](authentication.md). La session privée est réutilisée dans `.auth/providers/`, avec des permissions restrictives. Une session périmée peut conduire à une nouvelle connexion avec les identifiants configurés. Un changement de compte recommence une base d’observation pour éviter de comparer des droits différents. Les erreurs ne contiennent ni mot de passe ni jeton.
+La connexion utilise le formulaire officiel puis vérifie l’identité côté serveur. `npm run auth:4padel:check` contrôle la session sans reconnecter ni sauvegarder. Les comptes et commandes UCPA/4PADEL sont détaillés dans le [guide d’authentification](authentication.md). La session privée est réutilisée dans `.auth/providers/`, avec des permissions restrictives. Le collecteur contrôle la session sans ressaisir les identifiants. Si elle expire, lancer explicitement `npm run auth:4padel` pour la rétablir. Un changement de compte recommence une base d’observation pour éviter de comparer des droits différents. Les erreurs ne contiennent ni mot de passe ni jeton.
 
 Les identifiants et sessions ne sont pas versionnés. Sur un VPS, renseigner la configuration privée de ce VPS ; pousser le code ne transfère pas les secrets. Aucun autre timer ni cron Hermes récurrent n’est nécessaire. Les cibles officielles s’activent ou se désactivent dans `data/direct-monitoring.json` avec `monitoring.enabled`.
 
@@ -83,3 +83,7 @@ Les historiques Anybuddy existants conservent leurs identifiants. Les échecs HT
 ## Périmètre de réservation
 
 Le moteur multi-clubs utilise **Anybuddy**. Les skills de programmation peuvent aussi cibler un club officiel 4PADEL avec `provider: "4padel"`, une règle d’ouverture documentée et les contrôles de crédits associés. UCPA dispose de [commandes directes de réservation et de gestion](ucpa-booking.md). 4PADEL dispose également de [commandes de réservation en crédits et de gestion](fourpadel-booking.md). Les collecteurs officiels observent uniquement les calendriers ; ils ne déclenchent pas ces commandes. Hermes doit conserver le fournisseur dans son analyse et ne pas appliquer une ouverture 4PADEL au moteur de réservation Anybuddy. Boulogne-Billancourt est ajouté au suivi officiel ; il n’est pas ajouté artificiellement au catalogue de réservation Anybuddy.
+
+## Régulation et apprentissage
+
+Le [guide du suivi adaptatif](adaptive-monitoring.md) décrit les réglages par cible, les plages horaires apprises, les pauses de six heures en cas de restriction et les alertes Telegram via Hermes. Les scans complets sont horaires ; les autres passages sont ciblés ou ignorés selon les preuves disponibles. Les instantanés bruts restent disponibles 30 jours et les groupes de publications résumés 400 jours.

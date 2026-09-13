@@ -90,7 +90,7 @@ test('collector uses the public GET endpoint, rejects HTTP failures and stale re
 test('rate-limit delay is respected and error evidence never invents an opening', () => {
   const error = Object.assign(new Error('limited'), { httpStatus: 429, retryAfterMs: 7200000 })
   const record = failureRecord(club, null, error, new Date('2026-09-11T06:00:00Z'))
-  assert.equal(record.nextRetryAt, '2026-09-11T08:00:00.000Z')
+  assert.equal(record.nextRetryAt, '2026-09-11T12:00:00.000Z')
   assert.equal(record.snapshot, undefined)
   assert.deepEqual(nextRecord(club, record, first).events, [])
 })
