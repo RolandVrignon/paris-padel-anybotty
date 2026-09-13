@@ -202,35 +202,24 @@ Le prix concerne **le terrain entier**, pas chaque joueur. Le montant du checkou
 
 ### Clubs pris en charge
 
-| Plateforme | Clubs pris en charge |
+| Plateforme | Club pris en charge |
 | --- | --- |
-| **Anybuddy** | Paris Padel, UCPA Sport Station Hostel Paris, Sportfield Paris 12 - Bercy, 4PADEL Paris 20, Forest Hill Aquaboulevard De Paris, 4PADEL Saint-Ouen, Padelistes Bercy - Paris 12, Padel 15, Trinquet Village, Forest Hill Nanterre–La Défense et Forest Hill La Marche Marnes-la-Coquette |
-| **UCPA officiel** | UCPA Paris 19 et UCPA Sport Station Meudon |
+| **Anybuddy** | Paris Padel |
+| **Anybuddy** | UCPA Sport Station Hostel Paris |
+| **Anybuddy** | Sportfield Paris 12 - Bercy |
+| **Anybuddy** | 4PADEL Paris 20 |
+| **Anybuddy** | Forest Hill Aquaboulevard De Paris |
+| **Anybuddy** | 4PADEL Saint-Ouen |
+| **Anybuddy** | Padelistes Bercy - Paris 12 |
+| **Anybuddy** | Padel 15 |
+| **Anybuddy** | Trinquet Village |
+| **Anybuddy** | Forest Hill Nanterre–La Défense |
+| **Anybuddy** | Forest Hill La Marche Marnes-la-Coquette |
+| **UCPA officiel** | UCPA Paris 19 |
+| **UCPA officiel** | **UCPA Sport Station Meudon** |
 | **4PADEL officiel** | Les 36 centres du catalogue national |
 
-### Anybuddy : onze clubs à Paris et en proche banlieue
-
-Onze centres sont intégrés au catalogue **Anybuddy**. Les horizons ci-dessous sont des **observations du 11 septembre 2026**, sauf les deux Forest Hill ajoutés le 13 septembre. Ce ne sont pas des règles contractuelles ni des disponibilités en direct.
-
-| Club | Identifiant | Horizon observé |
-| --- | --- | --- |
-| Paris Padel | `paris-padel` | J+8 |
-| UCPA Sport Station Hostel Paris | `ucpa-paris` | J+8 |
-| Sportfield Paris 12 - Bercy | `sportfield-bercy` | J+14 |
-| 4PADEL Paris 20 | `4padel-paris-20` | J+3 |
-| Forest Hill Aquaboulevard De Paris | `aquaboulevard` | J+6 |
-| 4Padel Saint-Ouen | `4padel-saint-ouen` | J+1 |
-| Padelistes Bercy - Paris 12 | `padelistes-bercy` | J+8 |
-| Padel 15 | `padel-15` | J+5 |
-| Trinquet Village | `trinquet-village` | Au moins J+61 ; limite inconnue |
-| Forest Hill Nanterre–La Défense | `forest-hill-nanterre` | J+6 observé le 13/09 |
-| Forest Hill La Marche Marnes-la-Coquette | `forest-hill-marnes` | J+6 observé le 13/09 |
-
-Les deux nouveaux Forest Hill sont disponibles pour la consultation et le monitoring ; leur checkout n’a pas encore été audité. UCPA Meudon réutilise le collecteur public : sa dernière semaine visible, vérifiée le 13 septembre 2026, va du 11 au 17 janvier 2027. Le suivi surveille la frontière suivante, sans figer un horizon J+126. Son parcours officiel est sélectionnable avec `--club ucpa-meudon`. [État des ajouts en proche banlieue](docs/paris-suburbs.md).
-
-Trinquet Village reste au catalogue mais est exclu de la surveillance des ouvertures. Les heures d’ouverture ne sont pas garanties par ces horizons : elles doivent être documentées séparément.
-
-[Catalogue source](data/clubs.json) · [Audit des horizons](data/horizon-audit-2026-09-11.json) · [Parcours de checkout par club](docs/checkout.md)
+[Catalogue Anybuddy](data/clubs.json) · [Centres UCPA](docs/ucpa-booking.md) · [Centres 4PADEL](data/fourpadel-clubs.json) · [Suivi des ouvertures](docs/direct-monitoring.md)
 
 ### 4PADEL officiel : les 36 centres du réseau
 
