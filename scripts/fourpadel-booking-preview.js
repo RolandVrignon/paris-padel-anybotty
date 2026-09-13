@@ -15,7 +15,7 @@ try {
     help: { type: 'boolean', default: false }, parts: { type: 'string', default: '1' },
   } })
   if (values.help) {
-    console.log('npm run checkout:4padel -- --club 4padel-paris-20|4padel-saint-ouen|4padel-boulogne [--date YYYY-MM-DD --time HH:mm] [--durations 60,90,120] [--court-environment indoor,outdoor|outdoor,indoor|indoor|outdoor|any] [--max-price-per-hour EUR] [--parts 1|2|3|4] [--headed]\nDefaults: config.request.json. Official 4PADEL preview only. Stops before Payer maintenant. No reservation or payment is submitted. Cancellation generates credit, not a bank refund.')
+    console.log('npm run checkout:4padel -- --club CLUB_ID [--date YYYY-MM-DD --time HH:mm] [--durations 60,90,120] [--court-environment indoor,outdoor|outdoor,indoor|indoor|outdoor|any] [--max-price-per-hour EUR] [--parts 1|2|3|4] [--headed]\nDefaults: config.request.json. Official 4PADEL preview only. List club IDs with npm run 4padel -- clubs. Stops before Payer maintenant. No reservation or payment is submitted. Cancellation generates credit, not a bank refund.')
   } else {
     const defaults = !values.date || !values.time ? loadRequestConfig() : {}
     if (!values.club) throw new Error('An explicit --club is required')

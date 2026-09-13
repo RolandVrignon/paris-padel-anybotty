@@ -1,6 +1,6 @@
 ---
 name: padel-strategy
-description: Choisir quand tenter une réservation Anybuddy selon les clubs préférés et leurs ouvertures. Utiliser avant une recherche multi-clubs ou pour décider entre attendre un club prioritaire et prendre un créneau disponible dans un club de repli.
+description: Choisir quand tenter une réservation Anybuddy ou 4PADEL officiel selon les clubs préférés et leurs ouvertures. Utiliser avant une recherche multi-clubs ou pour décider entre attendre un club prioritaire et prendre un créneau disponible dans un club de repli.
 ---
 
 # Stratégie de réservation padel
@@ -26,7 +26,9 @@ node '{{PROJECT_DIR}}/scripts/observe.js' --report
 
 `plan` utilise la demande enregistrée. Pour une autre demande, écrire son JSON variable dans un fichier temporaire privé et utiliser `plan --config PATH`, puis supprimer ce fichier. Résoudre les dates relatives en Europe/Paris et vérifier que les observations correspondent à la demande, au jour et à l’heure analysés.
 
-Pour chaque club concerné, consulter **la journée entière** puis repérer l’heure et les durées demandées dans la réponse :
+Pour 4PADEL officiel, consulter les relevés du fournisseur avec `observe.js --report` et le guide `docs/fourpadel-booking.md`. Le checkout `fourpadel.js book` sans `--confirm` permet un aperçu quand la date entre dans l’horizon ; ne pas utiliser `padel.js availability` pour déduire les disponibilités du site officiel.
+
+Pour chaque club concerné **sur Anybuddy**, consulter **la journée entière** puis repérer l’heure et les durées demandées dans la réponse :
 
 ```sh
 node '{{PROJECT_DIR}}/scripts/padel.js' availability --club paris-padel --date 2026-09-21
@@ -36,7 +38,7 @@ Adapter cet exemple à la date réelle. Une requête filtrée sur 20 h ne suffit
 
 Lire `padel-monitoring` pour interpréter les publications groupées, horaires ajoutés progressivement et confirmations. S’appuyer sur les relevés datés : une heure observée sur plusieurs publications indépendantes est plus solide qu’une simple soustraction de l’horizon.
 
-Les relevés officiels UCPA et 4PADEL ont leur propre `provider` et `canonicalClubId`. Ils peuvent éclairer la stratégie du club, mais leurs horizons et heures ne s’appliquent pas à Anybuddy. Le moteur de réservation et les crons de tentative actuels exécutent Anybuddy uniquement : ne pas présenter une réservation directe comme automatisée ni transmettre son heure d’ouverture à `booking-search.js`. Voir `'{{PROJECT_DIR}}/docs/direct-monitoring.md'`.
+Les relevés officiels UCPA et 4PADEL ont leur propre `provider` et `canonicalClubId`. Ils peuvent éclairer la stratégie du club, mais leurs horizons et heures ne s’appliquent pas à Anybuddy. Le moteur multi-clubs utilise Anybuddy. Les crons peuvent également cibler un seul club officiel 4PADEL avec `provider: "4padel"` et les contrôles de crédits de `padel-scheduling`. Conserver le site demandé ; ne pas transmettre une heure officielle à `booking-search.js`. UCPA officiel conserve ses commandes séparées sans branchement à ce scheduler. Voir `'{{PROJECT_DIR}}/docs/direct-monitoring.md'`.
 
 ## Classer chaque club
 
@@ -75,3 +77,5 @@ Le moteur brut `booking-search.js` essaie toujours immédiatement les possibilit
 **Attendre est une décision, pas encore une tâche programmée.** Si l'utilisateur demande de programmer la tentative et qu'une règle d'ouverture documentée est disponible, utiliser `padel-scheduling` : demande figée sur le club prioritaire, cron Hermes ponctuel, puis vérification de son enregistrement. Sans heure connue, ne pas inventer de programmation. Le timer d'observation ne déclenche pas le moteur. Après le résultat du club prioritaire, réévaluer le plan B ; ne pas programmer des tentatives concurrentes pour la même intention.
 
 Transmettre aussi le mode demandé à `padel-booking` : simulation par défaut, `--pay` pour une réservation réelle autorisée. Après un paiement incertain ou une validation bancaire requise, suspendre le plan B et réconcilier la réservation. Une offre `checkout_ready` ne doit jamais être annoncée comme réservée.
+
+Pour une tentative officielle 4PADEL future, inclure la provision nécessaire aux quatre parts dans la décision et charger `padel-scheduling`. Un horizon J+14 ou le calendrier de Boulogne ne prouve pas à lui seul une heure d’ouverture à Saint-Ouen ou Paris 20.

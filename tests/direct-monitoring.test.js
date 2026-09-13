@@ -109,6 +109,7 @@ test('4PADEL collector never queries or counts raw inventory for a disabled UI d
   const visibility = { url: () => 'https://api2-front.lefive.fr/bookingrules/me/visibility', ok: () => true, json: async () => ({ blockBookingAfterDaysDefault: 14, blockBookingAfterDaysGlobal: 14 }) }
   let closed = false
   const page = {
+    context: () => ({ newCDPSession: async () => ({ send: async (method, params) => { assert.equal(method, 'Emulation.setTimezoneOverride'); assert.equal(params.timezoneId, 'Europe/Paris') } }) }),
     setDefaultTimeout() {}, waitForResponse: async predicate => predicate(calendar) ? calendar : visibility,
     goto: async () => {}, close: async () => { closed = true },
     locator: () => ({ first: () => ({ waitFor: async () => {} }), evaluateAll: async () => cells }),

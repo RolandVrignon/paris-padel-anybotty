@@ -25,6 +25,7 @@ Pour utiliser le bot directement, consulter [Hermes et Telegram](#piloter-depuis
 - [Piloter depuis Hermes / Telegram](#piloter-depuis-hermes--telegram)
   - [Parler au bot en langage naturel](#parler-au-bot-en-langage-naturel)
   - [Exemple de demande complète](#exemple-de-demande-complète)
+  - [Contrôles du portefeuille 4PADEL](#contrôles-du-portefeuille-4padel)
   - [Déroulement d’une tentative programmée](#déroulement-dune-tentative-programmée)
   - [Réservations du compte et annulation](#réservations-du-compte-et-annulation)
 - [Licence](#licence)
@@ -573,6 +574,14 @@ Les jours relatifs comme « lundi prochain » sont résolus en `Europe/Paris`. H
 
 Hermes consulte les disponibilités et les observations, choisit le club à tenter, puis programme si les informations le permettent. Il doit annoncer le club retenu, la date du match, l’heure de lancement et si la tâche a effectivement été enregistrée. Une règle inconnue est signalée ; il n’invente pas d’heure. Le plan B n’est pas déclenché automatiquement : il est réévalué après le résultat du club prioritaire.
 
+### Contrôles du portefeuille 4PADEL
+
+Pour le site officiel 4PADEL, préciser `provider: "4padel"` dans la préparation du job. En mode réel, le bot vérifie le solde avant préparation, fournit un second script pour **24 heures avant le cron de réservation**, puis vérifie le prix réel et le solde au déclenchement. Un club 4PADEL réservé via Anybuddy n’utilise pas ces crédits.
+
+La provision couvre la plus longue durée autorisée au plafond horaire : 80 €/h et [60, 90] nécessitent 120 €. Si elle manque à la préparation, aucun job n’est créé ; à J−1, le bot signale le montant à recharger et conserve la tentative. Il ne recharge jamais automatiquement. Une préparation à moins de 24 heures utilise le contrôle initial sans rappel rétroactif.
+
+Hermes doit créer et vérifier les deux crons natifs, chacun à exécution unique, avec livraison dans le chat d’origine ; les annuler ensemble en cas d’abandon. [Procédure complète et commandes](fourpadel-booking.md#programmer-avec-des-contrôles-de-crédits).
+
 ### Déroulement d’une tentative programmée
 
 1. Hermes valide la date, l’heure, les clubs et les préférences de durée, de terrain et de budget.
@@ -606,7 +615,7 @@ node scripts/booking-jobs.js show --id ID
 node scripts/booking-jobs.js cancel --id ID
 ```
 
-Le fichier d’entrée contient `request` au format de `config.request.json`, limité au club retenu, et `opening`. Exemple **hypothétique** de règle :
+Le fichier d’entrée contient `request` au format de `config.request.json`, limité au club retenu, `opening`, `mode` (`preview` ou `pay`) et éventuellement `provider` (`anybuddy` par défaut, ou `4padel` pour le site officiel). Exemple **hypothétique** de règle :
 
 ```json
 {

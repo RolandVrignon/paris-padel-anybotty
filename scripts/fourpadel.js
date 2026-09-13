@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util'
+import { writeFileSync, renameSync } from 'node:fs'
+import { randomUUID } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
+import { chromium } from 'playwright'
+import { fourPadelCatalog, fourPadelCatalogPath } from '../lib/fourpadel-clubs.js'
+import { discoverFourPadelClubs } from '../lib/fourpadel-club-discovery.js'
 import { join } from 'node:path'
 import { createFourPadelSession } from '../lib/fourpadel-session.js'
 import { listFourPadelReservations } from '../lib/fourpadel-account.js'
@@ -17,14 +23,32 @@ let release
 let stage = 'configuration'
 try {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
-    help: { type: 'boolean' }, headed: { type: 'boolean' }, confirm: { type: 'boolean' },
+    help: { type: 'boolean' }, refresh: { type: 'boolean' }, headed: { type: 'boolean' }, confirm: { type: 'boolean' },
     club: { type: 'string' }, date: { type: 'string' }, time: { type: 'string' }, durations: { type: 'string' },
     'court-environment': { type: 'string' }, 'max-price-per-hour': { type: 'string' }, id: { type: 'string' }, 'expected-version': { type: 'string' },
   } })
-  if (values.help) console.log('npm run 4padel -- book --club CLUB --date YYYY-MM-DD --time HH:mm [--durations 60,90 --court-environment indoor,outdoor --max-price-per-hour EUR] [--confirm]\nnpm run 4padel -- list|wallet\nnpm run 4padel -- show --id ID\nnpm run 4padel -- cancel --id ID [--confirm --expected-version HASH]\nnpm run 4padel -- reconcile --club CLUB --date YYYY-MM-DD --time HH:mm\nAdd --headed for a visible browser. book previews by default. --confirm pays ALL FOUR SHARES using wallet credit; no card or recharge fallback. No retry after uncertain submission. Cancellation uses the displayed deadline and returns credit, not a bank refund.')
+  if (values.help) console.log('npm run 4padel -- clubs [--refresh]\nnpm run 4padel -- book --club CLUB --date YYYY-MM-DD --time HH:mm [--durations 60,90 --court-environment indoor,outdoor --max-price-per-hour EUR] [--confirm]\nnpm run 4padel -- list|wallet\nnpm run 4padel -- show --id ID\nnpm run 4padel -- cancel --id ID [--confirm --expected-version HASH]\nnpm run 4padel -- reconcile --club CLUB --date YYYY-MM-DD --time HH:mm\nAdd --headed for a visible browser. book previews by default. --confirm pays ALL FOUR SHARES using wallet credit; no card or recharge fallback. No retry after uncertain submission. Cancellation uses the displayed deadline and returns credit, not a bank refund.')
+  else if (positionals.length === 1 && positionals[0] === 'clubs') {
+    if (Object.keys(values).some(key => !['refresh', 'headed'].includes(key))) throw new Error('Use 4padel clubs [--refresh] [--headed]')
+    let catalog = fourPadelCatalog
+    if (values.refresh) {
+      stage = 'club_catalogue'
+      const browser = await chromium.launch({ headless: !values.headed })
+      try {
+        const page = await browser.newPage()
+        page.setDefaultTimeout(15000)
+        catalog = await discoverFourPadelClubs(page, fourPadelCatalog)
+        const target = fileURLToPath(fourPadelCatalogPath)
+        const temporary = `${target}.${randomUUID()}.tmp`
+        writeFileSync(temporary, `${JSON.stringify(catalog, null, 2)}\n`, { mode: 0o644, flag: 'wx' })
+        renameSync(temporary, target)
+      } finally { await browser.close() }
+    }
+    console.log(JSON.stringify({ provider: '4padel', status: 'ok', ...catalog }, null, 2))
+  }
   else {
     const [command] = positionals
-    if (positionals.length !== 1 || !['book', 'list', 'show', 'wallet', 'cancel', 'reconcile'].includes(command)) throw new Error('Use 4padel book|list|show|wallet|cancel|reconcile; see --help')
+    if (positionals.length !== 1 || !['book', 'list', 'show', 'wallet', 'cancel', 'reconcile'].includes(command)) throw new Error('Use 4padel clubs|book|list|show|wallet|cancel|reconcile; see --help')
     const allowed = { book: ['club', 'date', 'time', 'durations', 'court-environment', 'max-price-per-hour', 'confirm'], list: [], wallet: [], show: ['id'], cancel: ['id', 'confirm', 'expected-version'], reconcile: ['club', 'date', 'time'] }[command]
     for (const key of Object.keys(values)) if (!['headed', 'help', ...allowed].includes(key)) throw new Error('Option does not apply to this 4PADEL action')
     if (['show', 'cancel'].includes(command) && !/^\d+$/.test(values.id || '')) throw new Error('Use --id from 4padel list')

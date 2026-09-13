@@ -1,0 +1,294 @@
+{
+  "source": "https://www.4padel.fr/",
+  "checkedAt": "2026-09-13T01:09:42.988Z",
+  "centers": [
+    {
+      "name": "4PADEL Antony",
+      "region": "Île-de-France",
+      "centerId": 115,
+      "url": "https://www.4padel.fr/nos-centres/115/antony",
+      "id": "4padel-antony",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Argenteuil",
+      "region": "Île-de-France",
+      "centerId": 109,
+      "url": "https://www.4padel.fr/nos-centres/109/argenteuil",
+      "id": "4padel-argenteuil",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Boulogne-Billancourt",
+      "region": "Île-de-France",
+      "centerId": 105,
+      "url": "https://www.4padel.fr/nos-centres/105/boulogne_billancourt",
+      "id": "4padel-boulogne",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL CAO Saint-Denis",
+      "region": "Île-de-France",
+      "centerId": 89,
+      "url": "https://www.4padel.fr/nos-centres/89/cao_saintdenis",
+      "id": "4padel-cao-saint-denis",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Champigny",
+      "region": "Île-de-France",
+      "centerId": 5,
+      "url": "https://www.4padel.fr/nos-centres/5/champigny",
+      "id": "4padel-champigny",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Créteil",
+      "region": "Île-de-France",
+      "centerId": 25,
+      "url": "https://www.4padel.fr/nos-centres/25/creteil",
+      "id": "4padel-creteil",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Epinay",
+      "region": "Île-de-France",
+      "centerId": 83,
+      "url": "https://www.4padel.fr/nos-centres/83/epinay",
+      "id": "4padel-epinay",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Gustave",
+      "region": "Île-de-France",
+      "centerId": 91,
+      "url": "https://www.4padel.fr/nos-centres/91/gustave",
+      "id": "4padel-gustave",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Marville",
+      "region": "Île-de-France",
+      "centerId": 65,
+      "url": "https://www.4padel.fr/nos-centres/65/marville",
+      "id": "4padel-marville",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Montreuil",
+      "region": "Île-de-France",
+      "centerId": 73,
+      "url": "https://www.4padel.fr/nos-centres/73/montreuil",
+      "id": "4padel-montreuil",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Neuville",
+      "region": "Île-de-France",
+      "centerId": 125,
+      "url": "https://www.4padel.fr/nos-centres/125/4padel-neuville",
+      "id": "4padel-neuville",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Paris 20",
+      "region": "Île-de-France",
+      "centerId": 79,
+      "url": "https://www.4padel.fr/nos-centres/79/paris_20",
+      "id": "4padel-paris-20",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Saint-Ouen",
+      "region": "Île-de-France",
+      "centerId": 117,
+      "url": "https://www.4padel.fr/nos-centres/117/saint_ouen",
+      "id": "4padel-saint-ouen",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Vaires Torcy",
+      "region": "Île-de-France",
+      "centerId": 87,
+      "url": "https://www.4padel.fr/nos-centres/87/vaires_torcy",
+      "id": "4padel-vaires-torcy",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Amiens",
+      "region": "Nord",
+      "centerId": 121,
+      "url": "https://www.4padel.fr/nos-centres/121/4padel-amiens",
+      "id": "4padel-amiens",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Dunkerque",
+      "region": "Nord",
+      "centerId": 49,
+      "url": "https://www.4padel.fr/nos-centres/49/dunkerque",
+      "id": "4padel-dunkerque",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Lens-Liévin",
+      "region": "Nord",
+      "centerId": 41,
+      "url": "https://www.4padel.fr/nos-centres/41/lens",
+      "id": "4padel-lens-lievin",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Lille Ronchin",
+      "region": "Nord",
+      "centerId": 111,
+      "url": "https://www.4padel.fr/nos-centres/111/lille_ronchin",
+      "id": "4padel-lille-ronchin",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Lille Seclin",
+      "region": "Nord",
+      "centerId": 93,
+      "url": "https://www.4padel.fr/nos-centres/93/seclin",
+      "id": "4padel-lille-seclin",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Valenciennes",
+      "region": "Nord",
+      "centerId": 55,
+      "url": "https://www.4padel.fr/nos-centres/55/valenciennes",
+      "id": "4padel-valenciennes",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Metz",
+      "region": "Grand-Est",
+      "centerId": 53,
+      "url": "https://www.4padel.fr/nos-centres/53/metz",
+      "id": "4padel-metz",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Mulhouse",
+      "region": "Grand-Est",
+      "centerId": 50,
+      "url": "https://www.4padel.fr/nos-centres/50/mulhouse",
+      "id": "4padel-mulhouse",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Reims",
+      "region": "Grand-Est",
+      "centerId": 81,
+      "url": "https://www.4padel.fr/nos-centres/81/reims",
+      "id": "4padel-reims",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Saint-Louis - Bâle",
+      "region": "Grand-Est",
+      "centerId": 61,
+      "url": "https://www.4padel.fr/nos-centres/61/saint_louis",
+      "id": "4padel-saint-louis-bale",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Strasbourg",
+      "region": "Grand-Est",
+      "centerId": 10,
+      "url": "https://www.4padel.fr/nos-centres/10/strasbourg",
+      "id": "4padel-strasbourg",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Orléans-Fleury",
+      "region": "Centre",
+      "centerId": 9,
+      "url": "https://www.4padel.fr/nos-centres/9/orleans_fleury",
+      "id": "4padel-orleans-fleury",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Annemasse",
+      "region": "Rhône-Alpes",
+      "centerId": 16,
+      "url": "https://www.4padel.fr/nos-centres/16/annemasse",
+      "id": "4padel-annemasse",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Lyon Saint-Priest",
+      "region": "Rhône-Alpes",
+      "centerId": 113,
+      "url": "https://www.4padel.fr/nos-centres/113/lyon_saint_priest",
+      "id": "4padel-lyon-saint-priest",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Bordeaux",
+      "region": "Nouvelle-Aquitaine & Occitanie",
+      "centerId": 2,
+      "url": "https://www.4padel.fr/nos-centres/2/bordeaux",
+      "id": "4padel-bordeaux",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Limoges",
+      "region": "Nouvelle-Aquitaine & Occitanie",
+      "centerId": 48,
+      "url": "https://www.4padel.fr/nos-centres/48/limoges",
+      "id": "4padel-limoges",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Merignac",
+      "region": "Nouvelle-Aquitaine & Occitanie",
+      "centerId": 119,
+      "url": "https://www.4padel.fr/nos-centres/119/4padel-merignac",
+      "id": "4padel-merignac",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Saint-Louis - La Réunion",
+      "region": "La Réunion",
+      "centerId": 52,
+      "url": "https://www.4padel.fr/nos-centres/52/sudreunion",
+      "id": "4padel-saint-louis-la-reunion",
+      "timeZone": "Indian/Reunion"
+    },
+    {
+      "name": "4PADEL Challans",
+      "region": "Pays de la Loire - Normandie",
+      "centerId": 75,
+      "url": "https://www.4padel.fr/nos-centres/75/4p_challans",
+      "id": "4padel-challans",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Rouen",
+      "region": "Pays de la Loire - Normandie",
+      "centerId": 12,
+      "url": "https://www.4padel.fr/nos-centres/12/rouen",
+      "id": "4padel-rouen",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Rouen Petit Quevilly",
+      "region": "Pays de la Loire - Normandie",
+      "centerId": 77,
+      "url": "https://www.4padel.fr/nos-centres/77/rouen_petitquevilly",
+      "id": "4padel-rouen-petit-quevilly",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "name": "4PADEL Dijon",
+      "region": "Bourgogne",
+      "centerId": 123,
+      "url": "https://www.4padel.fr/nos-centres/123/4padel-dijon",
+      "id": "4padel-dijon",
+      "timeZone": "Europe/Paris"
+    }
+  ]
+}
