@@ -56,7 +56,7 @@ try {
     if (['booking_unverified', 'cancellation_unverified'].includes(result.status)) process.exitCode = 2
   }
 } catch (error) {
-  console.error(JSON.stringify({ provider: 'ucpa', status: 'error', stage, message: error.name === 'SyntaxError' || error.message.includes('Call log:') ? 'UCPA operation could not be verified; no private details logged' : error.message }))
+  console.error(JSON.stringify({ provider: 'ucpa', status: 'error', stage, ...(error.name === 'ProviderAuthError' ? { code: error.code } : {}), message: error.name === 'SyntaxError' || error.message.includes('Call log:') ? 'UCPA operation could not be verified; no private details logged' : error.message }))
   process.exitCode = 1
 } finally {
   await session?.close()
