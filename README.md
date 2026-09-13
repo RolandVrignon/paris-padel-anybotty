@@ -6,10 +6,10 @@
 
 **Le prochain match commence par un message.**
 
-Trouve ton terrain sur Anybuddy ou 4PADEL. Réserve, retrouve ta partie et annule si ton programme change.
+Trouve ton terrain sur Anybuddy, notamment chez **Sportfield** et **Forest Hill**, ou réserve directement chez UCPA et 4PADEL. Réserve, retrouve ta partie et annule si ton programme change.
 Choisis tes clubs, tes durées et ton budget. Anybotty suit tes préférences jusqu’à la réservation.
 
-**11 clubs Anybuddy · 36 centres 4PADEL · 6 skills Hermes · Open source**
+**Anybuddy · Sportfield · Forest Hill · UCPA · 36 centres 4PADEL · 6 skills Hermes · Open source**
 
 [Démarrer](#demarrer) · [Voir les exemples Telegram](#telegram) · [Guide complet](docs/guide.md) · [Signaler un problème](https://github.com/RolandVrignon/paris-padel-anybotty/issues)
 
