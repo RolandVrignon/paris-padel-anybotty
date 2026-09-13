@@ -95,6 +95,8 @@ Les commandes émettent du JSON. Les erreurs renvoient un code de sortie 1 ; les
 
 Un verrou par compte protège les opérations locales. Le journal est écrit **avant** chaque clic engageant, sous `.auth/ucpa-actions/`, dans un dossier propre au compte, avec des fichiers en `0600` exclus de Git. Il ne contient ni identifiants, ni carte, ni jetons ni QR codes. Une tentative déjà journalisée à la même date et heure est réconciliée au lieu d’être soumise de nouveau, y compris après son annulation. Une nouvelle intention après annulation n’est pas encore exposée par une option de réinitialisation.
 
+Pour reprendre explicitement une annulation non confirmée, utiliser `cancel --id ID --retry` pour obtenir un nouvel aperçu, puis `cancel --id ID --retry --confirm --expected-version HASH`. Le script exige que la réservation figure encore dans le compte, soit annulable par le capitaine et reste sans frais à plus de 48 heures. Il conserve la tentative précédente dans le journal. Cette option ne relance jamais un paiement ou une réservation.
+
 La liste parcourt les pages du portail et vérifie leur identité, leur total et leurs doublons. Elle couvre les réservations passées et les réservations à venir sur les 366 prochains jours ; elle affiche seulement le padel du compte principal, pas les autres sports ou les réservations de proches. Le journal d’annulation local complète `show`, mais ne constitue pas l’historique complet des annulations faites manuellement sur le site.
 
 ## Éléments observés pour la maintenance
@@ -110,7 +112,7 @@ La liste parcourt les pages du portail et vérifie leur identité, leur total et
 | Liste | POST `/sport-station/espacepersonnel/api/paris-19/amplify/kala/reservedSession`, pagination par contact du compte. |
 | Détail | Page `scheduled-reservations/<sessionId>/<customerUuid>` ; GET `kala/getSessionById`. |
 | Annulation | Bouton exact `Annuler la partie`, puis `Confirmer l'annulation`. `Garder ma partie` est l'autre choix. |
-| Mutation d’annulation | POST `/sport-station/espacepersonnel/api/paris-19/cancel-court-session`, lié à l’ID de séance et au compte. |
+| Mutation d’annulation | POST `/sport-station/espacepersonnel/api/paris-19/cancel-court-session` avec `sessionId` et `uuid` égal au contact `horanet_id` du compte pour les séances externes ; le `customerUuid` utilisé dans l’URL de détail n’est pas cet identifiant. |
 
 Le garde réseau bloque les mutations en aperçu. Pour une action réelle, il n’autorise qu’une requête vers le point d’entrée attendu, avec vérification de sa cible et, pour réserver, du prix de la participation et des options. Il ne rejoue pas les données de carte : la soumission vient du bouton natif et utilise la carte enregistrée chez UCPA.
 

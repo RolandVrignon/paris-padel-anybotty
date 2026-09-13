@@ -60,6 +60,7 @@ test('UCPA account paginates all sessions, binds account identity, and excludes 
     },
   } }
   const client = await createUcpaAccountClient(context)
+  assert.equal(client.contactId, contact)
   const rows = await client.list()
   assert.deepEqual(pages, [1, 2])
   assert.deepEqual(rows.map(r => r.id), ['2', '3', '4', '5', '6'])
@@ -86,20 +87,20 @@ test('UCPA account accepts the observed empty response but rejects duplicate/inc
   await assert.rejects(client.list(), /incomplete/)
 })
 
-const withBrowser = async (t, run, { wrongPrice = false, lostResponse = false, paidCancellation = false } = {}) => {
+const withBrowser = async (t, run, { wrongPrice = false, lostResponse = false, paidCancellation = false, wrongCancellationContact = false } = {}) => {
   const browser = await chromium.launch()
   const store = ucpaActionStore(directory(t))
   try {
     const context = await browser.newContext({ serviceWorkers: 'block' })
     const state = { rows: [], bookCalls: 0, cancelCalls: 0, previewCalls: 0 }
-    const client = { customerUuid: customer, assertIdentity: async () => {}, list: async () => state.rows, detail: async () => reservation, detailUrl: id => `https://www.ucpa.com/sport-station/espacepersonnel/paris-19/scheduled-reservations/${id}/${customer}` }
+    const client = { customerUuid: customer, contactId: contact, assertIdentity: async () => {}, list: async () => state.rows, detail: async () => reservation, detailUrl: id => `https://www.ucpa.com/sport-station/espacepersonnel/paris-19/scheduled-reservations/${id}/${customer}` }
     const formatted = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }).format(new Date(`${date}T12:00:00Z`))
     const summary = `<p>Capitaine</p><p>Non abonné(e)</p><p>${formatted}</p><p>07:00 à 08:00</p><p>${reservation.court}</p><p>Padel</p><p>Ma participation: 9.50 €</p><p>Places réservées</p><p>1 / 4</p><p>Garantie du Capitaine</p><p>Règlement le jour J</p>`
     const payload = { body: { sessionId: '123', isInternalSession: false, haveSubscription: false, reservationInfo: { isPlaying: true }, details: { quantity: 1, price: wrongPrice ? 1000 : 950, offerFilliere: 'Padel' }, options: [] } }
     const payment = `${summary}<p>Carte enregistrée</p><p>Carte Bancaire XXXX 0000</p><input id="cgi" type="checkbox"><button id="book">Réserver</button><script>document.querySelector('#book').onclick=()=>fetch(${JSON.stringify(UCPA_CREATE_URL)},{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(${JSON.stringify(payload)})}).catch(()=>{});</script>`
     const terms = paidCancellation ? 'En confirmant, 38 € restent à payer.' : 'Les autres joueurs seront informés. En confirmant l’annulation, tu n’auras rien à payer, les autres joueurs non plus.'
     const dialog = `<p>Tu es sur le point d'annuler la partie.</p><p>${terms}</p><button>Garder ma partie</button><button id="confirm">Confirmer l'annulation</button>`
-    const detail = `<p>${reservation.court}</p><button id="cancel">Annuler la partie</button><div id="dialog"></div><script>document.querySelector('#cancel').onclick=()=>{document.querySelector('#dialog').innerHTML=${JSON.stringify(dialog)};document.querySelector('#confirm').onclick=()=>fetch(${JSON.stringify(UCPA_CANCEL_URL)},{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:'123',uuid:${JSON.stringify(customer)}})}).catch(()=>{});};</script>`
+    const detail = `<p>${reservation.court}</p><button id="cancel">Annuler la partie</button><div id="dialog"></div><script>document.querySelector('#cancel').onclick=()=>{document.querySelector('#dialog').innerHTML=${JSON.stringify(dialog)};document.querySelector('#confirm').onclick=()=>fetch(${JSON.stringify(UCPA_CANCEL_URL)},{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:'123',uuid:${JSON.stringify(wrongCancellationContact ? customer : contact)}})}).catch(()=>{});};</script>`
     // Catch ALL traffic in tests. The guard must fall back here, never hit UCPA.
     await context.route('**/*', async route => {
       const url = route.request().url()
@@ -183,6 +184,34 @@ test('lost cancellation response is not proved by absence alone and cannot be cl
   assert.equal((await cancelUcpa(session, client, store, '123', { confirm: true, expectedVersion: quote.version })).status, 'cancellation_unverified')
   assert.equal(state.cancelCalls, 1)
 }, { lostResponse: true }))
+
+test('cancellation blocks a customer UUID where the native request must use the Horanet contact', t => withBrowser(t, async ({ session, client, store, state }) => {
+  state.rows = [reservation]
+  const newPage = session.context.newPage.bind(session.context)
+  session.context.newPage = async () => { const page = await newPage(); const set = page.setDefaultTimeout.bind(page); page.setDefaultTimeout = () => set(800); return page }
+  const quote = await cancelUcpa(session, client, store, '123')
+  const result = await cancelUcpa(session, client, store, '123', { confirm: true, expectedVersion: quote.version })
+  assert.equal(result.status, 'cancellation_unverified')
+  assert.equal(state.cancelCalls, 0)
+  assert.equal(state.rows.length, 1)
+}, { wrongCancellationContact: true }))
+
+test('explicit cancellation retry rechecks the active reservation and free terms, preserving the prior attempt', t => withBrowser(t, async ({ session, client, store, state }) => {
+  const previous = { status: 'cancellation_unverified', responseConfirmed: false, startedAt: '2099-01-01T00:00:00Z' }
+  store.save('cancel-123', previous)
+  assert.equal((await cancelUcpa(session, client, store, '123', { retry: true })).status, 'not_found')
+  state.rows = [reservation]
+  assert.equal((await cancelUcpa(session, client, store, '123')).status, 'cancellation_unverified')
+  const quote = await cancelUcpa(session, client, store, '123', { retry: true })
+  await assert.rejects(cancelUcpa(session, client, store, '123', { retry: true, confirm: true, expectedVersion: 'bad' }), /terms changed/)
+  assert.equal(state.cancelCalls, 0)
+  const result = await cancelUcpa(session, client, store, '123', { retry: true, confirm: true, expectedVersion: quote.version })
+  assert.equal(result.status, 'cancelled')
+  assert.equal(result.previousAttempt.startedAt, previous.startedAt)
+  assert.equal(state.cancelCalls, 1)
+  assert.equal((await cancelUcpa(session, client, store, '123', { retry: true, confirm: true, expectedVersion: quote.version })).status, 'cancelled')
+  assert.equal(state.cancelCalls, 1)
+}))
 
 test('past/late and participant-only reservations cannot trigger a whole-party cancellation', t => withBrowser(t, async ({ session, client, store, state }) => {
   state.rows = [reservation]

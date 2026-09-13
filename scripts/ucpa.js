@@ -17,13 +17,13 @@ try {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
     help: { type: 'boolean' }, headed: { type: 'boolean', default: false }, confirm: { type: 'boolean', default: false },
     date: { type: 'string' }, time: { type: 'string' }, durations: { type: 'string' }, 'court-environment': { type: 'string' }, 'max-price-per-hour': { type: 'string' },
-    id: { type: 'string' }, scope: { type: 'string' }, 'expected-version': { type: 'string' },
+    id: { type: 'string' }, scope: { type: 'string' }, 'expected-version': { type: 'string' }, retry: { type: 'boolean', default: false },
   } })
   const [command] = positionals
-  if (values.help) console.log('npm run ucpa -- book [--confirm] [--date YYYY-MM-DD --time HH:mm --durations 60,90 --court-environment indoor --max-price-per-hour EUR]\nnpm run ucpa -- list [--scope active|past|all]\nnpm run ucpa -- show --id ID\nnpm run ucpa -- cancel --id ID [--confirm --expected-version HASH]\nnpm run ucpa -- reconcile [--date YYYY-MM-DD --time HH:mm]\nAdd --headed for a visible browser. book without --confirm is a preview; --confirm creates a real booking using the saved UCPA card. Cancellation is whole-party, captain-only and more than 48 hours before play.')
+  if (values.help) console.log('npm run ucpa -- book [--confirm] [--date YYYY-MM-DD --time HH:mm --durations 60,90 --court-environment indoor --max-price-per-hour EUR]\nnpm run ucpa -- list [--scope active|past|all]\nnpm run ucpa -- show --id ID\nnpm run ucpa -- cancel --id ID [--retry] [--confirm --expected-version HASH]\nnpm run ucpa -- reconcile [--date YYYY-MM-DD --time HH:mm]\nAdd --headed for a visible browser. book without --confirm is a preview; --confirm creates a real booking using the saved UCPA card. Cancellation is whole-party, captain-only and more than 48 hours before play.')
   else {
     if (positionals.length !== 1 || !['book', 'list', 'show', 'cancel', 'reconcile'].includes(command)) throw new Error('Use ucpa book|list|show|cancel|reconcile; see --help')
-    const allowed = { book: ['date', 'time', 'durations', 'court-environment', 'max-price-per-hour', 'confirm'], list: ['scope'], show: ['id'], cancel: ['id', 'confirm', 'expected-version'], reconcile: ['date', 'time'] }[command]
+    const allowed = { book: ['date', 'time', 'durations', 'court-environment', 'max-price-per-hour', 'confirm'], list: ['scope'], show: ['id'], cancel: ['id', 'confirm', 'expected-version', 'retry'], reconcile: ['date', 'time'] }[command]
     for (const [key, value] of Object.entries(values)) if (value !== false && !['headed', 'help', ...allowed].includes(key)) throw new Error('Option does not apply to this UCPA action')
     if (['show', 'cancel'].includes(command) && !/^\d{1,20}$/.test(values.id || '')) throw new Error('Use --id from ucpa list')
     if (values.scope && !['active', 'past', 'all'].includes(values.scope)) throw new Error('Use --scope active|past|all')
@@ -50,7 +50,7 @@ try {
     if (command === 'book') result = await bookUcpa(session, client, store, request, { confirm: values.confirm, onStage: value => { stage = value } })
     if (command === 'list') result = { provider: 'ucpa', status: 'ok', scope: values.scope || 'active', reservations: await client.list({ scope: values.scope || 'active' }), checkedAt: new Date().toISOString() }
     if (command === 'show') result = await showUcpaReservation(client, store, values.id)
-    if (command === 'cancel') result = await cancelUcpa(session, client, store, values.id, { confirm: values.confirm, expectedVersion: values['expected-version'] })
+    if (command === 'cancel') result = await cancelUcpa(session, client, store, values.id, { confirm: values.confirm, expectedVersion: values['expected-version'], retry: values.retry })
     if (command === 'reconcile') result = await reconcileUcpaBooking(client, store, request)
     console.log(JSON.stringify(result, null, 2))
     if (['booking_unverified', 'cancellation_unverified'].includes(result.status)) process.exitCode = 2
