@@ -72,7 +72,7 @@ Avec Hermes, cette demande devient une stratégie, puis une tentative immédiate
 | Site | Réservation réelle | Autonomie et prérequis | Depuis Hermes |
 | --- | --- | --- | --- |
 | **Anybuddy** | Paiement par carte, puis vérification dans le compte. | Peut aboutir sans intervention ; un 3-D Secure demandé interrompt le parcours autonome. | Skills de réservation et de gestion intégrés. |
-| **UCPA Paris 19 officiel** | Réservation avec la carte déjà enregistrée ; prélèvement annoncé au début de la partie. | Parcours réel testé sans intervention bancaire, avec une session et une carte valides. | Commandes locales disponibles ; raccordement aux skills à faire. |
+| **UCPA officiel** | Réservation avec la carte déjà enregistrée ; prélèvement annoncé au début de la partie. | Paris 19 validé de bout en bout. Meudon validé jusqu’au checkout, sans soumission réelle. | Commandes par centre disponibles ; raccordement au moteur multi-sites à faire. |
 | **4PADEL officiel** | Les **quatre parts** payées avec le portefeuille LA FID’. | Parcours réel testé sans carte ni 3-D Secure. Solde suffisant et club éligible nécessaires ; recharge manuelle. | Réservation et programmation avec contrôles de crédits dans les skills du dépôt ; mise à jour VPS nécessaire. |
 
 Les commandes officielles UCPA et 4PADEL ciblent chacune un club. Leur intégration au moteur commun de priorités entre clubs et sites reste à faire. Les tests réussis valident les parcours observés ; ils ne garantissent ni la disponibilité future d’un terrain ni l’absence de changement côté site.
@@ -148,7 +148,7 @@ Le suivi Anybuddy couvre **Paris Padel, Sportfield Bercy, Aquaboulevard, Padelis
 
 Une date absente à 07 h 55 et présente à 08 h donne une ouverture **entre 07 h 55 et 08 h**. Cinq contrôles supplémentaires vérifient la présence de disponibilités pendant environ 25 minutes. Le bot conserve les observations ; il ne transforme pas un seul relevé en règle certaine.
 
-Les observations restent séparées par club et par site. La réservation fonctionne sur Anybuddy et, avec des commandes dédiées, sur les sites officiels UCPA Paris 19 et 4PADEL. Le collecteur reste en lecture seule : il ne crée aucune réservation et ne soumet aucun paiement. [Configurer le suivi officiel](docs/direct-monitoring.md).
+Les observations restent séparées par club et par site. La réservation fonctionne sur Anybuddy et, avec des commandes dédiées, sur UCPA officiel à Paris 19 et Meudon ainsi que sur 4PADEL officiel. Le collecteur reste en lecture seule : il ne crée aucune réservation et ne soumet aucun paiement. [Configurer le suivi officiel](docs/direct-monitoring.md).
 
 **Sur le site officiel 4PADEL :** Boulogne sert de référence horaire pour Paris 20, Saint-Ouen, Montreuil, CAO Saint-Denis, Marville et Créteil. Leurs calendriers affichent 30 à 31 jours ; la règle commune **J+14 (« moins de 15 jours »)** reste une hypothèse de travail, distincte de cette visibilité. Le rapport expose les ouvertures de Boulogne et leurs confirmations, sans tentative de réservation périodique ni autorisation supposée acquise. [Détails du suivi](docs/direct-monitoring.md).
 
@@ -193,7 +193,7 @@ L’ordre complet est **club → durée → intérieur/extérieur → terrain**.
 
 Un plafond de **80 €/h** autorise jusqu’à **80 € pour 60 min**, **120 € pour 90 min** ou **160 € pour 120 min**. Un terrain à 120 € pour deux heures revient à 60 €/h : il respecte donc le plafond.
 
-Le prix concerne **le terrain entier**, pas chaque joueur. Le montant du checkout fait foi et est revérifié avant le paiement. Les demandes utilisent `DD/MM/YYYY` et `HH:mm`. Pour Anybuddy et UCPA Paris 19, les heures sont en Europe/Paris. Pour 4PADEL officiel, elles suivent le fuseau du centre : Europe/Paris en métropole, Indian/Reunion à La Réunion.
+Le prix concerne **le terrain entier**, pas chaque joueur. Le montant du checkout fait foi et est revérifié avant le paiement. Les demandes utilisent `DD/MM/YYYY` et `HH:mm`. Pour Anybuddy et les centres UCPA intégrés, les heures sont en Europe/Paris. Pour 4PADEL officiel, elles suivent le fuseau du centre : Europe/Paris en métropole, Indian/Reunion à La Réunion.
 
 [Configuration complète, carte et compatibilité →](docs/guide.md#configurer-le-compte)
 
@@ -202,19 +202,11 @@ Le prix concerne **le terrain entier**, pas chaque joueur. Le montant du checkou
 
 ### Clubs pris en charge
 
-| Site | Clubs | Disponibilités | Monitoring des ouvertures | Réserver | Lister et annuler |
-| --- | --- | :---: | :---: | :---: | :---: |
-| **Anybuddy** | Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy et Padel 15 | ✅ | ✅ | ✅ | ✅ |
-| **Anybuddy** | UCPA Sport Station Hostel Paris, 4PADEL Paris 20 et 4PADEL Saint-Ouen | ✅ | Site officiel privilégié | ✅ | ✅ |
-| **Anybuddy** | Trinquet Village | ✅ | Non, horizon ouvert | ✅ | ✅ |
-| **Anybuddy** | Forest Hill Nanterre–La Défense et Forest Hill La Marche Marnes-la-Coquette | ✅ | ✅ | À auditer | À auditer |
-| **UCPA officiel** | UCPA Paris 19 | ✅ | ✅ | ✅ | ✅ |
-| **UCPA officiel** | UCPA Sport Station Meudon | ✅ | ✅, frontière du calendrier | À adapter | À adapter |
-| **4PADEL officiel** | Les 36 centres du catalogue national | ✅ | Sept centres franciliens¹ | ✅ si le club accepte les crédits LA FID’ | ✅ |
-
-¹ Boulogne-Billancourt, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil. Les autres centres 4PADEL utilisent le même parcours de réservation, mais leur heure d’ouverture n’est pas encore suivie individuellement.
-
-`✅` signifie que le parcours correspondant est implémenté. Une disponibilité observée ne garantit jamais qu’un terrain sera encore libre au moment du checkout. Les lignes « À auditer » restent volontairement bloquées avant paiement.
+| Plateforme | Clubs pris en charge |
+| --- | --- |
+| **Anybuddy** | Paris Padel, UCPA Sport Station Hostel Paris, Sportfield Paris 12 - Bercy, 4PADEL Paris 20, Forest Hill Aquaboulevard De Paris, 4PADEL Saint-Ouen, Padelistes Bercy - Paris 12, Padel 15, Trinquet Village, Forest Hill Nanterre–La Défense et Forest Hill La Marche Marnes-la-Coquette |
+| **UCPA officiel** | UCPA Paris 19 et UCPA Sport Station Meudon |
+| **4PADEL officiel** | Les 36 centres du catalogue national |
 
 ### Anybuddy : onze clubs à Paris et en proche banlieue
 
@@ -234,7 +226,7 @@ Onze centres sont intégrés au catalogue **Anybuddy**. Les horizons ci-dessous 
 | Forest Hill Nanterre–La Défense | `forest-hill-nanterre` | J+6 observé le 13/09 |
 | Forest Hill La Marche Marnes-la-Coquette | `forest-hill-marnes` | J+6 observé le 13/09 |
 
-Les deux nouveaux Forest Hill sont disponibles pour la consultation et le monitoring ; leur checkout n’a pas encore été audité. UCPA Meudon réutilise le collecteur public : sa dernière semaine visible, vérifiée le 13 septembre 2026, va du 11 au 17 janvier 2027. Le suivi surveille la frontière suivante, sans figer un horizon J+126. Les commandes de réservation UCPA restent limitées à Paris 19. [État des ajouts en proche banlieue](docs/paris-suburbs.md).
+Les deux nouveaux Forest Hill sont disponibles pour la consultation et le monitoring ; leur checkout n’a pas encore été audité. UCPA Meudon réutilise le collecteur public : sa dernière semaine visible, vérifiée le 13 septembre 2026, va du 11 au 17 janvier 2027. Le suivi surveille la frontière suivante, sans figer un horizon J+126. Son parcours officiel est sélectionnable avec `--club ucpa-meudon`. [État des ajouts en proche banlieue](docs/paris-suburbs.md).
 
 Trinquet Village reste au catalogue mais est exclu de la surveillance des ouvertures. Les heures d’ouverture ne sont pas garanties par ces horizons : elles doivent être documentées séparément.
 
@@ -307,21 +299,25 @@ Le planning est théorique ; adapte la date de l’exemple. **`npm start` affich
 Les deux configurations, `.auth/` et les observations restent locales et sont ignorées par Git. Les fichiers privés créés par `config:init` ont les permissions `0600`. Renseigne les secrets sur la machine qui exécute le bot, jamais dans Telegram.
 
 <a id="ucpa"></a>
-## UCPA Paris 19 : du créneau à l’annulation
+## UCPA Paris 19 et Meudon : du créneau à l’annulation
 
 **Réserve directement sur le site officiel, puis retrouve et gère ta partie depuis le terminal.** Le bot prend le premier terrain intérieur disponible à l’heure demandée, respecte l’ordre des durées et vérifie le prix du terrain entier par heure.
 
-Après `npm run auth:ucpa`, utilise ta demande dans `config.request.json` avec le club `ucpa-paris` :
+Après `npm run auth:ucpa`, indique le centre avec `--club ucpa-paris` ou `--club ucpa-meudon`. Sans option, Paris 19 reste le centre par défaut :
 
 ```sh
 # Aller au récapitulatif sans réserver
 npm run ucpa -- book --headed
+
+# Simuler Meudon jusqu’au checkout
+npm run ucpa -- book --club ucpa-meudon --date YYYY-MM-DD --time HH:mm --headed
 
 # Créer une réservation réelle avec la carte déjà enregistrée chez UCPA
 npm run ucpa -- book --confirm
 
 # Retrouver la partie et consulter son détail
 npm run ucpa -- list
+npm run ucpa -- list --club ucpa-meudon
 npm run ucpa -- show --id IDENTIFIANT
 
 # Lire les conditions, puis reprendre la version renvoyée pour annuler
@@ -333,7 +329,7 @@ UCPA annonce un **prélèvement au début de la partie** : le clic « Réserver 
 
 Une tentative incertaine se vérifie avec `npm run ucpa -- reconcile`, en conservant sa date et son heure. Le journal empêche une nouvelle soumission automatique du même créneau, y compris après annulation ; une nouvelle intention après annulation reste à intégrer.
 
-**Validé en réel :** réservation, apparition dans le compte et annulation sans frais. Les commandes UCPA sont disponibles localement ; leur branchement aux skills Hermes et au moteur de priorités entre clubs reste à faire.
+**Paris 19 validé en réel :** réservation, apparition dans le compte et annulation sans frais. **Meudon validé en aperçu réel :** session du compte, créneau, premier terrain intérieur, récapitulatif et prix du terrain entier, sans cocher les conditions ni soumettre la réservation. La lecture du compte Meudon est validée ; sa réservation et son annulation réelles restent à recetter. Les commandes UCPA sont disponibles localement ; leur branchement au moteur de priorités entre sites reste à faire.
 
 [Options, résultats et détails du parcours UCPA →](docs/ucpa-booking.md)
 

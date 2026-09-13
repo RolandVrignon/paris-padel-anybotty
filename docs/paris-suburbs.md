@@ -12,7 +12,7 @@ Vérifications réalisées le **13 septembre 2026**, en lecture seule. Le suivi 
 | 4PADEL CAO Saint-Denis (89) | Officiel | Calendrier visible jusqu’au 13 octobre, 30 jours | Monitoring ; moteur 4PADEL commun |
 | 4PADEL Marville (65) | Officiel | Calendrier visible jusqu’au 14 octobre, 31 jours | Monitoring ; moteur 4PADEL commun |
 | 4PADEL Créteil (25) | Officiel | Calendrier visible jusqu’au 14 octobre, 31 jours | Monitoring ; moteur 4PADEL commun |
-| UCPA Sport Station Meudon | Officiel | Dernière semaine visible du 11 au 17 janvier 2027 | Monitoring public ; réservation à adapter |
+| UCPA Sport Station Meudon | Officiel | Dernière semaine visible du 11 au 17 janvier 2027 | Monitoring public ; checkout et lecture du compte validés |
 
 Les nombres de créneaux sont des instantanés, pas une garantie de disponibilité future. Les deux Forest Hill ont été recherchés jusqu’au 18 octobre. Le choix de les suivre via Anybuddy ne prouve pas l’absence de priorité sur leur site officiel.
 
@@ -26,7 +26,7 @@ Le calendrier initial annonce une période de quatre mois et une date limite au 
 
 Le test du collecteur a relevé **94 créneaux du 11 au 17 janvier**, puis une fenêtre encore inaccessible du **18 au 31 janvier**. Un passage ciblé inchangé ne demande que le calendrier initial. Dès qu’une nouvelle période devient accessible, les semaines correspondantes sont lues et les cinq confirmations habituelles s’appliquent. Les relevés conservent la date limite et les disponibilités séparément. Le suivi couvre cinq semaines après la frontière pour pouvoir observer également des lots mensuels. Une ouverture le lundi, quotidienne ou par lots reste à établir sur plusieurs observations.
 
-Les commandes de réservation, d’authentification et d’annulation UCPA restent liées à **Paris 19** : chemins de compte, identifiants de site et validation d’identité diffèrent. Ne pas leur passer Meudon en remplaçant simplement l’URL. Aucun test de paiement ou d’annulation n’a été effectué à Meudon.
+Le centre Meudon possède ses propres chemins de compte et identifiants de site. Ils sont maintenant décrits dans le catalogue UCPA interne et sélectionnés avec `--club ucpa-meudon`, sans substitution manuelle d’URL. Le 13 septembre 2026, une session authentifiée a lu le compte Meudon puis atteint le checkout du 11 janvier à 07:00 : premier terrain intérieur, 6,25 € par part et 25 € pour le terrain. Les conditions sont restées décochées et aucune réservation n’a été soumise. La réservation et l’annulation réelles n’ont donc pas encore été testées à Meudon.
 
 ## 4PADEL : politique commune supposée
 

@@ -1,6 +1,6 @@
 ---
 name: padel-reservations
-description: Consulter le solde, les crédits et le portefeuille LA FID’ 4PADEL ; lister, consulter et annuler les réservations Anybuddy ou 4PADEL officiel. Utiliser pour les comptes et réservations existantes ; les tâches cron relèvent de padel-scheduling.
+description: Consulter le solde, les crédits et le portefeuille LA FID’ 4PADEL ; lister, consulter et annuler les réservations Anybuddy, UCPA officiel ou 4PADEL officiel. Utiliser pour les comptes et réservations existantes ; les tâches cron relèvent de padel-scheduling.
 ---
 
 # Mes comptes et réservations padel
@@ -12,6 +12,19 @@ Dépôt : `'{{PROJECT_DIR}}'`. Répondre en français. Ce skill gère les réser
 Une demande de solde, crédits ou portefeuille 4PADEL cible le site officiel 4PADEL, sans clarification supplémentaire. Une réservation explicitement faite sur Anybuddy reste sur Anybuddy, même si le club est un 4PADEL. Pour une réservation dont la plateforme est inconnue, utiliser le contexte ou les listes récentes pour l’identifier ; ne pas transposer les IDs entre plateformes.
 
 Les commandes lisent les identifiants privés dans `config.fixed.json` et vérifient la session. Exécuter la commande adaptée avant d’annoncer qu’un compte n’est pas configuré : une ancienne conversation ou l’absence d’un fichier nommé « 4padel » ne permet pas de le conclure. Ne pas afficher la configuration ni les sessions.
+
+## Réservations UCPA officielles
+
+Choisir explicitement `ucpa-paris` ou `ucpa-meudon` lorsqu’il existe un doute sur le centre. Les identifiants de réservation et les journaux ne se transposent pas entre centres.
+
+```sh
+node '{{PROJECT_DIR}}/scripts/ucpa.js' list --club ucpa-meudon
+node '{{PROJECT_DIR}}/scripts/ucpa.js' show --club ucpa-meudon --id ID
+node '{{PROJECT_DIR}}/scripts/ucpa.js' cancel --club ucpa-meudon --id ID
+node '{{PROJECT_DIR}}/scripts/ucpa.js' cancel --club ucpa-meudon --id ID --confirm --expected-version VERSION
+```
+
+Pour annuler, lire d’abord la liste et l’aperçu frais, puis reprendre la version exacte si l’utilisateur a autorisé l’annulation et accepté les conditions affichées. La requête native doit employer le contact `horanet_id` du compte ; ne jamais remplacer cet identifiant par le `customerUuid` de l’URL de détail. Une annulation incertaine ne se répète pas sans le parcours explicite `--retry`. Paris 19 est validé de bout en bout. Meudon est validé en lecture du compte et jusqu’au checkout, mais son annulation réelle n’a pas encore été recettée : restituer cette limite si l’utilisateur demande le niveau de validation.
 
 ## Solde et réservations 4PADEL officiel
 

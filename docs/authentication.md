@@ -35,7 +35,7 @@ Le mode manuel laisse jusqu’à trois minutes pour compléter le formulaire et 
 
 4PADEL utilise son formulaire natif puis vérifie l’identité avec `GET /splf/v1/users/me?qoodos_refund=false&appId=2`. Sa session sert aux trois centres officiels actuellement surveillés.
 
-UCPA démarre depuis l’espace personnel Paris 19, passe si nécessaire par `authent.ucpa.com`, puis vérifie la session du portail avec `GET /sport-station/espacepersonnel/api/paris-19/user`. Une simple redirection réussie ne suffit pas : l’email renvoyé par le serveur doit correspondre au compte configuré.
+UCPA démarre depuis l’espace personnel Paris 19, passe si nécessaire par `authent.ucpa.com`, puis vérifie la session du portail avec l’identité renvoyée par le centre sélectionné (`/api/paris-19/user` ou `/api/meudon/user`). Une simple redirection réussie ne suffit pas : l’email renvoyé par le serveur doit correspondre au compte configuré.
 
 Le portail peut afficher temporairement `/accueil` avant la redirection SSO, puis restaurer automatiquement le compte sans montrer le formulaire. Le bot attend donc soit un formulaire email/mot de passe visible sur `authent.ucpa.com`, soit une identité confirmée par le portail. Il ne continue pas à attendre un champ email disparu après une reconnexion automatique. `login_form_unavailable` distingue un formulaire absent ou inutilisable d’une connexion refusée.
 

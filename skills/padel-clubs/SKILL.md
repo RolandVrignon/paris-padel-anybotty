@@ -33,4 +33,4 @@ Les horizons du catalogue sont des observations datées, pas les disponibilités
 
 Pour configurer une recherche ou simuler le checkout, utiliser `padel-booking`.
 
-Forest Hill Nanterre–La Défense (`forest-hill-nanterre`) et La Marche Marnes-la-Coquette (`forest-hill-marnes`) sont ajoutés au catalogue de consultation et au monitoring. Leur checkout n’est pas encore audité : ne pas annoncer une réservation automatique validée. UCPA Meudon est suivi uniquement par le collecteur officiel ; les commandes `scripts/ucpa.js` ciblent encore Paris 19 et ne doivent pas servir à réserver à Meudon.
+Forest Hill Nanterre–La Défense (`forest-hill-nanterre`) et La Marche Marnes-la-Coquette (`forest-hill-marnes`) sont ajoutés au catalogue de consultation et au monitoring. Leur checkout n’est pas encore audité : ne pas annoncer une réservation automatique validée. UCPA Meudon est suivi par le collecteur officiel et son checkout se simule avec `scripts/ucpa.js book --club ucpa-meudon`. Ce test ne vaut pas validation d’une réservation ou d’une annulation réelle à Meudon.

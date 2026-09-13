@@ -1,4 +1,4 @@
-# Réserver et gérer ses parties sur UCPA Paris 19
+# Réserver et gérer ses parties sur UCPA Paris 19 et Meudon
 
 La navigation du calendrier reconnaît les jours affichés avec ou sans zéro initial (`07` ou `7`) et les associe au jour de semaine et à la plage horaire exacte. Une reconnexion automatique SSO est vérifiée par l’identité du portail, sans exiger l’apparition du formulaire email.
 
@@ -13,8 +13,11 @@ Cette intégration est locale. Les skills Hermes, le moteur multi-clubs et les t
 ## Commandes
 
 ```sh
-# Liste des réservations UCPA de padel à venir
+# Liste des réservations UCPA de padel à venir (Paris 19 par défaut)
 npm run ucpa -- list
+
+# Même lecture pour Meudon
+npm run ucpa -- list --club ucpa-meudon
 
 # Réservations à venir et passées renvoyées par le portail
 npm run ucpa -- list --scope all
@@ -33,6 +36,10 @@ npm run ucpa -- book --date 2026-09-21 --time 07:00 \
   --durations 60,90 --court-environment indoor --max-price-per-hour 38
 # Ajouter --confirm à cette commande pour une réservation réelle.
 
+# Meudon : le centre est explicite pour book, list, show, cancel et reconcile
+npm run ucpa -- book --club ucpa-meudon --date 2027-01-11 --time 07:00 \
+  --durations 60 --court-environment indoor --max-price-per-hour 50
+
 # Inspecter les conditions d'annulation, sans annuler
 npm run ucpa -- cancel --id IDENTIFIANT
 
@@ -45,11 +52,11 @@ npm run ucpa -- reconcile --date 2026-09-21 --time 07:00
 
 `npm run checkout:ucpa -- --headed` reste disponible comme raccourci d’aperçu. Sans `--headed`, le navigateur fonctionne en arrière-plan sur la machine locale. `npm run ucpa -- --help` affiche les options.
 
-`book` et `reconcile` utilisent la date et l’heure de `config.request.json` lorsqu’elles ne sont pas explicites ; `ucpa-paris` doit alors figurer dans les clubs. Les dates acceptent `DD/MM/YYYY` ou `YYYY-MM-DD`. Les arguments remplacent les préférences concernées sans réécrire les fichiers privés.
+`--club` accepte `ucpa-paris` et `ucpa-meudon`. Sans option, Paris 19 reste la valeur par défaut. `book` et `reconcile` utilisent la date et l’heure de `config.request.json` lorsqu’elles ne sont pas explicites ; le centre UCPA présent dans les clubs est alors repris. Les dates acceptent `DD/MM/YYYY` ou `YYYY-MM-DD`. Les arguments remplacent les préférences concernées sans réécrire les fichiers privés.
 
 ## Choix du créneau et du terrain
 
-Les quatre terrains UCPA Paris 19 sont intérieurs, conformément à la précision fournie par l’utilisateur. Le bot choisit toujours **le premier terrain disponible proposé**, sans préférence de numéro. Les préférences `indoor`, `indoor,outdoor`, `outdoor,indoor` et `any` acceptent UCPA ; `outdoor` seul donne `no_match`.
+Les terrains configurés à Paris 19 et Meudon sont intérieurs. Le bot choisit toujours **le premier terrain disponible proposé**, sans préférence de numéro. Les préférences `indoor`, `indoor,outdoor`, `outdoor,indoor` et `any` acceptent ces centres ; `outdoor` seul donne `no_match`.
 
 Les durées sont considérées dans l’ordre demandé parmi les offres publiées à l’heure exacte. `90,60` permet un repli sur 60 minutes ; `90` seul ne l’autorise pas. Le calendrier observé proposait des séances d’une heure : le bot ne combine pas plusieurs créneaux pour fabriquer une durée plus longue.
 
@@ -109,10 +116,10 @@ La liste parcourt les pages du portail et vérifie leur identité, leur total et
 | Étape suivante | Bouton `Étape suivante` ; vérifier aussi la classe CSS `disabled`. |
 | Conditions | `input#cgi` ; conservé décoché en aperçu. |
 | Validation | Bouton exact `Réserver` ; POST `/loisirs-reservation/api/users/createCourtBooking`. |
-| Liste | POST `/sport-station/espacepersonnel/api/paris-19/amplify/kala/reservedSession`, pagination par contact du compte. |
+| Liste | POST `/sport-station/espacepersonnel/api/{centre}/amplify/kala/reservedSession`, pagination par contact du compte. |
 | Détail | Page `scheduled-reservations/<sessionId>/<customerUuid>` ; GET `kala/getSessionById`. |
 | Annulation | Bouton exact `Annuler la partie`, puis `Confirmer l'annulation`. `Garder ma partie` est l'autre choix. |
-| Mutation d’annulation | POST `/sport-station/espacepersonnel/api/paris-19/cancel-court-session` avec `sessionId` et `uuid` égal au contact `horanet_id` du compte pour les séances externes ; le `customerUuid` utilisé dans l’URL de détail n’est pas cet identifiant. |
+| Mutation d’annulation | POST `/sport-station/espacepersonnel/api/{centre}/cancel-court-session` avec `sessionId` et `uuid` égal au contact `horanet_id` du compte pour les séances externes ; le `customerUuid` utilisé dans l’URL de détail n’est pas cet identifiant. |
 
 Le garde réseau bloque les mutations en aperçu. Pour une action réelle, il n’autorise qu’une requête vers le point d’entrée attendu, avec vérification de sa cible et, pour réserver, du prix de la participation et des options. Il ne rejoue pas les données de carte : la soumission vient du bouton natif et utilise la carte enregistrée chez UCPA.
 
@@ -122,4 +129,4 @@ Le garde réseau bloque les mutations en aperçu. Pour une action réelle, il n�
 - Aperçu réel testé avec et sans affichage du navigateur, créneau complet et premier terrain intérieur disponible.
 - Tests Chromium et unitaires : pagination, compte incorrect, prix modifié, double exécution, réponse perdue, version d’annulation périmée, délai de 48 heures, capitaine/participant et absence de clic engageant en aperçu.
 
-Les tests réels portent sur UCPA Paris 19 et sa carte déjà enregistrée. Ils ne prouvent pas le fonctionnement de la réservation sur les autres sites officiels.
+Paris 19 a été validé de bout en bout avec sa carte enregistrée : réservation réelle, lecture du compte et annulation gratuite. Meudon a été validé le 13 septembre 2026 jusqu’au checkout avec une lecture authentifiée du compte : 11 janvier à 07:00, Terrain 1 Padel HC, 6,25 € par part et 25 € pour le terrain. Les conditions sont restées décochées et aucune réservation n’a été soumise. La réservation réelle, l’apparition dans le compte et l’annulation Meudon restent donc à recetter.
