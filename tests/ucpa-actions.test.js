@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
-import { bookUcpa, cancelUcpa, reconcileUcpaBooking, showUcpaReservation, ucpaActionStore, ucpaBookingKey, UCPA_CREATE_URL, UCPA_CANCEL_URL } from '../lib/ucpa-actions.js'
+import { bookUcpa, cancelUcpa, reconcileUcpaBooking, showUcpaReservation, ucpaActionStore, ucpaBookingKey, waitForUcpaSavedCard, UCPA_CREATE_URL, UCPA_CANCEL_URL } from '../lib/ucpa-actions.js'
 import { createUcpaAccountClient, UCPA_API, normalizeUcpaReservation } from '../lib/ucpa-account.js'
 
 const customer = 'customer_fixture'
@@ -21,6 +21,27 @@ const directory = t => {
   t.after(() => rmSync(path, { recursive: true, force: true }))
   return path
 }
+
+test('saved UCPA card handles whitespace, responsive copies and delayed rendering; hidden or incomplete cards are rejected', async () => {
+  const browser = await chromium.launch()
+  try {
+    const page = await browser.newPage()
+    page.setDefaultTimeout(500)
+    const markup = '<h4>Carte enregistrée</h4><style>@media(max-width:640px){.desktop{display:none}}@media(min-width:641px){.mobile{display:none}}</style><div><div class="desktop"> Carte Bancaire XXXX 0000</div><div class="mobile"> Carte Bancaire XXXX 0000</div></div>'
+    for (const width of [600, 1280]) {
+      await page.setViewportSize({ width, height: 1000 })
+      await page.setContent(markup)
+      await waitForUcpaSavedCard(page)
+    }
+    await page.setContent('<h4>Carte enregistrée</h4>')
+    await page.evaluate(html => { setTimeout(() => { globalThis.document.body.innerHTML = html }, 100) }, markup)
+    await waitForUcpaSavedCard(page)
+    for (const content of ['<p style="display:none"> Carte Bancaire XXXX 0000</p>', '<p>Carte Bancaire XXXX</p>', '']) {
+      await page.setContent(`<h4>Carte enregistrée</h4>${content}`)
+      await assert.rejects(waitForUcpaSavedCard(page), /saved card could not be verified/)
+    }
+  } finally { await browser.close() }
+})
 
 test('UCPA account paginates all sessions, binds account identity, and excludes other sports without losing pagination', async () => {
   const pages = []

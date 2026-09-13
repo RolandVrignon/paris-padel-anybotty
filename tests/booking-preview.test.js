@@ -115,3 +115,44 @@ test('strict indoor skips outdoor offers even when cheaper; excluded durations a
   await assert.rejects(previewBookingOffer(page, clubs[0], strict), { code: 'PRICE_LIMIT' })
   assert.equal(await page.evaluate(() => globalThis.payClicks), 0)
 }))
+
+test('modern checkout keeps modal environment evidence only for the same court and page', () => withBrowser(async context => {
+  const item = offer('Indoor court', 60, 38)
+  const legacy = `<p class="font-bold">${item.court}</p><p class="opacity-70">Double, ${item.environment}</p>`
+  const modern = `<p class="font-bold text-sm leading-tight">${item.court}</p>`
+  let direct = false
+  await context.route('https://www.anybuddyapp.com/**', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: fixture(clubs[1], [item], direct).replaceAll(JSON.stringify(legacy).slice(1, -1), JSON.stringify(modern).slice(1, -1)) }))
+  const page = await context.newPage()
+  const normalized = { ...request, date: '2026-09-21', durationsMinutes: [60], courtEnvironment: ['indoor'] }
+  const result = await previewBookingOffer(page, clubs[1], normalized)
+  assert.equal(result.court, item.court)
+  assert.equal(result.environment, 'indoor')
+  assert.equal(result.totalEUR, 38)
+  assert.equal(await page.locator('p.font-bold + p.opacity-70').count(), 0)
+  const { assertCheckoutEnvironment } = await import('../lib/court-environment.js')
+  const sheet = page.getByTestId('booking-sheet')
+  const court = sheet.locator('p.font-bold.text-sm')
+  await court.evaluate(element => { element.textContent = 'Changed court' })
+  await assert.rejects(assertCheckoutEnvironment(sheet, ['indoor'], 'indoor'), /missing or ambiguous/)
+  await court.evaluate(element => { element.textContent = 'Indoor court' })
+  await assert.rejects(assertCheckoutEnvironment(sheet, ['outdoor'], 'indoor'), /Invalid selected/)
+  const other = await context.newPage()
+  await other.setContent(summary(clubs[1], item).replace(legacy, modern))
+  await assert.rejects(assertCheckoutEnvironment(other.getByTestId('booking-sheet'), ['indoor'], 'indoor'), /missing or ambiguous/)
+  direct = true
+  await assert.rejects(previewBookingOffer(page, clubs[1], normalized), /missing or ambiguous/)
+  assert.equal(await page.evaluate(() => globalThis.payClicks), 0)
+  assert.equal(await page.evaluate(() => globalThis.termsClicks), 0)
+}))
+
+test('modern direct checkout identifies the court when no environment preference is requested', () => withBrowser(async context => {
+  const item = offer('Direct court', 60, 38)
+  const old = `<p class="font-bold">${item.court}</p><p class="opacity-70">Double, ${item.environment}</p>`
+  const updated = `<p class="font-bold text-sm leading-tight">${item.court}</p>`
+  await context.route('https://www.anybuddyapp.com/**', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: fixture(clubs[1], [item], true).replaceAll(JSON.stringify(old).slice(1, -1), JSON.stringify(updated).slice(1, -1)) }))
+  const page = await context.newPage()
+  const result = await previewBookingOffer(page, clubs[1], { ...request, date: '2026-09-21', durationsMinutes: [60], courtEnvironment: ['any'] })
+  assert.equal(result.court, 'Direct court')
+  assert.equal(result.stage, 'checkout_ready')
+  assert.equal(await page.evaluate(() => globalThis.payClicks), 0)
+}))

@@ -4,6 +4,8 @@ La navigation du calendrier reconnaît les jours affichés avec ou sans zéro in
 
 Le site officiel UCPA dispose de son propre parcours : **réservation avec carte déjà enregistrée, liste des réservations, détail et annulation de la partie**. Les commandes utilisent `providers.ucpa.account` dans `config.fixed.json`, indépendamment du compte et du moyen de paiement Anybuddy.
 
+La carte bancaire enregistrée est renvoyée par le service de paiement UCPA pour le compte connecté ; elle ne dépend pas du remplissage automatique du navigateur. Le bot attend son libellé visible et reconnaît les variantes mobile et ordinateur du checkout. L’API `customerCards` concerne les cartes de séances et ne permet pas de déterminer si une carte bancaire est enregistrée.
+
 Un test réel a été réalisé le 13 septembre 2026 : réservation du 21 septembre, 07:00–08:00, Terrain 6 Padel HC, puis annulation sans frais confirmée par UCPA et disparition des réservations à venir. Les boutons, requêtes et contrôles observés sont repris dans les modules `lib/ucpa-*.js`.
 
 Cette intégration est locale. Les skills Hermes, le moteur multi-clubs et les tâches programmées restent actuellement orientés vers Anybuddy ; les commandes UCPA ci-dessous ne les remplacent pas automatiquement.
