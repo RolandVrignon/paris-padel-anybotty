@@ -142,15 +142,15 @@ flowchart LR
     H --> I[Vérifier le résultat Anybuddy]
 ```
 
-Le collecteur adapte **9 suivis indépendants par club et par site** : cinq clubs sur Anybuddy, UCPA Paris 19 sur son site officiel, puis 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20 en direct. Il apprend les publications quotidiennes, hebdomadaires, mensuelles ou par lots de plusieurs jours. Après au moins trois publications cohérentes, les contrôles toutes les cinq minutes se concentrent autour de la prochaine ouverture estimée. Un relevé complet horaire permet de repérer les changements ; une ouverture manquée remet la cible en découverte. Le timer systemd fonctionne sans modèle IA. [Réglages et fonctionnement du suivi adaptatif](docs/adaptive-monitoring.md).
+Le collecteur adapte **16 suivis indépendants par club et par site** : sept clubs sur Anybuddy, UCPA Paris 19 et Meudon sur leur site officiel, puis sept centres 4PADEL en direct (Boulogne, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil). Il apprend les publications quotidiennes, hebdomadaires, mensuelles ou par lots de plusieurs jours. Après au moins trois publications cohérentes, les contrôles toutes les cinq minutes se concentrent autour de la prochaine ouverture estimée. Un relevé complet horaire permet de repérer les changements ; une ouverture manquée remet la cible en découverte. Le timer systemd fonctionne sans modèle IA. [Réglages et fonctionnement du suivi adaptatif](docs/adaptive-monitoring.md).
 
-Le suivi Anybuddy couvre **Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy et Padel 15**. UCPA, 4PADEL Paris 20 et Saint-Ouen sont suivis uniquement sur leur site officiel. Leurs historiques Anybuddy sont conservés selon la rétention habituelle et ces clubs restent disponibles pour la réservation via Anybuddy.
+Le suivi Anybuddy couvre **Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy, Padel 15, Forest Hill Nanterre–La Défense et Forest Hill Marnes-la-Coquette**. UCPA, 4PADEL Paris 20 et Saint-Ouen sont suivis uniquement sur leur site officiel. Leurs historiques Anybuddy sont conservés selon la rétention habituelle et ces clubs restent disponibles pour la réservation via Anybuddy.
 
 Une date absente à 07 h 55 et présente à 08 h donne une ouverture **entre 07 h 55 et 08 h**. Cinq contrôles supplémentaires vérifient la présence de disponibilités pendant environ 25 minutes. Le bot conserve les observations ; il ne transforme pas un seul relevé en règle certaine.
 
 Les observations restent séparées par club et par site. La réservation fonctionne sur Anybuddy et, avec des commandes dédiées, sur les sites officiels UCPA Paris 19 et 4PADEL. Le collecteur reste en lecture seule : il ne crée aucune réservation et ne soumet aucun paiement. [Configurer le suivi officiel](docs/direct-monitoring.md).
 
-**Sur le site officiel 4PADEL :** Boulogne sert de référence horaire pour Paris 20 et Saint-Ouen, dont le calendrier affiche J+30 malgré une restriction de réservation. La règle commune **J+14 (« moins de 15 jours »)** est une hypothèse de travail pour ces deux centres. Le rapport expose les ouvertures de Boulogne et leurs confirmations, sans tentative de réservation périodique ni autorisation supposée acquise. [Détails du suivi](docs/direct-monitoring.md).
+**Sur le site officiel 4PADEL :** Boulogne sert de référence horaire pour Paris 20, Saint-Ouen, Montreuil, CAO Saint-Denis, Marville et Créteil. Leurs calendriers affichent 30 à 31 jours ; la règle commune **J+14 (« moins de 15 jours »)** reste une hypothèse de travail, distincte de cette visibilité. Le rapport expose les ouvertures de Boulogne et leurs confirmations, sans tentative de réservation périodique ni autorisation supposée acquise. [Détails du suivi](docs/direct-monitoring.md).
 
 **Deux rôles distincts :** systemd observe ; le cron Hermes déclenche la tentative. La commande directe `booking:search` cherche immédiatement, sans attendre une ouverture future.
 
@@ -200,9 +200,9 @@ Le prix concerne **le terrain entier**, pas chaque joueur. Le montant du checkou
 <a id="clubs"></a>
 ## Tes clubs, à Paris et au-delà
 
-### Anybuddy : neuf clubs parisiens
+### Anybuddy : onze clubs à Paris et en proche banlieue
 
-Neuf centres sont intégrés au catalogue **Anybuddy**. Les horizons ci-dessous sont des **observations du 11 septembre 2026**, pas des règles contractuelles ni des disponibilités en direct.
+Onze centres sont intégrés au catalogue **Anybuddy**. Les horizons ci-dessous sont des **observations du 11 septembre 2026**, sauf les deux Forest Hill ajoutés le 13 septembre. Ce ne sont pas des règles contractuelles ni des disponibilités en direct.
 
 | Club | Identifiant | Horizon observé |
 | --- | --- | --- |
@@ -215,6 +215,10 @@ Neuf centres sont intégrés au catalogue **Anybuddy**. Les horizons ci-dessous 
 | Padelistes Bercy - Paris 12 | `padelistes-bercy` | J+8 |
 | Padel 15 | `padel-15` | J+5 |
 | Trinquet Village | `trinquet-village` | Au moins J+61 ; limite inconnue |
+| Forest Hill Nanterre–La Défense | `forest-hill-nanterre` | J+6 observé le 13/09 |
+| Forest Hill La Marche Marnes-la-Coquette | `forest-hill-marnes` | J+6 observé le 13/09 |
+
+Les deux nouveaux Forest Hill sont disponibles pour la consultation et le monitoring ; leur checkout n’a pas encore été audité. UCPA Meudon réutilise le collecteur public : sa dernière semaine visible, vérifiée le 13 septembre 2026, va du 11 au 17 janvier 2027. Le suivi surveille la frontière suivante, sans figer un horizon J+126. Les commandes de réservation UCPA restent limitées à Paris 19. [État des ajouts en proche banlieue](docs/paris-suburbs.md).
 
 Trinquet Village reste au catalogue mais est exclu de la surveillance des ouvertures. Les heures d’ouverture ne sont pas garanties par ces horizons : elles doivent être documentées séparément.
 

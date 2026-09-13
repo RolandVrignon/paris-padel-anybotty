@@ -5,8 +5,8 @@ import { buildPlan, validateRequest } from '../lib/plan.js'
 const catalog = JSON.parse(readFileSync(new URL('../data/clubs.json', import.meta.url)))
 const request = JSON.parse(readFileSync(new URL('../config.json.sample', import.meta.url)))
 
-test('all nine observations agree with their calendar-day horizons', () => {
-  assert.equal(catalog.length, 9)
+test('all catalog observations agree with their calendar-day horizons', () => {
+  assert.equal(catalog.length, 11)
   for (const club of catalog) {
     const days = (Date.parse(club.observation.lastAvailableDate) - Date.parse(club.observation.date)) / 86400000
     assert.equal(club.observation.horizonDays, days)

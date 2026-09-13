@@ -54,7 +54,7 @@ if (args[0] === '--plan') {
           const options = { signal: controller.signal, targeted: plan.mode === 'targeted' }
           let snapshot
           if (club.provider === 'anybuddy') snapshot = await fetchAvailability(club, plan.window, options)
-          else if (club.provider === 'ucpa') snapshot = await fetchUcpaAvailability(club, plan.window, options)
+          else if (club.provider === 'ucpa') snapshot = await fetchUcpaAvailability(club, plan.window, { ...options, previousBoundary: previous.lastFullScan?.frontier })
           else if (club.provider === '4padel') {
             fourPadelSession ??= createFourPadelSession({ ...options, checkOnly: true })
             snapshot = await fetchFourPadelAvailability(club, plan.window, { ...options, calendarFrom: calendarWindow(club).from, session: await fourPadelSession })

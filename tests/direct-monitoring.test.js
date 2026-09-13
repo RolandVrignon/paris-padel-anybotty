@@ -84,9 +84,9 @@ test('official calendar HTTP reads preserve retry backoff and never expose token
 
 test('provider backoff is isolated and old Anybuddy storage identities remain unchanged', () => {
   const targets = monitoringTargets(repositoryDirectory)
-  assert.equal(targets.filter(t => t.provider === 'anybuddy').length, 5)
-  assert.equal(targets.filter(t => t.provider !== 'anybuddy').length, 4)
-  assert.equal(new Set(targets.map(t => t.id)).size, 9)
+  assert.equal(targets.filter(t => t.provider === 'anybuddy').length, 7)
+  assert.equal(targets.filter(t => t.provider !== 'anybuddy').length, 9)
+  assert.equal(new Set(targets.map(t => t.id)).size, 16)
   assert.ok(targets.filter(t => t.provider === 'anybuddy').every(t => t.id === t.canonicalClubId))
   const pauses = providerPauses(targets, id => id.includes('--4padel') ? { httpStatus: 401, nextRetryAt: '2026-09-13T01:00:00Z' } : null, Date.parse('2026-09-13T00:00:00Z'))
   assert.deepEqual([...pauses.keys()], ['4padel'])
@@ -153,4 +153,23 @@ test('targeted 4PADEL maps UI dates from today and makes no inventory request fo
   })
   assert.deepEqual(snapshot.blockedDates, ['2026-09-28'])
   assert.deepEqual(snapshot.slots, [])
+})
+
+test('UCPA bounded scanning does not invent a horizon or absence beyond observed coverage', () => {
+  const body=week('2026-09-14')
+  const window={from:'2026-09-14',to:'2026-09-16'}
+  const result=assembleUcpaSnapshot({}, window, [normalizeUcpaWeek(body)], '2026-09-13T00:00:00Z', {reachedBoundary:false})
+  assert.equal(result.navigationThroughDate,null)
+  assert.equal(result.navigationLimitReached,false)
+  assert.equal(result.navigationObservedThroughDate,'2026-09-20')
+  assert.deepEqual(result.window,window)
+})
+
+test('Meudon next-week landing omits unvisited days while Paris keeps its strict date guard', () => {
+  const weeks=[normalizeUcpaWeek(week('2026-09-14'))]
+  const window={from:'2026-09-13',to:'2026-09-20'}
+  const result=assembleUcpaSnapshot({monitoring:{navigationMode:'window'}},window,weeks,'2026-09-13T18:00:00Z',{reachedBoundary:false})
+  assert.deepEqual(result.window,{from:'2026-09-14',to:'2026-09-20'})
+  assert.equal(result.navigationThroughDate,null)
+  assert.throws(()=>assembleUcpaSnapshot({},window,weeks,'2026-09-13T18:00:00Z'), /date changed/)
 })

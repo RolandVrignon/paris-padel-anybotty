@@ -63,5 +63,107 @@
         "status": "hypothesis"
       }
     }
+  },
+  {
+    "id": "4padel-montreuil--4padel",
+    "clubId": "4padel-montreuil",
+    "name": "4PADEL Montreuil",
+    "provider": "4padel",
+    "centerId": 73,
+    "url": "https://www.4padel.fr/reservations/slots?center=73",
+    "observation": {
+      "horizonDays": 14,
+      "note": "Working hypothesis: reservations less than 15 days ahead despite 30/31-day calendar visibility. Boulogne is an unverified opening-time reference; no checkout authorization tested.",
+      "visibilityCheckedAt": "2026-09-13T18:10:13.914Z",
+      "declaredVisibilityDays": 31
+    },
+    "monitoring": {
+      "enabled": true,
+      "openingReference": {
+        "targetId": "4padel-boulogne--4padel",
+        "status": "hypothesis"
+      }
+    }
+  },
+  {
+    "id": "4padel-cao-saint-denis--4padel",
+    "clubId": "4padel-cao-saint-denis",
+    "name": "4PADEL CAO Saint-Denis",
+    "provider": "4padel",
+    "centerId": 89,
+    "url": "https://www.4padel.fr/reservations/slots?center=89",
+    "observation": {
+      "horizonDays": 14,
+      "note": "Working hypothesis: reservations less than 15 days ahead despite 30/31-day calendar visibility. Boulogne is an unverified opening-time reference; no checkout authorization tested.",
+      "visibilityCheckedAt": "2026-09-13T18:10:25.940Z",
+      "declaredVisibilityDays": 30
+    },
+    "monitoring": {
+      "enabled": true,
+      "openingReference": {
+        "targetId": "4padel-boulogne--4padel",
+        "status": "hypothesis"
+      }
+    }
+  },
+  {
+    "id": "4padel-marville--4padel",
+    "clubId": "4padel-marville",
+    "name": "4PADEL Marville",
+    "provider": "4padel",
+    "centerId": 65,
+    "url": "https://www.4padel.fr/reservations/slots?center=65",
+    "observation": {
+      "horizonDays": 14,
+      "note": "Working hypothesis: reservations less than 15 days ahead despite 30/31-day calendar visibility. Boulogne is an unverified opening-time reference; no checkout authorization tested.",
+      "visibilityCheckedAt": "2026-09-13T18:10:40.953Z",
+      "declaredVisibilityDays": 31
+    },
+    "monitoring": {
+      "enabled": true,
+      "openingReference": {
+        "targetId": "4padel-boulogne--4padel",
+        "status": "hypothesis"
+      }
+    }
+  },
+  {
+    "id": "4padel-creteil--4padel",
+    "clubId": "4padel-creteil",
+    "name": "4PADEL Créteil",
+    "provider": "4padel",
+    "centerId": 25,
+    "url": "https://www.4padel.fr/reservations/slots?center=25",
+    "observation": {
+      "horizonDays": 14,
+      "note": "Working hypothesis: reservations less than 15 days ahead despite 30/31-day calendar visibility. Boulogne is an unverified opening-time reference; no checkout authorization tested.",
+      "visibilityCheckedAt": "2026-09-13T18:10:51.119Z",
+      "declaredVisibilityDays": 31
+    },
+    "monitoring": {
+      "enabled": true,
+      "openingReference": {
+        "targetId": "4padel-boulogne--4padel",
+        "status": "hypothesis"
+      }
+    }
+  },
+  {
+    "id": "ucpa-meudon--ucpa",
+    "clubId": "ucpa-meudon",
+    "name": "UCPA Sport Station Meudon",
+    "provider": "ucpa",
+    "url": "https://www.ucpa.com/sport-station/meudon/padel",
+    "observation": {
+      "horizonDays": 0,
+      "visibilityObservedOn": "2026-09-13",
+      "lastVisibleDate": "2027-01-17",
+      "visibleLeadDays": 126,
+      "note": "Native next-week arrow disabled after 11–17 January 2027. Initial planner declares a four-month calendar; this is observed visibility, not a fixed J+126 booking rule or verified opening schedule."
+    },
+    "monitoring": {
+      "enabled": true,
+      "navigationMode": "month-boundary"
+    }
   }
 ]

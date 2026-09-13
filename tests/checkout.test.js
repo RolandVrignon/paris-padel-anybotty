@@ -47,11 +47,12 @@ test('payment guard blocks Stripe confirmations, permits initialization and unre
 })
 
 
-test('checkout audit covers all nine catalogue clubs with observed Stripe evidence', () => {
+test('checkout audit covers bookable catalogue clubs; unaudited additions remain blocked', async () => {
   const read = path => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'))
   const catalogue = read('../data/clubs.json')
   const profiles = read('../data/checkout-requirements.json').clubs
-  assert.deepEqual(profiles.map(club => club.clubId).sort(), catalogue.map(club => club.id).sort())
+  assert.deepEqual(profiles.map(club => club.clubId).sort(), catalogue.filter(club => club.checkout?.audited !== false).map(club => club.id).sort())
+  for (const club of catalogue.filter(club => club.checkout?.audited === false)) await assert.rejects(inspectCheckout({}, club.id), /not been audited/)
   for (const profile of profiles) {
     assert.equal(profile.stripeReached, true)
     assert.equal(profile.paymentSubmitted, false)

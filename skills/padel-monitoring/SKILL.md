@@ -5,7 +5,7 @@ description: Consulter les heures de publication observées des créneaux Anybud
 
 # Surveillance des ouvertures Anybotty
 
-Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` évalue toutes les cinq minutes les besoins de collecte de cinq clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
+Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` évalue toutes les cinq minutes les besoins de collecte de sept clubs Anybuddy et neuf canaux officiels : UCPA Paris 19 et Meudon, ainsi que 4PADEL Boulogne-Billancourt, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
 
 ## Lire les observations
 
@@ -75,4 +75,6 @@ En cas de restriction HTTP ou d’authentification répétée en échec, le four
 
 Les preuves résumées de publications sont conservées 400 jours pour permettre l’apprentissage mensuel ; les instantanés bruts restent limités à 30 jours.
 
-Le suivi Anybuddy est désactivé pour `ucpa-paris`, `4padel-paris-20` et `4padel-saint-ouen` dans `data/clubs.json`, car leur site officiel est déjà suivi. Les cinq suivis Anybuddy actifs sont Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy et Padel 15. La réservation via Anybuddy reste disponible pour les clubs désactivés ; leurs anciens relevés ne décrivent plus une disponibilité actuelle. Aucun historique n’est effacé par cette désactivation.
+Le suivi Anybuddy est désactivé pour `ucpa-paris`, `4padel-paris-20` et `4padel-saint-ouen` dans `data/clubs.json`, car leur site officiel est déjà suivi. Les sept suivis Anybuddy actifs sont Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy, Padel 15, Forest Hill Nanterre–La Défense et Forest Hill Marnes-la-Coquette. La réservation via Anybuddy reste disponible pour les clubs désactivés ; leurs anciens relevés ne décrivent plus une disponibilité actuelle. Aucun historique n’est effacé par cette désactivation.
+
+UCPA Meudon (`ucpa-meudon--ucpa`) partage le collecteur public de Paris. Son mode `month-boundary` surveille les semaines proches de la limite du calendrier initial de quatre mois (`declaredCalendarThroughDate`), sans parcourir les mois intermédiaires ni interroger les semaines bloquées. Au 13 septembre 2026, la limite native était le 17 janvier 2027 : surveiller le 18 janvier et les jours suivants. Cette date évolue ; lire les relevés actuels, ne pas figer J+126 ni supposer une ouverture chaque lundi. Les commandes de réservation UCPA restent spécifiques à Paris 19. Les nouveaux centres 4PADEL Montreuil, CAO Saint-Denis, Marville et Créteil affichent 30/31 jours : ils utilisent, comme Saint-Ouen et Paris 20, le contrôle horaire et la référence Boulogne non vérifiée au checkout.

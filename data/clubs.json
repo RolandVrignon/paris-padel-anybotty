@@ -194,5 +194,53 @@
       "localTime": null,
       "verified": false
     }
+  },
+  {
+    "id": "forest-hill-nanterre",
+    "name": "Forest Hill Nanterre-La Défense",
+    "url": "https://www.anybuddyapp.com/fr/club/forest-hill-nanterre-la-defense/padel",
+    "observation": {
+      "source": "anybuddy_public_availability",
+      "date": "2026-09-13",
+      "lastAvailableDate": "2026-09-19",
+      "horizonDays": 6,
+      "checkedAt": "2026-09-13T18:09:32.171Z",
+      "searchedThrough": "2026-10-18",
+      "horizonIsLowerBound": false
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    },
+    "checkout": {
+      "audited": false,
+      "note": "Availability and monitoring validated; checkout conditions must be audited before automated payment."
+    }
+  },
+  {
+    "id": "forest-hill-marnes",
+    "name": "Forest Hill La Marche Marnes-La-Coquette",
+    "url": "https://www.anybuddyapp.com/fr/club/forest-hill-marnes-la-coquette/padel",
+    "observation": {
+      "source": "anybuddy_public_availability",
+      "date": "2026-09-13",
+      "lastAvailableDate": "2026-09-19",
+      "horizonDays": 6,
+      "checkedAt": "2026-09-13T18:09:33.710Z",
+      "searchedThrough": "2026-10-18",
+      "horizonIsLowerBound": false
+    },
+    "opening": {
+      "timeZone": "Europe/Paris",
+      "mode": "unknown",
+      "localTime": null,
+      "verified": false
+    },
+    "checkout": {
+      "audited": false,
+      "note": "Availability and monitoring validated; checkout conditions must be audited before automated payment."
+    }
   }
 ]

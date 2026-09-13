@@ -8,10 +8,10 @@ const now = Date.parse('2026-09-14T06:30:00Z')
 const event = { type: 'new_day_candidate', targetDate: '2026-09-28', lastValidAbsentAt: '2026-09-14T05:55:00Z', firstAvailableAt: '2026-09-14T06:00:00Z' }
 const source = { status: 'ok', snapshot: { finishedAt: '2026-09-14T06:30:00Z' }, recentOpenings: [event], completedWatches: [{ targetDate: event.targetDate, firstAvailableAt: event.firstAvailableAt, phase: 'complete', confirmations: Array(5).fill({}) }] }
 
-test('only official Paris 20 and Saint-Ouen reference Boulogne; source confirmations never verify checkout', () => {
+test('official centers with extended visible calendars reference Boulogne; source confirmations never verify checkout', () => {
   const targets = monitoringTargets(repositoryDirectory)
   const linked = targets.filter(target => target.monitoring?.openingReference)
-  assert.deepEqual(linked.map(target => target.id).sort(), ['4padel-paris-20--4padel', '4padel-saint-ouen--4padel'])
+  assert.deepEqual(linked.map(target => target.id).sort(), ['4padel-cao-saint-denis--4padel', '4padel-creteil--4padel', '4padel-marville--4padel', '4padel-montreuil--4padel', '4padel-paris-20--4padel', '4padel-saint-ouen--4padel'])
   for (const target of targets) {
     const result = openingReference(target, id => { assert.equal(id, '4padel-boulogne--4padel'); return source }, now)
     if (!linked.includes(target)) { assert.equal(result, null); continue }
