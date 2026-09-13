@@ -1,5 +1,7 @@
 # Réserver et gérer ses parties sur UCPA Paris 19
 
+La navigation du calendrier reconnaît les jours affichés avec ou sans zéro initial (`07` ou `7`) et les associe au jour de semaine et à la plage horaire exacte. Une reconnexion automatique SSO est vérifiée par l’identité du portail, sans exiger l’apparition du formulaire email.
+
 Le site officiel UCPA dispose de son propre parcours : **réservation avec carte déjà enregistrée, liste des réservations, détail et annulation de la partie**. Les commandes utilisent `providers.ucpa.account` dans `config.fixed.json`, indépendamment du compte et du moyen de paiement Anybuddy.
 
 Un test réel a été réalisé le 13 septembre 2026 : réservation du 21 septembre, 07:00–08:00, Terrain 6 Padel HC, puis annulation sans frais confirmée par UCPA et disparition des réservations à venir. Les boutons, requêtes et contrôles observés sont repris dans les modules `lib/ucpa-*.js`.

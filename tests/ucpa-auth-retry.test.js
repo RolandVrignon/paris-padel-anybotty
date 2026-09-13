@@ -73,7 +73,7 @@ test('UCPA login submits credentials once even when portal session becomes ready
     context: () => ({ request: { get: async () => response(++reads < 3 ? 401 : 200) } }),
     goto: async () => {}, waitForURL: async () => {}, url: () => location,
     on() {}, removeListener() {},
-    locator: () => ({ waitFor: async () => {}, fill: async () => {} }),
+    locator: () => ({ isVisible: async () => true, waitFor: async () => {}, fill: async () => {} }),
     getByRole: () => ({ click: async () => { submits++; location = 'https://www.ucpa.com/sport-station/espacepersonnel/paris-19/accueil' } }),
   }
   assert.deepEqual(await authenticateUcpa(page, { email, password: 'private' }, { timeoutMs: 5000 }), { email })
@@ -87,9 +87,9 @@ test('UCPA distinguishes a login service outage, bad credentials and an interact
     const page = {
       context: () => ({ request: { get: async () => response(401) } }),
       goto: async () => {}, url: () => 'https://authent.ucpa.com/',
-      waitForURL: async () => { if (++waits === 2) throw new Error('timeout private-url') },
+      waitForURL: async () => { if (++waits === 1) throw new Error('timeout private-url') },
       on: (event, fn) => { observer = fn }, removeListener() {},
-      locator: () => ({ waitFor: async () => {}, fill: async () => {} }),
+      locator: () => ({ isVisible: async () => true, waitFor: async () => {}, fill: async () => {} }),
       getByRole: () => ({ click: async () => { submits++; await observer({ url: () => 'https://cognito-idp.eu-west-1.amazonaws.com/', status: () => status, json: async () => body }) } }),
     }
     await assert.rejects(authenticateUcpa(page, { email, password: 'private' }, { timeoutMs: 1000 }), error => error.code === code && !error.message.includes('private'))

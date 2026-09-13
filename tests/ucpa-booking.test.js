@@ -52,15 +52,15 @@ test('UCPA preview permits only observed read queries and blocks booking/card/pa
   for (const url of ['https://www.ucpa.com/loisirs-reservation/api/amplify/createBooking', 'https://www.ucpa.com/loisirs-reservation/api/amplify/registerCard', 'https://api.stripe.com/v1/payment_intents/pi_test/confirm', 'https://untrusted.test/loisirs-reservation/api/amplify/customerCards']) assert.equal(ucpaPreviewRequestAllowed(url, 'POST'), false)
 })
 
-const withFixture = async (run, { direct = false, disabled = false, checkedPromo = false, checkedTerms = false, amount = '9.50' } = {}) => {
+const withFixture = async (run, { direct = false, disabled = false, checkedPromo = false, checkedTerms = false, amount = '9.50', dateLabel = 'Lundi 21 septembre 2026' } = {}) => {
   const browser = await chromium.launch()
   try {
     const context = await browser.newContext()
     context.setDefaultTimeout(2000)
     const initial = direct ? 'participants' : 'sessions'
     await context.route('https://www.ucpa.com/**', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: `<main></main><script>
-const selection = ${JSON.stringify(selection)};
-const summary = ${JSON.stringify(summary.replace('9.50', amount))};
+const selection = ${JSON.stringify(selection.replace('Lundi 21 septembre 2026', dateLabel))};
+const summary = ${JSON.stringify(summary.replace('9.50', amount).replace('Lundi 21 septembre 2026', dateLabel))};
 globalThis.finalClicks = 0;
 globalThis.termsClicks = 0;
 globalThis.identityChecks = 0;
@@ -138,3 +138,12 @@ test('UCPA network guard blocks an actual unexpected POST in the browser', () =>
   })
   assert.equal(outcome, 'blocked')
 }))
+
+test('UCPA accepts the padded date through court selection, participants and payment summary', () => withFixture(async page => {
+  const october = { ...request, date: '2026-10-07' }
+  const result = await advanceUcpaFunnel(page, october, 60)
+  assert.equal(result.status, 'checkout_ready')
+  assert.equal(result.date, '2026-10-07')
+  assert.equal(result.termsAccepted, false)
+  assert.throws(() => inspectUcpaSummary(summary.replace('Lundi 21 septembre 2026', 'Mercredi 08 octobre 2026'), october, 60, 'Terrain 6 Padel HC'))
+}, { dateLabel: 'Mercredi 07 octobre 2026' }))
