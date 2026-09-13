@@ -142,7 +142,9 @@ flowchart LR
     H --> I[Vérifier le résultat Anybuddy]
 ```
 
-Le collecteur adapte **12 suivis indépendants par club et par site** : huit clubs sur Anybuddy, UCPA Paris 19 sur son site officiel, puis 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20 en direct. Il apprend les publications quotidiennes, hebdomadaires, mensuelles ou par lots de plusieurs jours. Après au moins trois publications cohérentes, les contrôles toutes les cinq minutes se concentrent autour de la prochaine ouverture estimée. Un relevé complet horaire permet de repérer les changements ; une ouverture manquée remet la cible en découverte. Le timer systemd fonctionne sans modèle IA. [Réglages et fonctionnement du suivi adaptatif](docs/adaptive-monitoring.md).
+Le collecteur adapte **9 suivis indépendants par club et par site** : cinq clubs sur Anybuddy, UCPA Paris 19 sur son site officiel, puis 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20 en direct. Il apprend les publications quotidiennes, hebdomadaires, mensuelles ou par lots de plusieurs jours. Après au moins trois publications cohérentes, les contrôles toutes les cinq minutes se concentrent autour de la prochaine ouverture estimée. Un relevé complet horaire permet de repérer les changements ; une ouverture manquée remet la cible en découverte. Le timer systemd fonctionne sans modèle IA. [Réglages et fonctionnement du suivi adaptatif](docs/adaptive-monitoring.md).
+
+Le suivi Anybuddy couvre **Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy et Padel 15**. UCPA, 4PADEL Paris 20 et Saint-Ouen sont suivis uniquement sur leur site officiel. Leurs historiques Anybuddy sont conservés selon la rétention habituelle et ces clubs restent disponibles pour la réservation via Anybuddy.
 
 Une date absente à 07 h 55 et présente à 08 h donne une ouverture **entre 07 h 55 et 08 h**. Cinq contrôles supplémentaires vérifient la présence de disponibilités pendant environ 25 minutes. Le bot conserve les observations ; il ne transforme pas un seul relevé en règle certaine.
 

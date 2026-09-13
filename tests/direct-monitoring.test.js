@@ -84,9 +84,9 @@ test('official calendar HTTP reads preserve retry backoff and never expose token
 
 test('provider backoff is isolated and old Anybuddy storage identities remain unchanged', () => {
   const targets = monitoringTargets(repositoryDirectory)
-  assert.equal(targets.filter(t => t.provider === 'anybuddy').length, 8)
+  assert.equal(targets.filter(t => t.provider === 'anybuddy').length, 5)
   assert.equal(targets.filter(t => t.provider !== 'anybuddy').length, 4)
-  assert.equal(new Set(targets.map(t => t.id)).size, 12)
+  assert.equal(new Set(targets.map(t => t.id)).size, 9)
   assert.ok(targets.filter(t => t.provider === 'anybuddy').every(t => t.id === t.canonicalClubId))
   const pauses = providerPauses(targets, id => id.includes('--4padel') ? { httpStatus: 401, nextRetryAt: '2026-09-13T01:00:00Z' } : null, Date.parse('2026-09-13T00:00:00Z'))
   assert.deepEqual([...pauses.keys()], ['4padel'])

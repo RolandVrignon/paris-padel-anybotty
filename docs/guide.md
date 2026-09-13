@@ -35,7 +35,7 @@ Pour utiliser le bot directement, consulter [Hermes et Telegram](#piloter-depuis
 | Fonction | État |
 | --- | --- |
 | Catalogue de neuf clubs et planning prévisionnel | Disponible |
-| Surveillance des ouvertures sur huit clubs, toutes les cinq minutes | Disponible via le timer systemd |
+| Surveillance des ouvertures sur cinq clubs, toutes les cinq minutes | Disponible via le timer systemd |
 | Connexion Anybuddy et réutilisation de session | Disponible avec Playwright |
 | Choix de durée, intérieur/extérieur et terrain dans la modale | Disponible |
 | Recherche dans l’ordre des clubs, avec plafond horaire | Disponible ; simulation ou paiement explicite |
@@ -387,7 +387,7 @@ Les comptes UCPA et 4PADEL sont configurés sous `providers` dans le fichier fix
 
 Le timer décide à chaque réveil de consulter ou non chaque cible : découverte toutes les cinq minutes, plages resserrées après apprentissage, et couverture complète horaire. Voir le [suivi adaptatif](adaptive-monitoring.md) pour les réglages par club et par fournisseur.
 
-La surveillance couvre huit clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20. Elle fonctionne indépendamment des préférences de réservation. Anybuddy reste public et sans compte ; 4PADEL utilise une session Playwright dédiée. Voir la [configuration et les limites des sites officiels](direct-monitoring.md).
+La surveillance couvre cinq clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, Saint-Ouen et Paris 20. Elle fonctionne indépendamment des préférences de réservation. Anybuddy reste public et sans compte ; 4PADEL utilise une session Playwright dédiée. Voir la [configuration et les limites des sites officiels](direct-monitoring.md).
 
 ```sh
 # Un passage immédiat, sans programmer les suivants
@@ -397,7 +397,7 @@ npm run observe:once
 npm run observe:report
 ```
 
-Pour Anybuddy, le scan complet horaire interroge les huit clubs actifs successivement, sur une fenêtre d’au moins **J à J+35 inclus**, étendue si nécessaire jusqu’à l’horizon observé + 14 jours. Toutes les durées et tous les terrains renvoyés par ce calendrier sont conservés. Les relevés officiels suivent leur propre calendrier et restent séparés par fournisseur.
+Pour Anybuddy, le scan complet horaire interroge les cinq clubs actifs successivement, sur une fenêtre d’au moins **J à J+35 inclus**, étendue si nécessaire jusqu’à l’horizon observé + 14 jours. Toutes les durées et tous les terrains renvoyés par ce calendrier sont conservés. Les relevés officiels suivent leur propre calendrier et restent séparés par fournisseur.
 
 ### Mesurer une ouverture
 

@@ -37,6 +37,10 @@
       "mode": "unknown",
       "localTime": null,
       "verified": false
+    },
+    "monitoring": {
+      "enabled": false,
+      "reason": "Opening monitoring uses the official provider for this club; Anybuddy remains available for booking."
     }
   },
   {
@@ -77,6 +81,10 @@
       "mode": "unknown",
       "localTime": null,
       "verified": false
+    },
+    "monitoring": {
+      "enabled": false,
+      "reason": "Opening monitoring uses the official provider for this club; Anybuddy remains available for booking."
     }
   },
   {
@@ -117,6 +125,10 @@
       "mode": "unknown",
       "localTime": null,
       "verified": false
+    },
+    "monitoring": {
+      "enabled": false,
+      "reason": "Opening monitoring uses the official provider for this club; Anybuddy remains available for booking."
     }
   },
   {

@@ -89,3 +89,5 @@ Environment=ANYBOTTY_ALERT_TARGET=telegram:VOTRE_CHAT_ID
 Utiliser `systemctl --user edit anybotty-observe.service`, puis `systemctl --user daemon-reload`. Aucun modèle ni cron Hermes supplémentaire n’est nécessaire. Le destinataire reste dans la configuration privée du serveur. Sans cette variable, la suspension est journalisée mais aucun message Telegram n’est envoyé. `monitoringAlert.delivery` indique `delivered`, `failed` ou `not_configured` ; `delivered` signifie que la commande Hermes a réussi, sans preuve de lecture du message.
 
 Cette régulation réduit la charge ; elle ne garantit pas l’absence de restrictions imposées par les sites.
+
+Le suivi Anybuddy est désactivé pour `ucpa-paris`, `4padel-paris-20` et `4padel-saint-ouen` dans `data/clubs.json`, car leur site officiel est déjà suivi. Les cinq suivis Anybuddy actifs sont Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy et Padel 15. La réservation via Anybuddy reste disponible pour les clubs désactivés ; leurs anciens relevés ne décrivent plus une disponibilité actuelle. Aucun historique n’est effacé par cette désactivation.

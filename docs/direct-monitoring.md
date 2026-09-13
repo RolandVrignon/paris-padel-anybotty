@@ -1,6 +1,6 @@
 # Suivre les sites officiels
 
-Le timer `anybotty-observe.timer` se réveille toutes les cinq minutes et adapte les consultations pour les huit clubs Anybuddy déjà suivis et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Aucun panier ni paiement n’est créé par le collecteur.
+Le timer `anybotty-observe.timer` se réveille toutes les cinq minutes et adapte les consultations pour les cinq clubs Anybuddy déjà suivis et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Aucun panier ni paiement n’est créé par le collecteur.
 
 Un même club conserve des observations distinctes selon le site : une ouverture Anybuddy ne prouve pas une ouverture sur le site officiel, et inversement.
 
@@ -87,3 +87,5 @@ Le moteur multi-clubs utilise **Anybuddy**. Les skills de programmation peuvent 
 ## Régulation et apprentissage
 
 Le [guide du suivi adaptatif](adaptive-monitoring.md) décrit les réglages par cible, les plages horaires apprises, les pauses de six heures en cas de restriction et les alertes Telegram via Hermes. Les scans complets sont horaires ; les autres passages sont ciblés ou ignorés selon les preuves disponibles. Les instantanés bruts restent disponibles 30 jours et les groupes de publications résumés 400 jours.
+
+Le suivi Anybuddy est désactivé pour `ucpa-paris`, `4padel-paris-20` et `4padel-saint-ouen` dans `data/clubs.json`, car leur site officiel est déjà suivi. Les cinq suivis Anybuddy actifs sont Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy et Padel 15. La réservation via Anybuddy reste disponible pour les clubs désactivés ; leurs anciens relevés ne décrivent plus une disponibilité actuelle. Aucun historique n’est effacé par cette désactivation.

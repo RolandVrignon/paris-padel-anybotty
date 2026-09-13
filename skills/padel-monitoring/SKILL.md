@@ -5,7 +5,7 @@ description: Consulter les heures de publication observées des créneaux Anybud
 
 # Surveillance des ouvertures Anybotty
 
-Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` évalue toutes les cinq minutes les besoins de collecte de huit clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
+Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` évalue toutes les cinq minutes les besoins de collecte de cinq clubs Anybuddy et quatre canaux officiels : UCPA Paris 19, 4PADEL Boulogne-Billancourt, 4PADEL Saint-Ouen et 4PADEL Paris 20. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
 
 ## Lire les observations
 
@@ -74,3 +74,5 @@ Les contrôles complets sont horaires. La découverte et la plage entourant une 
 En cas de restriction HTTP ou d’authentification répétée en échec, le fournisseur est suspendu au moins six heures. Respecter `nextRetryAt`. Une alerte est envoyée via `hermes send` si `ANYBOTTY_ALERT_TARGET` est configuré sur le service ; lire `monitoringAlert.delivery` avant d’affirmer son envoi. Ne pas ajouter un cron de notification doublon. Le collecteur 4PADEL ne reconnecte pas avec le mot de passe : rétablir la session par la commande d’authentification si nécessaire.
 
 Les preuves résumées de publications sont conservées 400 jours pour permettre l’apprentissage mensuel ; les instantanés bruts restent limités à 30 jours.
+
+Le suivi Anybuddy est désactivé pour `ucpa-paris`, `4padel-paris-20` et `4padel-saint-ouen` dans `data/clubs.json`, car leur site officiel est déjà suivi. Les cinq suivis Anybuddy actifs sont Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy et Padel 15. La réservation via Anybuddy reste disponible pour les clubs désactivés ; leurs anciens relevés ne décrivent plus une disponibilité actuelle. Aucun historique n’est effacé par cette désactivation.

@@ -1,6 +1,6 @@
 # Comparer les modes de publication Anybuddy
 
-Le collecteur surveille huit clubs Anybuddy et quatre canaux officiels avec une stratégie adaptative par cible. Trinquet Village reste exclu. Les scans complets horaires couvrent au minimum J à J+35 et deux semaines au-delà de l’horizon observé ; les passages intermédiaires ciblent les prochaines dates et les publications à confirmer. Voir le [suivi adaptatif](adaptive-monitoring.md) pour l’apprentissage des cadences et des horaires.
+Le collecteur surveille cinq clubs Anybuddy et quatre canaux officiels avec une stratégie adaptative par cible. Trinquet Village reste exclu. Les scans complets horaires couvrent au minimum J à J+35 et deux semaines au-delà de l’horizon observé ; les passages intermédiaires ciblent les prochaines dates et les publications à confirmer. Voir le [suivi adaptatif](adaptive-monitoring.md) pour l’apprentissage des cadences et des horaires.
 
 ## Hypothèses à comparer
 
