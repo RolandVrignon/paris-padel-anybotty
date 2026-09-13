@@ -1,6 +1,6 @@
 # Suivre les sites officiels
 
-Le timer `anybotty-observe.timer` se réveille toutes les cinq minutes et adapte les consultations pour les sept clubs Anybuddy et neuf canaux officiels : UCPA Paris 19 et Meudon, ainsi que 4PADEL Boulogne-Billancourt, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil. Aucun panier ni paiement n’est créé par le collecteur.
+Le timer `anybotty-observe.timer` se réveille toutes les cinq minutes et adapte les consultations pour les sept clubs Anybuddy et onze canaux directs : UCPA Paris 19 et Meudon, 4PADEL Boulogne-Billancourt, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil, puis Playtomic Casa Padel Asnières et Saint-Denis. Aucun panier ni paiement n’est créé par le collecteur.
 
 Un même club conserve des observations distinctes selon le site : une ouverture Anybuddy ne prouve pas une ouverture sur le site officiel, et inversement.
 
@@ -15,6 +15,8 @@ Un même club conserve des observations distinctes selon le site : une ouverture
 | 4PADEL CAO Saint-Denis, centre 89 | `4padel-cao-saint-denis--4padel` | Même compte 4PADEL |
 | 4PADEL Marville, centre 65 | `4padel-marville--4padel` | Même compte 4PADEL |
 | 4PADEL Créteil, centre 25 | `4padel-creteil--4padel` | Même compte 4PADEL |
+| Casa Padel Asnières | `casa-padel-asnieres--playtomic` | Calendrier public Playtomic |
+| Casa Padel Saint-Denis | `casa-padel-saint-denis--playtomic` | Calendrier public Playtomic |
 
 ## Référence d’ouverture 4PADEL
 
@@ -87,6 +89,8 @@ Chez UCPA Paris, Playwright parcourt le calendrier public avec sa flèche « sem
 Une règle J+14 ne prouve pas une ouverture à minuit. Le suivi enregistre, dans le parcours observé, le passage de « date inaccessible ou sans disponibilité » à « au moins un créneau proposé », puis cherche cinq confirmations supplémentaires espacées de cinq minutes. Une première collecte établit seulement une base. Les groupes de dates apparues ensemble permettent aussi de rechercher des publications hebdomadaires.
 
 Les historiques Anybuddy existants conservent leurs identifiants. Les échecs HTTP 401, 403 ou 429 mettent en attente le fournisseur concerné ; les autres fournisseurs continuent. Une erreur conserve le dernier relevé valide, sans compter comme absence ou confirmation. Les instantanés privés sont conservés 30 jours.
+
+Playtomic expose les disponibilités par tenant et par date. Le collecteur surveille cinq jours autour de la frontière J+14 initialement affichée sur les pages Casa Padel, sans présenter cette indication comme une politique effective de tous les comptes. Il lit seulement les créneaux de padel et n’ouvre jamais l’URL de paiement. Les relevés complets sont espacés de trois heures et la découverte de quinze minutes avant apprentissage afin de réduire la charge sur le site.
 
 ## Périmètre de réservation
 

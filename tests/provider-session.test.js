@@ -13,7 +13,7 @@ const email = 'fixture@example.test'
 const fixture = t => {
   const root = mkdtempSync(join(tmpdir(), 'anybotty-provider-'))
   t.after(() => rmSync(root, { recursive: true, force: true }))
-  writeFileSync(join(root, 'config.fixed.json'), JSON.stringify({ providers: { ucpa: { account: { email, password: 'private-password' } }, '4padel': { account: { email, password: 'private-password' } } } }))
+  writeFileSync(join(root, 'config.fixed.json'), JSON.stringify({ providers: { ucpa: { account: { email, password: 'private-password' } }, '4padel': { account: { email, password: 'private-password' } }, playtomic: { account: { email, password: 'private-password' } } } }))
   return root
 }
 const state = { cookies: [], origins: [] }
@@ -26,6 +26,7 @@ test('provider sessions are private, isolated by provider and bound to the confi
   assert.equal(statSync(files.directory).mode & 0o777, 0o700)
   assert.deepEqual(savedProviderSession(root, 'ucpa', email.toUpperCase()), state)
   assert.equal(savedProviderSession(root, '4padel', email), null)
+  assert.equal(savedProviderSession(root, 'playtomic', email), null)
   assert.equal(savedProviderSession(root, 'ucpa', 'other@example.test'), null)
   assert.ok(!readFileSync(files.meta, 'utf8').includes(email))
   writeFileSync(files.state, 'malformed JSON')

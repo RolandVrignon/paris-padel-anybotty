@@ -387,7 +387,7 @@ Les comptes UCPA et 4PADEL sont configurés sous `providers` dans le fichier fix
 
 Le timer décide à chaque réveil de consulter ou non chaque cible : découverte toutes les cinq minutes, plages resserrées après apprentissage, et couverture complète horaire. Voir le [suivi adaptatif](adaptive-monitoring.md) pour les réglages par club et par fournisseur.
 
-La surveillance couvre sept clubs Anybuddy et neuf canaux officiels : UCPA Paris 19 et Meudon, ainsi que 4PADEL Boulogne-Billancourt, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil. Elle fonctionne indépendamment des préférences de réservation. Anybuddy reste public et sans compte ; 4PADEL utilise une session Playwright dédiée. Voir la [configuration et les limites des sites officiels](direct-monitoring.md).
+La surveillance couvre sept clubs Anybuddy et onze canaux directs : UCPA Paris 19 et Meudon, 4PADEL Boulogne-Billancourt, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil, puis Casa Padel Asnières et Saint-Denis sur Playtomic. Elle fonctionne indépendamment des préférences de réservation. Anybuddy, UCPA et Playtomic restent publics pour cette lecture ; 4PADEL utilise une session Playwright dédiée. Voir la [configuration et les limites des sites officiels](direct-monitoring.md).
 
 ```sh
 # Un passage immédiat, sans programmer les suivants

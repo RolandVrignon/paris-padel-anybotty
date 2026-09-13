@@ -165,5 +165,43 @@
       "enabled": true,
       "navigationMode": "month-boundary"
     }
+  },
+  {
+    "id": "casa-padel-asnieres--playtomic",
+    "clubId": "casa-padel-asnieres",
+    "name": "CASA PADEL ASNIERES",
+    "provider": "playtomic",
+    "tenantId": "0628edc6-3447-4d87-ad90-5b89f5ce1dd9",
+    "url": "https://playtomic.com/clubs/casa-padel-asnieres",
+    "timeZone": "Europe/Paris",
+    "environment": "indoor",
+    "resourceCount": 7,
+    "observation": {
+      "horizonDays": 14,
+      "note": "Initial Playtomic club page shows a 14-day advance rule for displayed memberships; monitoring must establish the effective account booking opening independently."
+    },
+    "monitoring": {
+      "enabled": true,
+      "policy": { "fullScanMinutes": 180, "discoveryMinutes": 15 }
+    }
+  },
+  {
+    "id": "casa-padel-saint-denis--playtomic",
+    "clubId": "casa-padel-saint-denis",
+    "name": "CASA PADEL SAINT-DENIS",
+    "provider": "playtomic",
+    "tenantId": "d04b7959-3840-4894-a8bd-8f57d30b2eff",
+    "url": "https://playtomic.com/clubs/casa-padel-saint-denis",
+    "timeZone": "Europe/Paris",
+    "environment": "indoor",
+    "resourceCount": 12,
+    "observation": {
+      "horizonDays": 14,
+      "note": "Initial Playtomic club page shows a 14-day advance rule for displayed memberships; monitoring must establish the effective account booking opening independently."
+    },
+    "monitoring": {
+      "enabled": true,
+      "policy": { "fullScanMinutes": 180, "discoveryMinutes": 15 }
+    }
   }
 ]

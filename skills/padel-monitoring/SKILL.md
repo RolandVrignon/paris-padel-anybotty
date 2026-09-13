@@ -1,11 +1,11 @@
 ---
 name: padel-monitoring
-description: Consulter les heures de publication observées des créneaux Anybuddy, UCPA et 4PADEL, l’historique et l’état de la surveillance Anybotty sur le VPS. Diagnostiquer ou suspendre/reprendre le timer existant à la demande de l’utilisateur.
+description: Consulter les heures de publication observées des créneaux Anybuddy, UCPA, 4PADEL et Playtomic, l’historique et l’état de la surveillance Anybotty sur le VPS. Diagnostiquer ou suspendre/reprendre le timer existant à la demande de l’utilisateur.
 ---
 
 # Surveillance des ouvertures Anybotty
 
-Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` évalue toutes les cinq minutes les besoins de collecte de sept clubs Anybuddy et neuf canaux officiels : UCPA Paris 19 et Meudon, ainsi que 4PADEL Boulogne-Billancourt, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy et UCPA sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
+Dépôt : `'{{PROJECT_DIR}}'`. Le timer utilisateur `anybotty-observe.timer` évalue toutes les cinq minutes les besoins de collecte de sept clubs Anybuddy et onze canaux directs : UCPA Paris 19 et Meudon, 4PADEL Boulogne-Billancourt, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil, puis Playtomic Casa Padel Asnières et Saint-Denis. Trinquet Village est exclu. Ce timer ne réserve pas et n’utilise pas de modèle. Anybuddy, UCPA et Playtomic sont publics ; 4PADEL utilise le compte `providers.4padel.account` du fichier privé `config.fixed.json`.
 
 ## Lire les observations
 
@@ -69,7 +69,7 @@ Pour décider entre attendre une ouverture et essayer un club de repli, utiliser
 
 Lire `'{{PROJECT_DIR}}/docs/adaptive-monitoring.md'`. `node scripts/observe.js --plan` explique les prochaines consultations sans contacter les sites. Les règles sont dans `data/monitoring-policy.json` : valeurs par défaut et surcharges par identifiant club/site. Le collecteur apprend une cadence après au moins trois publications indépendantes confirmées et suffisamment précises. `nextScan.pattern.status: candidate` reste une hypothèse ; ne pas la présenter comme une garantie de réservation.
 
-Les contrôles complets sont horaires. La découverte et la plage entourant une ouverture estimée utilisent des contrôles ciblés toutes les cinq minutes. Une ouverture manquée relance la découverte. Les publications en cours de confirmation continuent leurs cinq vérifications. Une fenêtre ciblée vide ne signifie pas que le club entier est complet : consulter `lastFullScan.horizon` et son horodatage.
+Les contrôles complets suivent la politique de chaque cible. La découverte et la plage entourant une ouverture estimée utilisent des contrôles ciblés. Une ouverture manquée relance la découverte. Les publications en cours de confirmation continuent leurs cinq vérifications. Une fenêtre ciblée vide ne signifie pas que le club entier est complet : consulter `lastFullScan.horizon` et son horodatage. Playtomic limite ses lectures à cinq jours autour de la frontière J+14 initiale, avec un relevé complet toutes les trois heures et une découverte toutes les quinze minutes jusqu’à ce qu’une cadence soit établie.
 
 En cas de restriction HTTP ou d’authentification répétée en échec, le fournisseur est suspendu au moins six heures. Respecter `nextRetryAt`. Une alerte est envoyée via `hermes send` si `ANYBOTTY_ALERT_TARGET` est configuré sur le service ; lire `monitoringAlert.delivery` avant d’affirmer son envoi. Ne pas ajouter un cron de notification doublon. Le collecteur 4PADEL ne reconnecte pas avec le mot de passe : rétablir la session par la commande d’authentification si nécessaire.
 

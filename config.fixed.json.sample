@@ -28,6 +28,12 @@
         "email": "",
         "password": ""
       }
+    },
+    "playtomic": {
+      "account": {
+        "email": "",
+        "password": ""
+      }
     }
   }
 }

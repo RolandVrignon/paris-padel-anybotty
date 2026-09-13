@@ -1,6 +1,6 @@
 # Authentification des sites officiels
 
-UCPA et 4PADEL disposent maintenant de connexions Playwright réutilisables, indépendantes d’Anybuddy. Ces commandes établissent une session et vérifient le compte connecté ; elles ne créent aucune réservation et ne soumettent aucun paiement.
+UCPA, 4PADEL et Playtomic disposent de connexions Playwright séparées, indépendantes d’Anybuddy. Ces commandes établissent une session ; elles ne créent aucune réservation et ne soumettent aucun paiement.
 
 ## Configuration privée
 
@@ -10,7 +10,8 @@ Conserver `account` pour Anybuddy et ajouter les comptes officiels dans `config.
 {
   "providers": {
     "4padel": { "account": { "email": "", "password": "" } },
-    "ucpa": { "account": { "email": "", "password": "" } }
+    "ucpa": { "account": { "email": "", "password": "" } },
+    "playtomic": { "account": { "email": "", "password": "" } }
   }
 }
 ```
@@ -19,13 +20,13 @@ Le fichier `.sample` fournit ces champs vides. Les comptes ne sont jamais dédui
 
 ## Connexion et contrôle
 
-| Action | 4PADEL | UCPA |
-| --- | --- | --- |
-| Établir ou réutiliser une session | `npm run auth:4padel` | `npm run auth:ucpa` |
-| Vérifier la session enregistrée | `npm run auth:4padel:check` | `npm run auth:ucpa:check` |
-| Faire une nouvelle connexion | `npm run auth:4padel -- --fresh` | `npm run auth:ucpa -- --fresh` |
-| Voir le navigateur | `npm run auth:4padel -- --headed` | `npm run auth:ucpa -- --headed` |
-| Terminer une connexion manuellement | `npm run auth:4padel -- --headed --manual` | `npm run auth:ucpa -- --headed --manual` |
+| Action | 4PADEL | UCPA | Playtomic |
+| --- | --- | --- | --- |
+| Établir ou réutiliser une session | `npm run auth:4padel` | `npm run auth:ucpa` | `npm run auth:playtomic` |
+| Vérifier la session enregistrée | `npm run auth:4padel:check` | `npm run auth:ucpa:check` | `npm run auth:playtomic:check` |
+| Faire une nouvelle connexion | `npm run auth:4padel -- --fresh` | `npm run auth:ucpa -- --fresh` | `npm run auth:playtomic -- --fresh` |
+| Voir le navigateur | `npm run auth:4padel -- --headed` | `npm run auth:ucpa -- --headed` | `npm run auth:playtomic -- --headed` |
+| Terminer une connexion manuellement | `npm run auth:4padel -- --headed --manual` | `npm run auth:ucpa -- --headed --manual` | `npm run auth:playtomic -- --headed --manual` |
 
 Le mode par défaut utilise un navigateur masqué. `--check` ne remplit jamais les identifiants, ne relance pas une connexion par mot de passe et ne réécrit pas les fichiers de session. Une session absente ou expirée est signalée avec `login_required`. `--fresh` ouvre un contexte neuf ; la session enregistrée n’est remplacée qu’après vérification du compte.
 
@@ -36,6 +37,8 @@ Le mode manuel laisse jusqu’à trois minutes pour compléter le formulaire et 
 4PADEL utilise son formulaire natif puis vérifie l’identité avec `GET /splf/v1/users/me?qoodos_refund=false&appId=2`. Sa session sert aux trois centres officiels actuellement surveillés.
 
 UCPA démarre depuis l’espace personnel Paris 19, passe si nécessaire par `authent.ucpa.com`, puis vérifie la session du portail avec l’identité renvoyée par le centre sélectionné (`/api/paris-19/user` ou `/api/meudon/user`). Une simple redirection réussie ne suffit pas : l’email renvoyé par le serveur doit correspondre au compte configuré.
+
+Playtomic utilise le formulaire email/mot de passe de `app.playtomic.com`. Le contrôle passif exige ensuite un identifiant utilisateur actif renvoyé par le domaine Playtomic ; le fichier de session reste lié par empreinte à l’adresse configurée. Cette brique prépare la recette du checkout, mais la commande publique de disponibilités n’en dépend pas.
 
 Le portail peut afficher temporairement `/accueil` avant la redirection SSO, puis restaurer automatiquement le compte sans montrer le formulaire. Le bot attend donc soit un formulaire email/mot de passe visible sur `authent.ucpa.com`, soit une identité confirmée par le portail. Il ne continue pas à attendre un champ email disparu après une reconnexion automatique. `login_form_unavailable` distingue un formulaire absent ou inutilisable d’une connexion refusée.
 

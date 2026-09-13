@@ -1,6 +1,6 @@
 # Comparer les modes de publication Anybuddy
 
-Le collecteur surveille sept clubs Anybuddy et neuf canaux officiels avec une stratégie adaptative par cible. Trinquet Village reste exclu. Les scans complets horaires couvrent au minimum J à J+35 et deux semaines au-delà de l’horizon observé ; les passages intermédiaires ciblent les prochaines dates et les publications à confirmer. Voir le [suivi adaptatif](adaptive-monitoring.md) pour l’apprentissage des cadences et des horaires.
+Le collecteur surveille sept clubs Anybuddy et onze canaux directs avec une stratégie adaptative par cible. Trinquet Village reste exclu. Les canaux directs comprennent deux UCPA, sept 4PADEL et deux Casa Padel sur Playtomic. Les scans Playtomic se limitent à cinq jours autour de leur frontière initiale J+14 ; les autres fenêtres conservent leurs règles propres. Les passages intermédiaires ciblent les prochaines dates et les publications à confirmer. Voir le [suivi adaptatif](adaptive-monitoring.md) pour l’apprentissage des cadences et des horaires.
 
 ## Hypothèses à comparer
 

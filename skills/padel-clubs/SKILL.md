@@ -1,6 +1,6 @@
 ---
 name: padel-clubs
-description: Retrouver les noms exacts des clubs du catalogue Anybuddy et consulter leurs disponibilités publiques par date et horaire. Utiliser pour vérifier un nom de club ou chercher des horaires de padel sans ouvrir de panier.
+description: Retrouver les noms exacts des clubs Anybuddy ou Playtomic et consulter leurs disponibilités publiques par date et horaire. Utiliser pour vérifier un nom de club ou chercher des horaires de padel sans ouvrir de panier.
 ---
 
 # Clubs et disponibilités Anybuddy
@@ -32,5 +32,17 @@ Une liste vide après une réponse valide signifie aucun créneau public corresp
 Les horizons du catalogue sont des observations datées, pas les disponibilités actuelles. Trinquet Village figure au catalogue mais son horizon réel est inconnu ; il est exclu de la surveillance périodique. Les heures d’ouverture doivent provenir des rapports de `padel-monitoring`, pas d’une déduction à partir de l’horizon.
 
 Pour configurer une recherche ou simuler le checkout, utiliser `padel-booking`.
+
+## Playtomic et Casa Padel
+
+Casa Padel Asnières et Casa Padel Saint-Denis utilisent le fournisseur Playtomic. Le second identifiant est `casa-padel-saint-denis` ; ne pas le transformer en Saint-Ouen.
+
+```sh
+node '{{PROJECT_DIR}}/scripts/playtomic.js' clubs
+node '{{PROJECT_DIR}}/scripts/playtomic.js' availability --club casa-padel-asnieres --date YYYY-MM-DD
+node '{{PROJECT_DIR}}/scripts/playtomic.js' book --club casa-padel-saint-denis --date YYYY-MM-DD --time HH:mm --durations 90 --max-price-per-hour 60
+```
+
+`availability` est une lecture publique. `book` choisit une offre et renvoie un checkout, mais ne réserve ni ne paie. Ne jamais ajouter `--confirm` : le script le refuse tant que ce parcours n’est pas recetté.
 
 Forest Hill Nanterre–La Défense (`forest-hill-nanterre`) et La Marche Marnes-la-Coquette (`forest-hill-marnes`) sont ajoutés au catalogue de consultation et au monitoring. Leur checkout n’est pas encore audité : ne pas annoncer une réservation automatique validée. UCPA Meudon est suivi par le collecteur officiel et son checkout se simule avec `scripts/ucpa.js book --club ucpa-meudon`. Ce test ne vaut pas validation d’une réservation ou d’une annulation réelle à Meudon.

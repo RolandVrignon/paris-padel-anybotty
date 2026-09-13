@@ -1,6 +1,6 @@
 ---
 name: padel-booking
-description: Configurer une demande de padel Anybuddy, UCPA officiel ou 4PADEL officiel et chercher un créneau dans l’ordre des clubs, durées et types de terrain depuis Hermes ou Telegram. Vérifier la session et lire le résultat. Simulation ou réservation réelle avec paiement, selon la demande utilisateur.
+description: Configurer une demande de padel Anybuddy, UCPA, 4PADEL ou Playtomic et chercher un créneau dans l’ordre des clubs, durées et types de terrain depuis Hermes ou Telegram. Vérifier la session et lire le résultat. Simulation ou réservation réelle avec paiement selon les fournisseurs recettés.
 ---
 
 # Demandes de padel Anybotty
@@ -24,6 +24,10 @@ node '{{PROJECT_DIR}}/scripts/ucpa.js' book --club ucpa-meudon --date YYYY-MM-DD
 ```
 
 Le parcours UCPA utilise la carte enregistrée sur le compte et contrôle le prix du terrain entier par heure. Il ne faut ni extraire ni saisir de carte. Les journaux sont séparés par centre et une tentative incertaine se réconcilie avec le même `--club`, la même date et la même heure, sans nouveau clic.
+
+## Playtomic
+
+Pour Casa Padel Asnières ou Saint-Denis, utiliser `node '{{PROJECT_DIR}}/scripts/playtomic.js'`. `clubs` et `availability` sont publics. `book` respecte la durée et le plafond horaire, puis renvoie l’URL exacte du checkout sans soumettre de paiement. La confirmation réelle, la réconciliation, la liste et l’annulation Playtomic ne sont pas encore recettées : ne pas annoncer une réservation autonome et ne jamais tenter de contourner le refus explicite de `--confirm`.
 
 ## Demande et préférences
 

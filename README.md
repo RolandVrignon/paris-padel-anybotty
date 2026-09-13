@@ -6,10 +6,10 @@
 
 **Le prochain match commence par un message.**
 
-Programme ta réservation de terrain sur Anybuddy, Sportfield, Forest Hill, UCPA et 4PADEL. Réserve, retrouve ta partie et annule si ton programme change.
-Choisis tes clubs, tes durées et ton budget. Anybotty suit tes préférences jusqu’à la réservation et te garantie le créneau.
+Programme ta réservation de terrain sur Anybuddy, Sportfield, Forest Hill, UCPA et 4PADEL, ou prépare ton créneau Casa Padel sur Playtomic. Réserve, retrouve ta partie et annule si ton programme change.
+Choisis tes clubs, tes durées et ton budget. Anybotty suit tes préférences jusqu’à la réservation.
 
-**Anybuddy · Sportfield · Forest Hill · UCPA · 36 centres 4PADEL · 6 skills Hermes · Open source**
+**Anybuddy · Sportfield · Forest Hill · UCPA · 36 centres 4PADEL · Playtomic · Casa Padel · 6 skills Hermes · Open source**
 
 [Démarrer](#demarrer) · [Voir les exemples Telegram](#telegram) · [Guide complet](docs/guide.md) · [Signaler un problème](https://github.com/RolandVrignon/paris-padel-anybotty/issues)
 
@@ -33,7 +33,7 @@ Avec Hermes, cette demande devient une stratégie, puis une tentative immédiate
 ## Le tour du terrain
 
 - [Ce qu’Anybotty fait pour toi](#fonctionnalites)
-- [Trois sites, trois parcours](#autonomie)
+- [Quatre plateformes, des parcours explicites](#autonomie)
 - [Parle padel, pas JSON](#telegram)
 - [La stratégie avant le clic](#strategie)
 - [Tes préférences, dans le bon ordre](#preferences)
@@ -65,7 +65,7 @@ Avec Hermes, cette demande devient une stratégie, puis une tentative immédiate
 | **Savoir ce qui s’est passé** | Conserve les observations et les résultats ; distingue une offre trouvée d’une réservation confirmée. |
 
 <a id="autonomie"></a>
-## Trois sites, trois parcours
+## Quatre plateformes, des parcours explicites
 
 **Réserver pendant que tu dors : c’est le but.** Les trois intégrations savent réserver, lister et annuler ; leurs conditions de paiement diffèrent.
 
@@ -74,6 +74,7 @@ Avec Hermes, cette demande devient une stratégie, puis une tentative immédiate
 | **Anybuddy** | Paiement par carte, puis vérification dans le compte. | Peut aboutir sans intervention ; un 3-D Secure demandé interrompt le parcours autonome. | Skills de réservation et de gestion intégrés. |
 | **UCPA officiel** | Réservation avec la carte déjà enregistrée ; prélèvement annoncé au début de la partie. | Paris 19 validé de bout en bout. Meudon validé jusqu’au checkout, sans soumission réelle. | Commandes par centre disponibles ; raccordement au moteur multi-sites à faire. |
 | **4PADEL officiel** | Les **quatre parts** payées avec le portefeuille LA FID’. | Parcours réel testé sans carte ni 3-D Secure. Solde suffisant et club éligible nécessaires ; recharge manuelle. | Réservation et programmation avec contrôles de crédits dans les skills du dépôt ; mise à jour VPS nécessaire. |
+| **Playtomic** | Disponibilités publiques et URL exacte du checkout. | Asnières et Saint-Denis sont intégrés en lecture et en aperçu ; la confirmation et le paiement restent à recetter. | Consultation et suivi disponibles ; réservation Hermes à raccorder après la recette du checkout. |
 
 Les commandes officielles UCPA et 4PADEL ciblent chacune un club. Leur intégration au moteur commun de priorités entre clubs et sites reste à faire. Les tests réussis valident les parcours observés ; ils ne garantissent ni la disponibilité future d’un terrain ni l’absence de changement côté site.
 
@@ -142,7 +143,7 @@ flowchart LR
     H --> I[Vérifier le résultat Anybuddy]
 ```
 
-Le collecteur adapte **16 suivis indépendants par club et par site** : sept clubs sur Anybuddy, UCPA Paris 19 et Meudon sur leur site officiel, puis sept centres 4PADEL en direct (Boulogne, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil). Il apprend les publications quotidiennes, hebdomadaires, mensuelles ou par lots de plusieurs jours. Après au moins trois publications cohérentes, les contrôles toutes les cinq minutes se concentrent autour de la prochaine ouverture estimée. Un relevé complet horaire permet de repérer les changements ; une ouverture manquée remet la cible en découverte. Le timer systemd fonctionne sans modèle IA. [Réglages et fonctionnement du suivi adaptatif](docs/adaptive-monitoring.md).
+Le collecteur adapte **18 suivis indépendants par club et par site** : sept clubs sur Anybuddy, UCPA Paris 19 et Meudon sur leur site officiel, sept centres 4PADEL en direct (Boulogne, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil), puis Casa Padel Asnières et Saint-Denis sur Playtomic. Il apprend les publications quotidiennes, hebdomadaires, mensuelles ou par lots de plusieurs jours. Après au moins trois publications cohérentes, les contrôles se concentrent autour de la prochaine ouverture estimée. Un relevé complet périodique permet de repérer les changements ; une ouverture manquée remet la cible en découverte. Le timer systemd fonctionne sans modèle IA. [Réglages et fonctionnement du suivi adaptatif](docs/adaptive-monitoring.md).
 
 Le suivi Anybuddy couvre **Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy, Padel 15, Forest Hill Nanterre–La Défense et Forest Hill Marnes-la-Coquette**. UCPA, 4PADEL Paris 20 et Saint-Ouen sont suivis uniquement sur leur site officiel. Leurs historiques Anybuddy sont conservés selon la rétention habituelle et ces clubs restent disponibles pour la réservation via Anybuddy.
 
@@ -218,8 +219,10 @@ Le prix concerne **le terrain entier**, pas chaque joueur. Le montant du checkou
 | **UCPA officiel** | UCPA Paris 19 |
 | **UCPA officiel** | **UCPA Sport Station Meudon** |
 | **4PADEL officiel** | Les 36 centres du catalogue national |
+| **Playtomic** | Casa Padel Asnières |
+| **Playtomic** | Casa Padel Saint-Denis |
 
-[Catalogue Anybuddy](data/clubs.json) · [Centres UCPA](docs/ucpa-booking.md) · [Centres 4PADEL](data/fourpadel-clubs.json) · [Suivi des ouvertures](docs/direct-monitoring.md)
+[Catalogue Anybuddy](data/clubs.json) · [Centres UCPA](docs/ucpa-booking.md) · [Centres 4PADEL](data/fourpadel-clubs.json) · [Clubs Playtomic](data/playtomic-clubs.json) · [Suivi des ouvertures](docs/direct-monitoring.md)
 
 ### 4PADEL officiel : les 36 centres du réseau
 
@@ -273,13 +276,15 @@ npm run auth:check -- --headless
 npm run booking:search
 ```
 
-**Sites officiels :** les connexions 4PADEL et UCPA ont leurs propres sessions vérifiées côté serveur. Renseigne `providers.4padel.account` et `providers.ucpa.account` dans la configuration fixe, puis utilise `npm run auth:4padel` ou `npm run auth:ucpa`. Les commandes `auth:4padel:check` et `auth:ucpa:check` contrôlent les sessions enregistrées. [Guide d’authentification](docs/authentication.md).
+**Sites officiels :** les connexions 4PADEL et UCPA ont leurs propres sessions vérifiées côté serveur. Playtomic possède également une session séparée pour la prochaine étape du checkout. Renseigne le compte du fournisseur concerné dans `providers`, puis utilise `npm run auth:4padel`, `npm run auth:ucpa` ou `npm run auth:playtomic`. Les variantes `:check` contrôlent les sessions enregistrées. [Guide d’authentification](docs/authentication.md).
 
 Pour explorer sans connexion :
 
 ```sh
 npm run clubs:list
 npm run 4padel -- clubs
+npm run playtomic -- clubs
+npm run playtomic -- availability --club casa-padel-asnieres --date YYYY-MM-DD
 npm run booking:plan -- --config config.request.json.sample
 ```
 
@@ -321,6 +326,24 @@ Une tentative incertaine se vérifie avec `npm run ucpa -- reconcile`, en conser
 **Paris 19 validé en réel :** réservation, apparition dans le compte et annulation sans frais. **Meudon validé en aperçu réel :** session du compte, créneau, premier terrain intérieur, récapitulatif et prix du terrain entier, sans cocher les conditions ni soumettre la réservation. La lecture du compte Meudon est validée ; sa réservation et son annulation réelles restent à recetter. Les commandes UCPA sont disponibles localement ; leur branchement au moteur de priorités entre sites reste à faire.
 
 [Options, résultats et détails du parcours UCPA →](docs/ucpa-booking.md)
+
+<a id="playtomic"></a>
+## Playtomic : Casa Padel Asnières et Saint-Denis
+
+Les deux clubs sont résolus par leur identifiant natif Playtomic. La lecture publique renvoie les terrains, horaires, durées et prix sans ouvrir de session ni toucher au checkout.
+
+```sh
+# Lister les clubs Playtomic intégrés
+npm run playtomic -- clubs
+
+# Lire les disponibilités d’une date
+npm run playtomic -- availability --club casa-padel-asnieres --date YYYY-MM-DD
+
+# Choisir une offre et préparer son checkout, sans réservation ni paiement
+npm run playtomic -- book --club casa-padel-saint-denis --date YYYY-MM-DD --time HH:mm --durations 90 --max-price-per-hour 60
+```
+
+`book` renvoie l’offre choisie et l’URL officielle du checkout avec `paymentSubmitted: false` et `reservationCreated: false`. L’option `--confirm` est refusée tant que la confirmation, le paiement, la réconciliation et l’annulation n’ont pas été recettés avec un compte Playtomic. [État précis du parcours Playtomic](docs/playtomic.md).
 
 <a id="fourpadel"></a>
 ## 4PADEL : les quatre parts, directement en crédits
@@ -423,7 +446,7 @@ Installer les skills ne crée aucun cron. Hermes doit enregistrer la tâche et v
 | --- | --- | --- |
 | Voir les clubs | `npm run clubs:list` | Consulte le catalogue. |
 | Lire les observations | `npm run observe:report` | Affiche les relevés enregistrés. |
-| Collecter une fois | `npm run observe:once` | Relève les trois sites, sans programmer la suite ni réserver. |
+| Collecter une fois | `npm run observe:once` | Relève les quatre plateformes, sans programmer la suite ni réserver. |
 | Réserver sur le site officiel 4PADEL | `npm run 4padel -- book --club CLUB --date YYYY-MM-DD --time HH:mm --confirm` | Paie les quatre parts en crédits LA FID’, sans repli sur la carte. Sans `--confirm` : aperçu. [Guide](docs/fourpadel-booking.md). |
 | Lister les centres officiels 4PADEL | `npm run 4padel -- clubs` | Liste les identifiants exacts ; `--refresh` actualise le catalogue public. |
 | Consulter le portefeuille 4PADEL | `npm run 4padel -- wallet` | Actualise le solde auprès du serveur. |
@@ -431,6 +454,9 @@ Installer les skills ne crée aucun cron. Hermes doit enregistrer la tâche et v
 | Annuler sur le site officiel 4PADEL | `npm run 4padel -- cancel --id ID` | Aperçu, puis `--confirm --expected-version HASH` ; délai vérifié et statut relu. [Guide](docs/fourpadel-booking.md). |
 | Simuler sur le site officiel 4PADEL | `npm run 4padel -- book --club 4padel-paris-20 --headed` | Vérifie le checkout et les parts, sans réserver. [Guide](docs/fourpadel-booking.md). |
 | Lister ses réservations 4PADEL | `npm run 4padel -- list` | Lit les réservations du capitaine, confirmées ou en attente. |
+| Lister les clubs Playtomic | `npm run playtomic -- clubs` | Affiche les identifiants Casa Padel pris en charge. |
+| Consulter Playtomic | `npm run playtomic -- availability --club CLUB --date YYYY-MM-DD` | Lit les créneaux publics, durées, prix et terrains. |
+| Préparer un checkout Playtomic | `npm run playtomic -- book --club CLUB --date YYYY-MM-DD --time HH:mm` | Choisit une offre compatible sans réserver ni payer. |
 | Simuler sur le site officiel UCPA | `npm run ucpa -- book --headed` | Atteint le récapitulatif ; aucune réservation soumise. |
 | **Réserver sur UCPA** | `npm run ucpa -- book --confirm` | **Crée une réservation réelle**, avec prélèvement annoncé le jour du match. |
 | Gérer ses parties UCPA | `npm run ucpa -- list` | Les actions `show` et `cancel` permettent le détail et l’annulation gratuite. [Guide](docs/ucpa-booking.md). |
@@ -479,7 +505,7 @@ Sur le parcours carte Anybuddy, le 3-D Secure peut demander une validation humai
 
 **Node.js · Playwright · Chromium · systemd · Hermes · Telegram**
 
-Les collecteurs observent les disponibilités publiques et le calendrier authentifié 4PADEL. Playwright exécute le parcours du compte et du checkout. Les scripts exposent des résultats JSON ; Hermes s’en sert pour expliquer, décider et programmer. La tentative programmée exécute une demande figée, sans appel à un modèle pour choisir ses paramètres à l’ouverture.
+Les collecteurs observent les disponibilités publiques Anybuddy, UCPA et Playtomic ainsi que le calendrier authentifié 4PADEL. Playwright exécute les parcours du compte et du checkout. Les scripts exposent des résultats JSON ; Hermes s’en sert pour expliquer, décider et programmer. La tentative programmée exécute une demande figée, sans appel à un modèle pour choisir ses paramètres à l’ouverture.
 
 | Pour aller plus loin | Ressource |
 | --- | --- |
@@ -489,7 +515,7 @@ Les collecteurs observent les disponibilités publiques et le calendrier authent
 | Réserver et annuler sur 4PADEL avec les crédits | [Parcours 4PADEL et avoirs](docs/fourpadel-booking.md) |
 | Tester le parcours du site officiel UCPA | [Réservations UCPA](docs/ucpa-booking.md) |
 | Adapter les comportements Hermes | [Les six skills](skills/) |
-| Consulter les catalogues | [Clubs Anybuddy](data/clubs.json), [centres 4PADEL](data/fourpadel-clubs.json) et [parcours carte](data/payment-routes.json) |
+| Consulter les catalogues | [Clubs Anybuddy](data/clubs.json), [centres 4PADEL](data/fourpadel-clubs.json), [clubs Playtomic](data/playtomic-clubs.json) et [parcours carte](data/payment-routes.json) |
 
 <a id="contribuer"></a>
 ## Fais entrer ton club dans la partie
