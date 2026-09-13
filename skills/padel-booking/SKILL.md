@@ -13,7 +13,7 @@ Si la demande choisit le site officiel 4PADEL, utiliser `node '{{PROJECT_DIR}}/s
 
 Les centres officiels se listent avec `node '{{PROJECT_DIR}}/scripts/fourpadel.js' clubs` ; `clubs --refresh` actualise la liste publique si le centre manque. Utiliser l’identifiant exact, en distinguant Saint-Louis – Bâle de Saint-Louis – La Réunion. Les heures 4PADEL sont locales au club (`timeZone` du catalogue).
 
-Le solde actualisé est consultable avec `node '{{PROJECT_DIR}}/scripts/fourpadel.js' wallet`. Le paiement autonome couvre les quatre parts en crédits ; il n’utilise ni la carte ni une recharge automatique. En cas de manque, donner le montant à recharger. Pour ce parcours officiel, suivre le guide dédié et revenir directement au résultat ou à la programmation ; les commandes `padel.js request`, `availability`, `booking-search.js`, carte et Stripe ci-dessous concernent Anybuddy.
+Le solde actualisé est consultable avec `node '{{PROJECT_DIR}}/scripts/fourpadel.js' wallet`. Pour une simple demande de solde ou la gestion des réservations 4PADEL, suivre `padel-reservations` et exécuter la lecture avant de conclure à une configuration manquante. Le paiement autonome couvre les quatre parts en crédits ; il n’utilise ni la carte ni une recharge automatique. En cas de manque, donner le montant à recharger. Pour ce parcours officiel, suivre le guide dédié et revenir directement au résultat ou à la programmation ; les commandes `padel.js request`, `availability`, `booking-search.js`, carte et Stripe ci-dessous concernent Anybuddy.
 
 ## Demande et préférences
 

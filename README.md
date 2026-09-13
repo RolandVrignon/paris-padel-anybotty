@@ -45,6 +45,7 @@ Avec Hermes, cette demande devient une stratégie, puis une tentative immédiate
 - [Brancher Hermes et Telegram](#hermes)
 - [Choisir le bon mode](#modes)
 - [Ce qui est validé, ce qui reste à prévoir](#fiabilite)
+- [Évolutions à venir](#evolutions)
 - [Sous le capot et documentation](#documentation)
 - [Contribuer et origine](#contribuer)
 
@@ -451,6 +452,20 @@ Une simulation peut créer un panier impayé côté Anybuddy. Le mode `checkout:
 - **Tests locaux :** catalogue complet, identifiants historiques, préférences, prix, modales, paiements simulés, annulation, observation, crons et contrôles de crédits. Au 13 septembre 2026, les 201 tests et ESLint passent.
 
 Sur le parcours carte Anybuddy, le 3-D Secure peut demander une validation humaine ; la reprise interactive après fermeture du navigateur n’est pas encore implémentée. Le parcours 4PADEL intégré utilise uniquement les crédits pour les quatre parts : il ne désactive ni ne contourne une authentification bancaire. Les créneaux peuvent disparaître, les sessions expirer et le site changer : **l’horaire de déclenchement ne garantit pas l’obtention du terrain**.
+
+<a id="evolutions"></a>
+## Évolutions à venir
+
+### Deux heures de jeu, même avec deux réservations
+
+**Prévu, pas encore implémenté :** réserver deux créneaux de 60 minutes consécutifs dès leur ouverture, sur Anybuddy, 4PADEL et UCPA officiel. Par exemple, réunir **20 h–21 h et 21 h–22 h** pour jouer deux heures sans interruption.
+
+- **Choisir la formule et son ordre de préférence :** un créneau de 120 minutes, deux créneaux de 60 minutes, ou les deux possibilités. La configuration actuelle des durées ne permet pas encore de composer deux réservations.
+- **Choisir la continuité du terrain :** exiger le même terrain ou autoriser un changement entre les deux heures.
+- **Préparer la tentative à l’ouverture :** vérifier la disponibilité des deux créneaux, puis enchaîner les confirmations selon les possibilités du site.
+- **Contrôler le budget de l’ensemble :** appliquer le plafond horaire aux deux créneaux et vérifier les crédits nécessaires sur 4PADEL, à la programmation, 24 heures avant la tentative et au moment de réserver.
+- **Gérer un succès partiel :** définir à l’avance si l’on conserve la première heure lorsque la seconde échoue, ou si l’on tente de l’annuler selon les conditions du club. Deux confirmations séparées ne garantissent pas l’obtention des deux heures ; une annulation ne garantit pas un remboursement bancaire.
+- **Suivre une seule demande :** regrouper les deux références dans le résultat Hermes pour consulter ou demander l’annulation de l’ensemble, tout en conservant le statut de chaque réservation.
 
 <a id="documentation"></a>
 ## Sous le capot
