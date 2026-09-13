@@ -9,7 +9,7 @@
 Trouve ton terrain sur Anybuddy ou 4PADEL. Réserve, retrouve ta partie et annule si ton programme change.
 Choisis tes clubs, tes durées et ton budget. Anybotty suit tes préférences jusqu’à la réservation.
 
-**9 clubs Anybuddy · 36 centres 4PADEL · 6 skills Hermes · Open source**
+**11 clubs Anybuddy · 36 centres 4PADEL · 6 skills Hermes · Open source**
 
 [Démarrer](#demarrer) · [Voir les exemples Telegram](#telegram) · [Guide complet](docs/guide.md) · [Signaler un problème](https://github.com/RolandVrignon/paris-padel-anybotty/issues)
 
@@ -199,6 +199,22 @@ Le prix concerne **le terrain entier**, pas chaque joueur. Le montant du checkou
 
 <a id="clubs"></a>
 ## Tes clubs, à Paris et au-delà
+
+### Clubs pris en charge
+
+| Site | Clubs | Disponibilités | Monitoring des ouvertures | Réserver | Lister et annuler |
+| --- | --- | :---: | :---: | :---: | :---: |
+| **Anybuddy** | Paris Padel, Sportfield Bercy, Aquaboulevard, Padelistes Bercy et Padel 15 | ✅ | ✅ | ✅ | ✅ |
+| **Anybuddy** | UCPA Sport Station Hostel Paris, 4PADEL Paris 20 et 4PADEL Saint-Ouen | ✅ | Site officiel privilégié | ✅ | ✅ |
+| **Anybuddy** | Trinquet Village | ✅ | Non, horizon ouvert | ✅ | ✅ |
+| **Anybuddy** | Forest Hill Nanterre–La Défense et Forest Hill La Marche Marnes-la-Coquette | ✅ | ✅ | À auditer | À auditer |
+| **UCPA officiel** | UCPA Paris 19 | ✅ | ✅ | ✅ | ✅ |
+| **UCPA officiel** | UCPA Sport Station Meudon | ✅ | ✅, frontière du calendrier | À adapter | À adapter |
+| **4PADEL officiel** | Les 36 centres du catalogue national | ✅ | Sept centres franciliens¹ | ✅ si le club accepte les crédits LA FID’ | ✅ |
+
+¹ Boulogne-Billancourt, Saint-Ouen, Paris 20, Montreuil, CAO Saint-Denis, Marville et Créteil. Les autres centres 4PADEL utilisent le même parcours de réservation, mais leur heure d’ouverture n’est pas encore suivie individuellement.
+
+`✅` signifie que le parcours correspondant est implémenté. Une disponibilité observée ne garantit jamais qu’un terrain sera encore libre au moment du checkout. Les lignes « À auditer » restent volontairement bloquées avant paiement.
 
 ### Anybuddy : onze clubs à Paris et en proche banlieue
 
