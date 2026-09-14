@@ -6,7 +6,7 @@
 
 **Le prochain match commence par un message.**
 
-Programme ta réservation de terrain sur Anybuddy, Sportfield, Forest Hill, UCPA et 4PADEL, ou prépare ton créneau Casa Padel sur Playtomic. Réserve, retrouve ta partie et annule si ton programme change.
+Programme ta réservation de terrain sur Anybuddy, Sportfield, Forest Hill, UCPA et 4PADEL. Réserve, retrouve ta partie et annule si ton programme change.
 Choisis tes clubs, tes durées et ton budget. Anybotty suit tes préférences jusqu’à la réservation.
 
 **Anybuddy · Sportfield · Forest Hill · UCPA · 36 centres 4PADEL · Playtomic · Casa Padel · 6 skills Hermes · Open source**
